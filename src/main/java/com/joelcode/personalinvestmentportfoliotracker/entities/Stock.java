@@ -14,8 +14,7 @@ public class Stock {
 
     // Constructor
 
-    public Stock(Long stockId, String stockCode, String companyName, Double stockValue) {
-        this.stockId = stockId;
+    public Stock(String stockCode, String companyName, Double stockValue) {
         this.stockCode = stockCode;
         this.companyName = companyName;
         this.stockValue = stockValue;
@@ -23,7 +22,7 @@ public class Stock {
 
     public Stock() {}
 
-    // Defining key fields
+    // Key fields
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,7 +31,7 @@ public class Stock {
     @Column(nullable = false, unique = true, length = 20)
     private String stockCode;
 
-    @Column (nullable = false, length = 100)
+    @Column (nullable = false, unique = true, length = 100)
     private String companyName;
 
     @Column (nullable = false)
@@ -48,14 +47,13 @@ public class Stock {
     // Mapping to other entities (single stock to multiple dividends, transactions and histories)
 
     @OneToMany(mappedBy = "stock", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<Transactions> transactions = new ArrayList<>();
+    private List<Transaction> transactions = new ArrayList<>();
 
     @OneToMany(mappedBy = "stock", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<Dividends> dividends = new ArrayList<>();
+    private List<Dividend> dividends = new ArrayList<>();
 
     @OneToMany(mappedBy = "stock", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<PriceHistory> priceHistories = new ArrayList<>();
-
 
 
     // Getters and setters
@@ -66,7 +64,7 @@ public class Stock {
 
     public String getStockCode() {return stockCode;}
 
-    public void setStockCode(Long stockCode) {
+    public void setStockCode(String stockCode) {
         this.stockCode = stockCode;
     }
 
@@ -97,4 +95,76 @@ public class Stock {
     public LocalDateTime getUpdatedAt() {return updatedAt;}
 
     public void setUpdatedAt(LocalDateTime updatedAt) {this.updatedAt = updatedAt;}
+
+    // Helper Functions
+
+    // Adding and removing key fields
+
+    public void addDividend(Dividend dividend) {
+        if (dividend != null) {
+            dividends.add(dividend);
+            dividend.setStock(this);
+        }
+    }
+
+    public void removeDividend(Dividend dividend) {
+        if (dividend != null) {
+            dividends.remove(dividend);
+            dividend.setStock(null);
+        }
+    }
+
+    public void addPriceHistory(PriceHistory priceHistory) {
+        if (priceHistory != null) {
+            priceHistories.add(priceHistory);
+            priceHistory.setStock(this);
+        }
+    }
+
+    public void removePriceHistory(PriceHistory priceHistory) {
+        if (priceHistory != null) {
+            priceHistories.remove(priceHistory);
+            priceHistory.setStock(null);
+        }
+    }
+
+    public void addTransaction(Transaction transaction) {
+        if (transaction != null) {
+            transactions.add(transaction);
+            transaction.setStock(this);
+        }
+    }
+
+    public void removeTransaction(Transaction transaction) {
+        if (transaction != null) {
+            transactions.remove(transaction);
+            transaction.setStock(null);
+        }
+    }
+
+    // Retrieving and setting information
+
+    public List<Transaction> getTransactions() {
+        return transactions;
+    }
+
+    public void setTransactions(List<Transaction> transactions) {
+        this.transactions = transactions;
+    }
+
+    public List<Dividend> getDividends() {
+        return dividends;
+    }
+
+    public void setDividends(List<Dividend> dividends) {
+        this.dividends = dividends;
+    }
+
+    public List<PriceHistory> getPriceHistories() {
+        return priceHistories;
+    }
+
+    public void setPriceHistories(List<PriceHistory> priceHistories) {
+        this.priceHistories = priceHistories;
+    }
 }

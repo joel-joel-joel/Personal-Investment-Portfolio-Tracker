@@ -1,0 +1,79 @@
+package com.joelcode.personalinvestmentportfoliotracker.entities;
+
+import jakarta.persistence.*;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+@Entity
+@Table (name = "dividends")
+public class Dividend {
+
+    // Constructor
+
+    public Dividend(BigDecimal amountPerShare, LocalDateTime payDate, Stock stock) {
+        this.stock  = stock;
+        this.amountPerShare = amountPerShare;
+        this.payDate = payDate;
+    }
+
+    public Dividend() {}
+
+    // Key fields
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long dividendId;
+
+    @Column (nullable = false)
+    private BigDecimal amountPerShare;
+
+    @Column (nullable = false)
+    private LocalDateTime payDate;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "stockId", nullable = false)
+    private Stock stock;
+
+
+    // Getters and setters
+
+    public Long getDividendId() {
+        return dividendId;
+    }
+
+    public void setDividendId(Long dividendId) {
+        this.dividendId = dividendId;
+    }
+
+    public BigDecimal getAmountPerShare() {
+        return amountPerShare;
+    }
+
+    public void setAmountPerShare(BigDecimal amountPerShare) {
+        this.amountPerShare = amountPerShare;
+    }
+
+    public LocalDateTime getPayDate() {
+        return payDate;
+    }
+
+    public void setPayDate(LocalDateTime payDate) {
+        this.payDate = payDate;
+    }
+
+    public Stock getStock() {
+        return stock;
+    }
+
+    public void setStock(Stock stock) {
+        this.stock = stock;
+    }
+
+    // Helper functions
+
+    public BigDecimal getTotalDividend(BigDecimal sharesOwned) {
+        return amountPerShare.multiply(sharesOwned);
+    }
+
+}
