@@ -12,7 +12,6 @@ import java.util.UUID;
 
 public interface StockRepository  extends JpaRepository<Stock, Long> {
 
-
     // Finding specific stocks
     Optional<Stock> findByCode(String code);
 

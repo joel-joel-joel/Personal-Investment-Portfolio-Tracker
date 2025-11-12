@@ -12,8 +12,9 @@ public class User {
 
     // Constructor
 
-    public User (UUID userId, String email, String password, String fullName) {
+    public User (UUID userId, String email, String username, String password, String fullName) {
         this.userId = userId;
+        this.username = username;
         this.email = email;
         this.password = password;
         this.fullName = fullName;
@@ -35,6 +36,9 @@ public class User {
 
     @Column(nullable = false)
     private String fullName;
+
+    @Column(nullable = false, unique = true)
+    private String username;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Account> accounts = new ArrayList<>();
@@ -77,6 +81,10 @@ public class User {
     public void setAccounts(List<Account> accounts) {
         this.accounts = accounts;
     }
+
+    public String getUsername() {return username;}
+
+    public void setUsername(String username) {this.username = username;}
 
     // Helper Functions
 
