@@ -22,8 +22,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
 
     List<Transaction> findByStock_CompanyName(String companyName);
 
-    List<Transaction> findByTrnactionId(UUID transactionId);
-
     // Find by stock and account
     List<Transaction> findByAccount_AccountIdAndStock_StockId(UUID accountId, Long stockId);
 
@@ -31,8 +29,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
 
     List<Transaction> findByAccount_AccountIdAndStock_CompanyName(UUID accountId, String companyName);
 
-    // Existence check
-    boolean existsByTransactionId(UUID transactionId);
 
     // Filter by share quantity
     List<Transaction> findByShareQuantity (BigDecimal shareQuantity);
@@ -54,4 +50,5 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
     List<Transaction> findByCreatedAtBefore(LocalDateTime createdAtBefore);
 
     List<Transaction> findByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
+
 }

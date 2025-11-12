@@ -23,8 +23,6 @@ public interface DividendRepository extends JpaRepository<Dividend, UUID> {
 
     List<Dividend> findByStock_CompanyName(String companyName);
 
-    List<Dividend> findByDividendId(UUID dividendId);
-
     // Existence check
     boolean existsByStockAndPayDate(Stock stock, LocalDateTime payDate);
 

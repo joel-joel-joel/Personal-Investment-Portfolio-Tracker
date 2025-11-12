@@ -18,11 +18,6 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
     // Find account
     Optional<Account> findByAccountName(String accountName);
 
-    // Existence checks
-    boolean existsByAccountId(UUID accountId);
-
-    boolean existsByAccountName(String accountName);
-
     // Filter by date
     List<Account> findByCreatedAtAfter(LocalDateTime createdAtAfter);
 

@@ -13,12 +13,9 @@ import java.util.UUID;
 public interface StockRepository  extends JpaRepository<Stock, UUID> {
 
     // Finding specific stocks
-    Optional<Stock> findByStockId(UUID stockId);
-
     Optional<Stock> findByCode(String code);
 
     Optional<Stock> findByCompanyName(String companyName);
-
 
     // Filter lists of stocks
     List<Stock> findByCompanyNameContainingIgnoreCase(String companyName);
@@ -27,8 +24,6 @@ public interface StockRepository  extends JpaRepository<Stock, UUID> {
     boolean existsByStockCode(String stockCode);
 
     boolean existsByCompanyName(String companyName);
-
-    boolean existsByStockId(UUID stockId);
 
     // Filter by date
     List<Stock> findByCreatedAtAfter(LocalDateTime date);
