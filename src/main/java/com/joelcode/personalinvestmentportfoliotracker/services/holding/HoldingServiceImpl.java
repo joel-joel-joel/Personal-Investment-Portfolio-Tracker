@@ -10,6 +10,7 @@ import com.joelcode.personalinvestmentportfoliotracker.repositories.HoldingRepos
 import com.joelcode.personalinvestmentportfoliotracker.services.mapping.HoldingMapper;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -51,20 +52,20 @@ public class HoldingServiceImpl implements HoldingService {
         holding = holdingRepository.save(holding);
 
         // Convert entity -> DTO
-        return HoldingMapper.toDTO(holding, stock.getCurrentPrice());
+        return HoldingMapper.toDTO(holding, BigDecimal.valueOf(stock.getStockValue()));
     }
 
     @Override
     public HoldingDTO getHoldingById(UUID holdingId) {
         Holding holding = holdingValidationService.validateHoldingExists(holdingId);
-        return HoldingMapper.toDTO(holding, holding.getStock().getCurrentPrice());
+        return HoldingMapper.toDTO(holding, BigDecimal.valueOf(holding.getStock().getStockValue()));
     }
 
     @Override
     public List<HoldingDTO> getAllHoldings() {
         return holdingRepository.findAll()
                 .stream()
-                .map(holding -> HoldingMapper.toDTO(holding, holding.getStock().getCurrentPrice()))
+                .map(holding -> HoldingMapper.toDTO(holding, BigDecimal.valueOf(holding.getStock().getStockValue())))
                 .collect(Collectors.toList());
     }
 
@@ -73,7 +74,7 @@ public class HoldingServiceImpl implements HoldingService {
         Account account = holdingValidationService.validateAccountExists(accountId);
         return holdingRepository.findByAccount(account)
                 .stream()
-                .map(holding -> HoldingMapper.toDTO(holding, holding.getStock().getCurrentPrice()))
+                .map(holding -> HoldingMapper.toDTO(holding, BigDecimal.valueOf(holding.getStock().getStockValue())))
                 .collect(Collectors.toList());
     }
 
@@ -108,7 +109,7 @@ public class HoldingServiceImpl implements HoldingService {
         holding = holdingRepository.save(holding);
 
         // Convert entity -> DTO
-        return HoldingMapper.toDTO(holding, holding.getStock().getCurrentPrice());
+        return HoldingMapper.toDTO(holding, BigDecimal.valueOf(holding.getStock().getStockValue()));
     }
 
     @Override
