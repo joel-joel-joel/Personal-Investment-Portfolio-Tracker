@@ -38,7 +38,7 @@ public class TransactionServiceImpl implements TransactionService {
             transactionValidationService.validateSufficientBalance(request.getAccountId(), requiredAmount);
         }
 
-        // Map transaction creation request to entity
+        // Map transaction creation request to enttiy
         Transaction transaction = TransactionMapper.toEntity(request);
 
         // Save transaction to db
@@ -68,7 +68,6 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public void deleteTransaction(UUID transactionId) {
         Transaction transaction = transactionValidationService.validateTransactionExists(transactionId);
-
         transactionRepository.delete(transaction);
     }
 }
