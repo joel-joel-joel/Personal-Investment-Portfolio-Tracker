@@ -1,4 +1,10 @@
 package com.joelcode.personalinvestmentportfoliotracker.services.dividend;
 
-public class DividendCalculationService {
+import java.math.BigDecimal;
+import java.util.UUID;
+
+public interface DividendCalculationService {
+
+    BigDecimal calculateTotalDividends(UUID accountId);
+
 }

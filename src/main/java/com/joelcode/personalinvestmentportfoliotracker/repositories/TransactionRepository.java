@@ -14,7 +14,7 @@ import java.util.UUID;
 public interface TransactionRepository extends JpaRepository<Transaction, UUID> {
 
     // Find transactions
-    List<Transaction> findByAccount_AccountId(Account accountId);
+    List<Transaction> findByAccount_AccountId(UUID accountId);
 
     List<Transaction> findByStock_StockId(Long stockId);
 

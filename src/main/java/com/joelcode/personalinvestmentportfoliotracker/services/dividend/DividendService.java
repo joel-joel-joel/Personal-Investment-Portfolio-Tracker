@@ -1,4 +1,18 @@
 package com.joelcode.personalinvestmentportfoliotracker.services.dividend;
 
-public class DividendService {
+import com.joelcode.personalinvestmentportfoliotracker.dto.dividend.DividendCreateRequest;
+import com.joelcode.personalinvestmentportfoliotracker.dto.dividend.DividendDTO;
+
+import java.util.List;
+import java.util.UUID;
+
+public interface DividendService {
+
+    DividendDTO createDividend(DividendCreateRequest request);
+
+    DividendDTO getDividendById(UUID id);
+
+    List<DividendDTO> getAllDividends();
+
+    void deleteDividend(UUID id);
 }

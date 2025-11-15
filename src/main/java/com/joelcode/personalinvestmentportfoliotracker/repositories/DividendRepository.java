@@ -2,7 +2,6 @@ package com.joelcode.personalinvestmentportfoliotracker.repositories;
 
 import com.joelcode.personalinvestmentportfoliotracker.entities.Dividend;
 import com.joelcode.personalinvestmentportfoliotracker.entities.Stock;
-import com.joelcode.personalinvestmentportfoliotracker.entities.Transaction;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -17,7 +16,7 @@ public interface DividendRepository extends JpaRepository<Dividend, UUID> {
     // Find dividends by stock
     List<Dividend> findByStock(Stock stock);
 
-    List<Dividend> findByStock_StockId(Long stockId);
+    List<Dividend> findByStock_StockId(UUID stockId);
 
     List<Dividend> findByStock_StockCode(String stockCode);
 
