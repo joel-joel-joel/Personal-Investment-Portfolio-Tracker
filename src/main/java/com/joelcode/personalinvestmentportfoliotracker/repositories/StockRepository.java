@@ -43,4 +43,5 @@ public interface StockRepository  extends JpaRepository<Stock, UUID> {
 
     List<Stock> findByStockValueLessThan(Double stockValue);
 
+    UUID stockId(UUID stockId);
 }

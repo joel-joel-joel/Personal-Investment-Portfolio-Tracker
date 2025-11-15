@@ -8,9 +8,15 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
+import java.util.UUID;
+
 public class StockCreateRequest {
 
     // Stock creation request DTO (input)
+    @NotBlank (message = "Stock ID is required")
+    @Size(max = 20, message = "Stock ID must be at most 20 characters")
+    private final UUID stockId;
+
     @NotBlank (message = "Stock code is required")
     @Size(max = 20, message = "Stock code must be at most 20 characters")
     private final String stockCode;
@@ -26,11 +32,13 @@ public class StockCreateRequest {
     // Jackson-compatible constructor
     @JsonCreator
     public StockCreateRequest(
-            @JsonProperty ("stockCode") String stockCode,
+            @JsonProperty ("stockiD") UUID stockId,
             @JsonProperty ("companyName") String companyName,
-            @JsonProperty ("stockValue") Double stockValue) {
-        this.stockCode = stockCode;
+            @JsonProperty ("stockCode") String stockCode,
+            @JsonProperty ("stockValue") Double stockValue){
+        this.stockId = stockId;
         this.companyName = companyName;
+        this.stockCode = stockCode;
         this.stockValue = stockValue;
     }
 
@@ -40,4 +48,6 @@ public class StockCreateRequest {
     public String getCompanyName() {return companyName;}
 
     public Double getStockValue() {return stockValue;}
+
+    public UUID getStockId() {return stockId;}
 }

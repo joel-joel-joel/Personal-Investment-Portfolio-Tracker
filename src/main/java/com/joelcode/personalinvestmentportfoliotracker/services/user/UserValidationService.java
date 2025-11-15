@@ -2,9 +2,11 @@ package com.joelcode.personalinvestmentportfoliotracker.services.user;
 
 import com.joelcode.personalinvestmentportfoliotracker.entities.User;
 import com.joelcode.personalinvestmentportfoliotracker.repositories.UserRepository;
+import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
+@Service
 public class UserValidationService {
 
     // Define user repository

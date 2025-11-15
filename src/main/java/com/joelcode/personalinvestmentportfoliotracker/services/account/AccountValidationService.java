@@ -2,9 +2,11 @@ package com.joelcode.personalinvestmentportfoliotracker.services.account;
 
 import com.joelcode.personalinvestmentportfoliotracker.entities.Account;
 import com.joelcode.personalinvestmentportfoliotracker.repositories.AccountRepository;
+import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
+@Service
 public class AccountValidationService {
 
     // Define key field

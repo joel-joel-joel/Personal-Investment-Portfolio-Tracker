@@ -5,12 +5,17 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
+import java.util.UUID;
+
 public class StockUpdateRequest {
 
     // Stock creation request DTO (input)
     // Non-mandatory fields for single variable updates
     @Size(max = 20, message = "Stock code must be at most 20 characters")
     private String stockCode;
+
+    @Size(max = 20, message = "Stock ID must be at most 20 characters")
+    private UUID stockId;
 
     @Size(max = 100, message = "Company name must be at most 100 characters")
     private String companyName;
@@ -23,13 +28,19 @@ public class StockUpdateRequest {
     public StockUpdateRequest(
             @JsonProperty("stockCode") String stockCode,
             @JsonProperty ("companyName") String companyName,
+            @JsonProperty ("stockId") UUID stockId,
             @JsonProperty ("stockValue") Double stockValue) {
         this.stockCode = stockCode;
+        this.stockId = stockId;
         this.companyName = companyName;
         this.stockValue = stockValue;
     }
 
     // Getters and setters
+    public UUID getStockId() {return stockId;}
+
+    public void setStockId(UUID stockId) {this.stockId = stockId;}
+
     public String getStockCode() {return stockCode;}
 
     public void setStockCode(String stockCode) {this.stockCode = stockCode;}

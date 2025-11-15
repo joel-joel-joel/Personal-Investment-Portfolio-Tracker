@@ -83,8 +83,7 @@ public class UserServiceImpl implements UserService{
     // Delete user by userId
     @Override
     public void deleteUser(UUID userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User with id " + userId + " not found"));
+        User user = userValidationService.validateUserExists(userId);
 
         userRepository.delete(user);
     }
