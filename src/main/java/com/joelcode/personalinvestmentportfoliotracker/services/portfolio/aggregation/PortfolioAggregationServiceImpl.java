@@ -7,7 +7,7 @@ import com.joelcode.personalinvestmentportfoliotracker.services.account.AccountS
 import com.joelcode.personalinvestmentportfoliotracker.services.dividend.DividendCalculationService;
 import com.joelcode.personalinvestmentportfoliotracker.services.holding.HoldingCalculationService;
 import com.joelcode.personalinvestmentportfoliotracker.services.holding.HoldingService;
-import com.joelcode.personalinvestmentportfoliotracker.services.portfolio.model.PortfolioOverviewDTO;
+import com.joelcode.personalinvestmentportfoliotracker.dto.model.PortfolioOverviewDTO;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;

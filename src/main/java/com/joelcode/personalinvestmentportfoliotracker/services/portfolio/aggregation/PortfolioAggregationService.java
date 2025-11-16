@@ -1,6 +1,6 @@
 package com.joelcode.personalinvestmentportfoliotracker.services.portfolio.aggregation;
 
-import com.joelcode.personalinvestmentportfoliotracker.services.portfolio.model.PortfolioOverviewDTO;
+import com.joelcode.personalinvestmentportfoliotracker.dto.model.PortfolioOverviewDTO;
 
 import java.util.UUID;
 

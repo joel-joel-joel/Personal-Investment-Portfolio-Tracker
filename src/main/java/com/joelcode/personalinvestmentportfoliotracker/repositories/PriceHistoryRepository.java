@@ -1,6 +1,7 @@
 package com.joelcode.personalinvestmentportfoliotracker.repositories;
 
 import com.joelcode.personalinvestmentportfoliotracker.entities.PriceHistory;
+import com.joelcode.personalinvestmentportfoliotracker.entities.Stock;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -29,11 +30,11 @@ public interface PriceHistoryRepository extends JpaRepository<PriceHistory, UUID
 
     List<PriceHistory> findByStock_StockIdAndCloseDateBetween(UUID stockId, LocalDateTime start, LocalDateTime end);
 
+    Optional<PriceHistory> findTopByStockOrderByDateDesc(Stock stock);
     // Filter by closing price
     List<PriceHistory> findByClosePrice(BigDecimal closePrice);
 
     List<PriceHistory> findByClosePriceGreaterThan(BigDecimal closePrice);
 
     List<PriceHistory> findByClosePriceLessThan(BigDecimal closePrice);
-
 }

@@ -4,6 +4,7 @@ import com.joelcode.personalinvestmentportfoliotracker.dto.stock.StockCreateRequ
 import com.joelcode.personalinvestmentportfoliotracker.dto.stock.StockDTO;
 import com.joelcode.personalinvestmentportfoliotracker.dto.stock.StockUpdateRequest;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -16,6 +17,8 @@ public interface StockService {
     StockDTO getStockById(UUID id);
 
     List<StockDTO> getAllStocks();
+
+    BigDecimal getCurrentPrice(UUID stockId);
 
     void deleteStock(UUID id);
 }

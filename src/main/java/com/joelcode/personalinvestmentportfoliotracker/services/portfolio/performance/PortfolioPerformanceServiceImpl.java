@@ -1,6 +1,5 @@
 package com.joelcode.personalinvestmentportfoliotracker.services.portfolio.performance;
 
-import com.joelcode.personalinvestmentportfoliotracker.dto.account.AccountDTO;
 import com.joelcode.personalinvestmentportfoliotracker.entities.Account;
 import com.joelcode.personalinvestmentportfoliotracker.entities.Holding;
 import com.joelcode.personalinvestmentportfoliotracker.entities.PortfolioSnapshot;
@@ -10,7 +9,7 @@ import com.joelcode.personalinvestmentportfoliotracker.repositories.PortfolioSna
 import com.joelcode.personalinvestmentportfoliotracker.services.account.AccountService;
 import com.joelcode.personalinvestmentportfoliotracker.services.dividend.DividendCalculationService;
 import com.joelcode.personalinvestmentportfoliotracker.services.holding.HoldingService;
-import com.joelcode.personalinvestmentportfoliotracker.services.portfolio.model.PortfolioPerformanceDTO;
+import com.joelcode.personalinvestmentportfoliotracker.dto.model.PortfolioPerformanceDTO;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 

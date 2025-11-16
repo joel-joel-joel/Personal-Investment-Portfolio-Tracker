@@ -52,8 +52,8 @@ public class PortfolioSnapshotCalculationServiceImpl implements PortfolioSnapsho
         // Calculate current portfolio metrics
         BigDecimal totalValue = holdingCalculationService.calculateTotalPortfolioValue(accountId);
         BigDecimal totalCostBasis = holdingCalculationService.calculateTotalCostBasis(accountId);
-        BigDecimal unrealizedGainLoss = holdingCalculationService.calculateTotalUnrealizedGainLoss(accountId);
-        BigDecimal realizedGainLoss = holdingCalculationService.calculateTotalRealizedGainLoss(accountId);
+        BigDecimal unrealizedGainLoss = holdingCalculationService.calculateTotalUnrealizedGain(accountId);
+        BigDecimal realizedGainLoss = holdingCalculationService.calculateTotalRealizedGain(accountId);
         BigDecimal totalGainLoss = unrealizedGainLoss.add(realizedGainLoss);
 
         // Calculate day change by comparing to yesterday's snapshot

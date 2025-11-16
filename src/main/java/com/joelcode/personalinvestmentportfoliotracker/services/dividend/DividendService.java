@@ -3,6 +3,7 @@ package com.joelcode.personalinvestmentportfoliotracker.services.dividend;
 import com.joelcode.personalinvestmentportfoliotracker.dto.dividend.DividendCreateRequest;
 import com.joelcode.personalinvestmentportfoliotracker.dto.dividend.DividendDTO;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 

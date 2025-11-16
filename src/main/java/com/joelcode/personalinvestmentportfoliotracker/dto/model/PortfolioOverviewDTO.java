@@ -1,4 +1,4 @@
-package com.joelcode.personalinvestmentportfoliotracker.services.portfolio.model;
+package com.joelcode.personalinvestmentportfoliotracker.dto.model;
 
 import com.joelcode.personalinvestmentportfoliotracker.dto.holding.HoldingDTO;
 import com.joelcode.personalinvestmentportfoliotracker.entities.Holding;
