@@ -17,14 +17,14 @@ public class HoldingUpdateRequest {
     @DecimalMin(value = "0.01", message = "Total cost basis must be greater than zero")
     private BigDecimal totalCostBasis;
 
-    private BigDecimal realizedGainLoss;
+    private BigDecimal realizedGain;
 
     // Constructor
-    public HoldingUpdateRequest(BigDecimal quantity, BigDecimal averageCostBasis, BigDecimal totalCostBasis, BigDecimal realizedGainLoss) {
+    public HoldingUpdateRequest(BigDecimal quantity, BigDecimal averageCostBasis, BigDecimal totalCostBasis, BigDecimal realizedGain) {
         this.quantity = quantity;
         this.averageCostBasis = averageCostBasis;
         this.totalCostBasis = totalCostBasis;
-        this.realizedGainLoss = realizedGainLoss;
+        this.realizedGain = realizedGain;
     }
 
     public HoldingUpdateRequest() {}
@@ -54,11 +54,11 @@ public class HoldingUpdateRequest {
         this.totalCostBasis = totalCostBasis;
     }
 
-    public BigDecimal getRealizedGainLoss() {
-        return realizedGainLoss;
+    public BigDecimal getRealizedGain() {
+        return realizedGain;
     }
 
-    public void setRealizedGainLoss(BigDecimal realizedGainLoss) {
-        this.realizedGainLoss = realizedGainLoss;
+    public void setRealizedGain(BigDecimal realizedGain) {
+        this.realizedGain = realizedGain;
     }
 }

@@ -10,7 +10,7 @@ import java.util.UUID;
 @Table(name = "holdings")
 public class Holding {
 
-    // This entity tracks the current position for each stock in an account inclusive of current quantity, gains/losses
+    // This entity tracks the current position for each stock in an account inclusive of current quantity, gains
     // and cost basis (price paid for share)
 
     // Constructor
@@ -117,11 +117,11 @@ public class Holding {
         this.totalCostBasis = totalCostBasis;
     }
 
-    public BigDecimal getRealizedGainLoss() {
+    public BigDecimal getRealizedGain() {
         return realizedGain;
     }
 
-    public void setRealizedGainLoss(BigDecimal realizedGain) {
+    public void setRealizedGain(BigDecimal realizedGain) {
         this.realizedGain = realizedGain;
     }
 
@@ -168,7 +168,7 @@ public class Holding {
                 .multiply(BigDecimal.valueOf(100));
     }
 
-    public BigDecimal getTotalGainLoss(BigDecimal currentPrice) {
+    public BigDecimal getTotalGain(BigDecimal currentPrice) {
         return getUnrealizedGain(currentPrice).add(realizedGain);
     }
 }

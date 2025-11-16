@@ -110,8 +110,8 @@ public class HoldingServiceImpl implements HoldingService {
         if (request.getTotalCostBasis() != null) {
             holding.setTotalCostBasis(request.getTotalCostBasis());
         }
-        if (request.getRealizedGainLoss() != null) {
-            holding.setRealizedGainLoss(request.getRealizedGainLoss());
+        if (request.getRealizedGain() != null) {
+            holding.setRealizedGain(request.getRealizedGain());
         }
 
         // Save to DB
@@ -145,7 +145,7 @@ public class HoldingServiceImpl implements HoldingService {
 
         // Update holding
         holding.setQuantity(holding.getQuantity().subtract(quantitySold));
-        holding.setRealizedGainLoss(holding.getRealizedGainLoss().add(realizedGain));
+        holding.setRealizedGain(holding.getRealizedGain().add(realizedGain));
         holding.setTotalCostBasis(holding.getAverageCostBasis().multiply(holding.getQuantity()));
 
         holdingRepository.save(holding);
@@ -178,7 +178,7 @@ public class HoldingServiceImpl implements HoldingService {
                 // Reduce quantity and calculate realized gain
                 BigDecimal realizedGain = quantity.multiply(pricePerShare.subtract(holding.getAverageCostBasis()));
                 holding.setQuantity(holding.getQuantity().subtract(quantity));
-                holding.setRealizedGainLoss(holding.getRealizedGainLoss().add(realizedGain));
+                holding.setRealizedGain(holding.getRealizedGain().add(realizedGain));
                 holding.setTotalCostBasis(holding.getAverageCostBasis().multiply(holding.getQuantity()));
             }
 
@@ -193,7 +193,7 @@ public class HoldingServiceImpl implements HoldingService {
                 newHolding.setQuantity(quantity);
                 newHolding.setAverageCostBasis(pricePerShare);
                 newHolding.setTotalCostBasis(pricePerShare.multiply(quantity));
-                newHolding.setRealizedGainLoss(BigDecimal.ZERO);
+                newHolding.setRealizedGain(BigDecimal.ZERO);
 
                 holdingRepository.save(newHolding);
             } else {
