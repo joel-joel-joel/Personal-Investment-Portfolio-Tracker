@@ -23,14 +23,12 @@ public class HoldingServiceImpl implements HoldingService {
     // Define key fields
     private final HoldingRepository holdingRepository;
     private final HoldingValidationService holdingValidationService;
-    private final HoldingService holdingService;
 
     // Constructor
     public HoldingServiceImpl(HoldingRepository holdingRepository,
-                              HoldingValidationService holdingValidationService, HoldingService holdingService) {
+                              HoldingValidationService holdingValidationService) {
         this.holdingRepository = holdingRepository;
         this.holdingValidationService = holdingValidationService;
-        this.holdingService = holdingService;
     }
 
     // Create holding entity from request dto
