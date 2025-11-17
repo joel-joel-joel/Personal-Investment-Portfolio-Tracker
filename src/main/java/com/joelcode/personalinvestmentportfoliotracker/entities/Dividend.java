@@ -73,6 +73,10 @@ public class Dividend {
         this.stock = stock;
     }
 
+    public UUID getStockId() {return stock.getStockId();}
+
+    public void setStockId(UUID stockId) {this.stock.setStockId(stockId);}
+
     // Helper functions
     public BigDecimal getTotalDividend(BigDecimal sharesOwned) {
         return amountPerShare.multiply(sharesOwned);

@@ -30,7 +30,7 @@ public class AccountServiceImpl implements AccountService {
     // Create a new account and show essential information
     @Override
     public AccountDTO createAccount(AccountCreateRequest request) {
-        accountValidationService.validateAccountExists(request.getUserId());
+        accountValidationService.validateAccountExists(request.getAccountId());
 
         // Map accuont creation request to entity
         Account account = AccountMapper.toEntity(request);

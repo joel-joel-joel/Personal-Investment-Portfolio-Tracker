@@ -13,15 +13,11 @@ public class AccountUpdateRequest {
     @Size(min = 3, max = 50, message = "Account name must be between 3 and 50 characters")
     private String accountName;
 
-    private UUID userId;
-
     // Jackson-compatible constructor
     @JsonCreator
     public AccountUpdateRequest(
-            @JsonProperty("accountName") String accountName,
-            @JsonProperty("userId") UUID userId) {
+            @JsonProperty("accountName") String accountName) {
         this.accountName = accountName;
-        this.userId = userId;
     }
 
     public AccountUpdateRequest() {}
@@ -30,8 +26,4 @@ public class AccountUpdateRequest {
     public String getAccountName() {return accountName;}
 
     public void setAccountName(String accountName) {this.accountName = accountName;}
-
-    public UUID getUserId() {return userId;}
-
-    public void setUserId(UUID userId) {this.userId = userId;}
 }

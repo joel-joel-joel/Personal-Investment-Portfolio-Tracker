@@ -86,9 +86,9 @@ public class Account {
         return user;
     }
 
-    public void setUser(User user) {
-        this.user = user;
-    }
+    public void setUser(User user) {this.user = user;}
+
+    public void getUserid(){this.user.getUserId();}
 
     public void setUserId(UUID userId){
         this.user.setUserId(userId);

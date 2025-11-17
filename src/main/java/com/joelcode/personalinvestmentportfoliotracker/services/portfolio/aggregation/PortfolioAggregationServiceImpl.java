@@ -2,7 +2,10 @@ package com.joelcode.personalinvestmentportfoliotracker.services.portfolio.aggre
 
 import com.joelcode.personalinvestmentportfoliotracker.dto.account.AccountDTO;
 import com.joelcode.personalinvestmentportfoliotracker.dto.holding.HoldingDTO;
+import com.joelcode.personalinvestmentportfoliotracker.dto.model.AllocationBreakdownDTO;
+import com.joelcode.personalinvestmentportfoliotracker.entities.Holding;
 import com.joelcode.personalinvestmentportfoliotracker.repositories.AccountRepository;
+import com.joelcode.personalinvestmentportfoliotracker.repositories.HoldingRepository;
 import com.joelcode.personalinvestmentportfoliotracker.services.account.AccountService;
 import com.joelcode.personalinvestmentportfoliotracker.services.dividend.DividendCalculationService;
 import com.joelcode.personalinvestmentportfoliotracker.services.holding.HoldingCalculationService;
@@ -11,6 +14,7 @@ import com.joelcode.personalinvestmentportfoliotracker.dto.model.PortfolioOvervi
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.UUID;
 
@@ -20,19 +24,22 @@ public class PortfolioAggregationServiceImpl implements PortfolioAggregationServ
     // Define key fields
     private final AccountService accountService;
     private final HoldingService holdingService;
-    private final HoldingCalculationService holdingCalculationService;
-    private final DividendCalculationService dividendCalculationService;
     private final AccountRepository accountRepository;
+    private final HoldingCalculationService holdingCalculationService;
+    private final HoldingRepository holdingRepository;
+    private final DividendCalculationService dividendCalculationService;
 
     // Constructor
     public PortfolioAggregationServiceImpl (AccountService accountService, HoldingService holdingService,
                                             HoldingCalculationService holdingCalculationService,
-                                            DividendCalculationService dividendCalculationService, AccountRepository accountRepository) {
+                                            DividendCalculationService dividendCalculationService, AccountRepository accountRepository,
+                                            HoldingRepository holdingRepository) {
         this.accountService = accountService;
         this.holdingService = holdingService;
         this.holdingCalculationService = holdingCalculationService;
         this.dividendCalculationService = dividendCalculationService;
         this.accountRepository = accountRepository;
+        this.holdingRepository = holdingRepository;
     }
 
     // Interface function
@@ -84,6 +91,34 @@ public class PortfolioAggregationServiceImpl implements PortfolioAggregationServ
         dto.setHoldings(holdings);
 
         return dto;
+    }
+
+    @Override
+    public List<AllocationBreakdownDTO> getAllocationBreakdown(UUID accountId) {
+
+        List<Holding> holdings = holdingRepository.getHoldingsEntitiesByAccount(accountId);
+
+        BigDecimal totalValue = holdings.stream()
+                .map(holdingCalculationService::calculateCurrentValue)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return holdings.stream()
+                .map(h -> {
+                    BigDecimal currentValue = holdingCalculationService.calculateCurrentValue(h);
+                    BigDecimal percentage =
+                            totalValue.compareTo(BigDecimal.ZERO) == 0
+                                    ? BigDecimal.ZERO
+                                    : currentValue
+                                    .multiply(BigDecimal.valueOf(100))
+                                    .divide(totalValue, 4, RoundingMode.HALF_UP);
+
+                    AllocationBreakdownDTO dto = new AllocationBreakdownDTO();
+                    dto.setStockCode(h.getStock().getStockCode());
+                    dto.setPercentage(percentage);
+                    dto.setCurrentValue(currentValue);
+                    return dto;
+                })
+                .toList();
     }
 
 }

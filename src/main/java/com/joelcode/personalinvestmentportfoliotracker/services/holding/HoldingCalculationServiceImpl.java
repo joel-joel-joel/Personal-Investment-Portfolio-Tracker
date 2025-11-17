@@ -3,9 +3,12 @@ package com.joelcode.personalinvestmentportfoliotracker.services.holding;
 import com.joelcode.personalinvestmentportfoliotracker.entities.Account;
 import com.joelcode.personalinvestmentportfoliotracker.entities.Holding;
 import com.joelcode.personalinvestmentportfoliotracker.repositories.HoldingRepository;
+import com.joelcode.personalinvestmentportfoliotracker.services.stock.StockService;
+import com.joelcode.personalinvestmentportfoliotracker.services.stock.StockServiceImpl;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.UUID;
 
@@ -15,12 +18,15 @@ public class HoldingCalculationServiceImpl implements HoldingCalculationService 
     // Define key fields
     private final HoldingRepository holdingRepository;
     private final HoldingValidationService holdingValidationService;
+    private final StockService stockService;
 
     // Constructor
     public HoldingCalculationServiceImpl(HoldingRepository holdingRepository,
-                                         HoldingValidationService holdingValidationService) {
+                                         HoldingValidationService holdingValidationService,
+                                         StockServiceImpl stockService) {
         this.holdingRepository = holdingRepository;
         this.holdingValidationService = holdingValidationService;
+        this.stockService = stockService;
     }
 
     // Calculate total portfolio value for an account
@@ -36,13 +42,26 @@ public class HoldingCalculationServiceImpl implements HoldingCalculationService 
         BigDecimal totalValue = BigDecimal.ZERO;
 
         for (Holding holding : holdings) {
-            BigDecimal currentPrice = BigDecimal.valueOf(holding.getStock().getStockValue());
-            BigDecimal currentValue = holding.getCurrentValue(currentPrice);
+
+            BigDecimal currentPrice = stockService.getCurrentPrice(
+                    holding.getStock().getStockId()
+            );
+
+            BigDecimal currentValue = calculateCurrentValue(holding);
+
             totalValue = totalValue.add(currentValue);
         }
 
-        return totalValue;
+        return totalValue.setScale(2, RoundingMode.HALF_UP);
     }
+
+    @Override
+    public BigDecimal calculateCurrentValue(Holding holding) {
+        BigDecimal price = BigDecimal.valueOf(holding.getStock().getStockValue());
+        return price.multiply(holding.getQuantity());
+    }
+
+
 
     // Calculate total cost basis for an account
     @Override

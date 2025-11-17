@@ -29,7 +29,7 @@ public class DividendCreateRequest {
     public DividendCreateRequest (
             @JsonProperty ("stockId") UUID stockId,
             @JsonProperty ("amountPerShare") BigDecimal amountPerShare,
-            @JsonProperty ("payDare") LocalDateTime payDate) {
+            @JsonProperty ("payDate") LocalDateTime payDate) {
         this.stockId = stockId;
         this.amountPerShare = amountPerShare;
         this.payDate = payDate;
