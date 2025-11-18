@@ -1,6 +1,6 @@
 package com.joelcode.personalinvestmentportfoliotracker.dto.auth;
 
-public class AuthResponse {
+public class AuthResponseDTO {
 
     // Authentication response DTO (output, immutable)
     private String token;
@@ -9,14 +9,14 @@ public class AuthResponse {
     private String email;
 
     // Constructors
-    public AuthResponse(String token, String tokenType, String username, String email) {
+    public AuthResponseDTO(String token, String tokenType, String username, String email) {
         this.token = token;
         this.tokenType = tokenType;
         this.username = username;
         this.email = email;
     }
 
-    public AuthResponse() {}
+    public AuthResponseDTO() {}
 
     // Getters
     public String getToken() {return token;}

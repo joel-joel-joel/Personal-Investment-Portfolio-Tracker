@@ -1,7 +1,7 @@
 package com.joelcode.personalinvestmentportfoliotracker.jwt;
 
 import com.joelcode.personalinvestmentportfoliotracker.entities.User;
-import com.joelcode.personalinvestmentportfoliotracker.model.CustomUserDetails;
+import com.joelcode.personalinvestmentportfoliotracker.security.CustomUserDetails;
 import com.joelcode.personalinvestmentportfoliotracker.repositories.UserRepository;
 import com.joelcode.personalinvestmentportfoliotracker.services.customuserdetails.CustomUserDetailsService;
 import jakarta.servlet.FilterChain;

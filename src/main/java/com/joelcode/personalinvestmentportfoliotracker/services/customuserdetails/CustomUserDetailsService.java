@@ -1,7 +1,7 @@
 package com.joelcode.personalinvestmentportfoliotracker.services.customuserdetails;
 
 import com.joelcode.personalinvestmentportfoliotracker.entities.User;
-import com.joelcode.personalinvestmentportfoliotracker.model.CustomUserDetails;
+import com.joelcode.personalinvestmentportfoliotracker.security.CustomUserDetails;
 import com.joelcode.personalinvestmentportfoliotracker.repositories.UserRepository;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;

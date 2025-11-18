@@ -21,8 +21,9 @@ public class TransactionMapper {
         if (transaction == null) return null;
         return new TransactionDTO(transaction.getTransactionId(),
                 transaction.getStock().getStockId(),
-                transaction.getAccount().getAccountId(),
+            transaction.getAccount().getAccountId(),
                 transaction.getShareQuantity(),
-                transaction.getPricePerShare());
+                transaction.getPricePerShare(),
+                transaction.getTransactionType());
     }
 }

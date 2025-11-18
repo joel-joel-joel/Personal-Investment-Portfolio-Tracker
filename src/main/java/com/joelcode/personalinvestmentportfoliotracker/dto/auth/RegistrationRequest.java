@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-public class RegisterRequest {
+public class RegistrationRequest {
 
     // Register request DTO (input)
     @NotBlank (message = "Email is required")
@@ -23,7 +23,7 @@ public class RegisterRequest {
 
     // Jackson-compatible constructor
     @JsonCreator
-    public RegisterRequest(
+    public RegistrationRequest(
             @JsonProperty ("email") String email,
             @JsonProperty ("username") String username,
             @JsonProperty ("password") String password) {

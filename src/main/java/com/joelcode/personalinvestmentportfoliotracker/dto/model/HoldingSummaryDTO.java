@@ -1,4 +1,4 @@
-package com.joelcode.personalinvestmentportfoliotracker.dto.account;
+package com.joelcode.personalinvestmentportfoliotracker.dto.model;
 
 import lombok.Data;
 
@@ -30,4 +30,33 @@ public class HoldingSummaryDTO {
     }
 
     public HoldingSummaryDTO() {}
+
+    // Getters and setters
+    public UUID getStockId() {return stockId;}
+
+    public void setStockId(UUID stockId) {this.stockId = stockId;}
+
+    public String getStockCode() {return stockCode;}
+
+    public void setStockCode(String stockCode) {this.stockCode = stockCode;}
+
+    public BigDecimal getQuantity() {return quantity;}
+
+    public void setQuantity(BigDecimal quantity) {this.quantity = quantity;}
+
+    public BigDecimal getAverageCost() {return averageCost;}
+
+    public void setAverageCost(BigDecimal averageCost) {this.averageCost = averageCost;}
+
+    public BigDecimal getMarketValue() {return marketValue;}
+
+    public void setMarketValue(BigDecimal marketValue) {this.marketValue = marketValue;}
+
+    public BigDecimal getMarketPrice() {return marketPrice;}
+
+    public void setMarketPrice(BigDecimal marketPrice) {this.marketPrice = marketPrice;}
+
+    public BigDecimal getUnrealizedGain() {return unrealizedGain;}
+
+    public void setUnrealizedGain(BigDecimal unrealizedGain) {this.unrealizedGain = unrealizedGain;}
 }

@@ -1,7 +1,6 @@
 package com.joelcode.personalinvestmentportfoliotracker.dto.model;
 
 
-import com.joelcode.personalinvestmentportfoliotracker.dto.account.HoldingSummaryDTO;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -31,7 +30,37 @@ public class AccountSummaryDTO {
         this.totalUnrealizedGain = totalUnrealizedGain;
         this.totalDividends = totalDividends;
         this.totalCashBalance = totalCashBalance;
+        this.holdings = holdings;
     }
 
     public AccountSummaryDTO() {}
+
+    // Getters and setters
+    public UUID getAccountId() {return accountId;}
+
+    public void setAccountId(UUID accountId) {this.accountId = accountId;}
+
+    public BigDecimal getTotalInvestedValue() {return totalInvestedValue;}
+
+    public void setTotalInvestedValue(BigDecimal totalInvestedValue) {this.totalInvestedValue = totalInvestedValue;}
+
+    public BigDecimal getTotalMarketValue() {return totalMarketValue;}
+
+    public void setTotalMarketValue(BigDecimal totalMarketValue) {this.totalMarketValue = totalMarketValue;}
+
+    public BigDecimal getTotalUnrealizedGain() {return totalUnrealizedGain;}
+
+    public void setTotalUnrealizedGain(BigDecimal totalUnrealizedGain) {this.totalUnrealizedGain = totalUnrealizedGain;}
+
+    public BigDecimal getTotalDividends() {return totalDividends;}
+
+    public void setTotalDividends(BigDecimal totalDividends) {this.totalDividends = totalDividends;}
+
+    public BigDecimal getTotalCashBalance() {return totalCashBalance;}
+
+    public void setTotalCashBalance(BigDecimal totalCashBalance) {this.totalCashBalance = totalCashBalance;}
+
+    public List<HoldingSummaryDTO> getHoldings() {return holdings;}
+
+    public void setHoldings(List<HoldingSummaryDTO> holdings) {this.holdings = holdings;}
 }

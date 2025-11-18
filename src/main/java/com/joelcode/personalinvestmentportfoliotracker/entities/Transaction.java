@@ -68,7 +68,6 @@ public class Transaction {
 
 
     // Getters and setters
-
     public Stock getStock() {
         return stock;
     }

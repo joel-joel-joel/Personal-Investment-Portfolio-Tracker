@@ -1,6 +1,6 @@
 package com.joelcode.personalinvestmentportfoliotracker.services.portfolio.summary;
 
-import com.joelcode.personalinvestmentportfoliotracker.dto.account.HoldingSummaryDTO;
+import com.joelcode.personalinvestmentportfoliotracker.dto.model.HoldingSummaryDTO;
 import com.joelcode.personalinvestmentportfoliotracker.dto.model.AccountSummaryDTO;
 import com.joelcode.personalinvestmentportfoliotracker.entities.Account;
 import com.joelcode.personalinvestmentportfoliotracker.entities.Holding;
