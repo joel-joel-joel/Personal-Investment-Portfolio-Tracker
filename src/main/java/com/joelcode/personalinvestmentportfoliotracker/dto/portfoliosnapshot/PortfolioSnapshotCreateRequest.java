@@ -28,20 +28,22 @@ public class PortfolioSnapshotCreateRequest {
     @DecimalMin(value = "0.00", message = "Total invested cannot be negative")
     private final BigDecimal totalInvested;
 
-    private final BigDecimal totalGainLoss;
+    private final BigDecimal totalGain;
 
     private final BigDecimal dayChange;
 
     private final BigDecimal dayChangePercent;
 
     // Constructor
-    public PortfolioSnapshotCreateRequest(UUID accountId, LocalDate snapshotDate, BigDecimal totalValue, BigDecimal cashBalance, BigDecimal totalInvested, BigDecimal totalGainLoss, BigDecimal dayChange, BigDecimal dayChangePercent) {
+    public PortfolioSnapshotCreateRequest(UUID accountId, LocalDate snapshotDate, BigDecimal totalValue,
+                                          BigDecimal cashBalance, BigDecimal totalInvested, BigDecimal totalGain,
+                                          BigDecimal dayChange, BigDecimal dayChangePercent) {
         this.accountId = accountId;
         this.snapshotDate = snapshotDate;
         this.totalValue = totalValue;
         this.cashBalance = cashBalance;
         this.totalInvested = totalInvested;
-        this.totalGainLoss = totalGainLoss;
+        this.totalGain = totalGain;
         this.dayChange = dayChange;
         this.dayChangePercent = dayChangePercent;
     }
@@ -67,8 +69,8 @@ public class PortfolioSnapshotCreateRequest {
         return totalInvested;
     }
 
-    public BigDecimal getTotalGainLoss() {
-        return totalGainLoss;
+    public BigDecimal getTotalGain() {
+        return totalGain;
     }
 
     public BigDecimal getDayChange() {

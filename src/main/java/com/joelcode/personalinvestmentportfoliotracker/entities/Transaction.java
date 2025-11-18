@@ -56,9 +56,13 @@ public class Transaction {
     @JoinColumn(name = "accountId", nullable = false)
     private Account account;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TransactionType transactionType;
+
     // Transaction type
 
-    public enum type {
+    public enum TransactionType {
         BUY,
         SELL
     }
@@ -126,12 +130,12 @@ public class Transaction {
 
     public void setAccountId(UUID accountId) {this.account.setAccountId(accountId);}
 
-    public type getType() {
-        if (shareQuantity.compareTo(BigDecimal.ZERO) > 0) {
-            return type.BUY;
-        } else {
-            return type.SELL;
-        }
+    public TransactionType getTransactionType() {
+        return transactionType;
+    }
+
+    public void setTransactionType(TransactionType transactionType) {
+        this.transactionType = transactionType;
     }
 
     // Helper Functions

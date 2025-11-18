@@ -28,7 +28,7 @@ public class TransactionCreateRequest {
     private final BigDecimal pricePerShare;
 
     @NotNull (message = "Transaction type is required")
-    private final Transaction.type transactionType;
+    private final Transaction.TransactionType transactionType;
 
 
 
@@ -39,7 +39,7 @@ public class TransactionCreateRequest {
             @JsonProperty ("accountId") UUID accountId,
             @JsonProperty ("shareQuantity") BigDecimal shareQuantity,
             @JsonProperty ("pricePerShare") BigDecimal pricePerShare,
-            @JsonProperty ("transactionType") Transaction.type transactionType) {
+            @JsonProperty ("transactionType") Transaction.TransactionType transactionType) {
         this.stockId = stockId;
         this.accountId = accountId;
         this.shareQuantity = shareQuantity;
@@ -56,5 +56,5 @@ public class TransactionCreateRequest {
 
     public BigDecimal getPricePerShare() {return pricePerShare;}
 
-    public Transaction.type getTransactionType() {return transactionType;}
+    public Transaction.TransactionType getTransactionType() {return transactionType;}
 }

@@ -17,7 +17,7 @@ public class PortfolioSnapshotMapper {
         snapshot.setTotalValue(request.getTotalValue());
         snapshot.setCashBalance(request.getCashBalance());
         snapshot.setTotalInvested(request.getTotalInvested());
-        snapshot.setTotalGainLoss(request.getTotalGainLoss() != null ? request.getTotalGainLoss() : BigDecimal.ZERO);
+        snapshot.setTotalGain(request.getTotalGain() != null ? request.getTotalGain() : BigDecimal.ZERO);
         snapshot.setDayChange(request.getDayChange() != null ? request.getDayChange() : BigDecimal.ZERO);
         snapshot.setDayChangePercent(request.getDayChangePercent() != null ? request.getDayChangePercent() : BigDecimal.ZERO);
         return snapshot;
@@ -33,8 +33,8 @@ public class PortfolioSnapshotMapper {
                 snapshot.getTotalValue(),
                 snapshot.getCashBalance(),
                 snapshot.getTotalInvested(),
-                snapshot.getTotalGainLoss(),
-                snapshot.getTotalGainLossPercent(),
+                snapshot.getTotalGain(),
+                snapshot.getTotalGainPercent(),
                 snapshot.getDayChange(),
                 snapshot.getDayChangePercent(),
                 snapshot.getMarketValue()

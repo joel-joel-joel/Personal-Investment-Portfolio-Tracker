@@ -35,6 +35,9 @@ public class UserServiceImpl implements UserService{
         // Check if user exists
         userValidationService.validateEmailUnique(request.getEmail());
 
+        // Check if username is unique
+        userValidationService.validateUsernameUnique(request.getUsername());
+
         // Map request to entity (process creation request to an entity)
         User user = UserMapper.toEntity(request);
 

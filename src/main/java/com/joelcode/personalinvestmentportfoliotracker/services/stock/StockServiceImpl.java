@@ -97,12 +97,12 @@ public class StockServiceImpl implements StockService {
     public BigDecimal getCurrentPrice(UUID stockId) {
 
         // Validate stock exists
-        Stock stock = stockRepository.findById(stockId)
+        Stock stock = stockRepository.findByStockId(stockId)
                 .orElseThrow(() -> new IllegalArgumentException("Stock with ID " + stockId + " does not exist."));
 
         // Try to fetch latest price history record
         Optional<PriceHistory> latestPrice = priceHistoryRepository
-                .findTopByStockOrderByDateDesc(stock);
+                .findTopByStockOrderByCloseDateDesc(stock);
 
         // If exists, return close price, otherwise fallback to stock.stockValue
         return latestPrice

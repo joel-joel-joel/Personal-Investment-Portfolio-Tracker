@@ -30,7 +30,8 @@ public interface PriceHistoryRepository extends JpaRepository<PriceHistory, UUID
 
     List<PriceHistory> findByStock_StockIdAndCloseDateBetween(UUID stockId, LocalDateTime start, LocalDateTime end);
 
-    Optional<PriceHistory> findTopByStockOrderByDateDesc(Stock stock);
+    Optional<PriceHistory> findTopByStockOrderByCloseDateDesc(Stock stock);
+
     // Filter by closing price
     List<PriceHistory> findByClosePrice(BigDecimal closePrice);
 

@@ -13,10 +13,10 @@ public class TransactionDTO {
     private final UUID accountId;
     private final BigDecimal shareQuantity;
     private final BigDecimal pricePerShare;
-    private final Transaction.type transactionType;
+    private final Transaction.TransactionType transactionType;
 
     // Constructors
-    public TransactionDTO(UUID transactionId, UUID stockId, UUID accountId, BigDecimal shareQuantity, BigDecimal pricePerShare, Transaction.type transactionType) {
+    public TransactionDTO(UUID transactionId, UUID stockId, UUID accountId, BigDecimal shareQuantity, BigDecimal pricePerShare, Transaction.TransactionType transactionType) {
         this.transactionId = transactionId;
         this.stockId = stockId;
         this.accountId = accountId;
@@ -31,7 +31,7 @@ public class TransactionDTO {
         this.accountId = transaction.getAccount().getAccountId();
         this.shareQuantity = transaction.getShareQuantity();
         this.pricePerShare = transaction.getPricePerShare();
-        this.transactionType = transaction.getType();
+        this.transactionType = transaction.getTransactionType();
     }
 
 
@@ -46,5 +46,5 @@ public class TransactionDTO {
 
     public BigDecimal getPricePerShare() {return pricePerShare;}
 
-    public Transaction.type getTransactionType() {return transactionType;}
+    public Transaction.TransactionType getTransactionType() {return transactionType;}
 }

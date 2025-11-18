@@ -30,4 +30,11 @@ public class UserValidationService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
     }
 
+    // Check that username is unqiue
+    public void validateUsernameUnique(String username) {
+        if (userRepository.existsByUsername(username)) {
+            throw new IllegalArgumentException("Username already exists");
+        }
+    }
+
 }

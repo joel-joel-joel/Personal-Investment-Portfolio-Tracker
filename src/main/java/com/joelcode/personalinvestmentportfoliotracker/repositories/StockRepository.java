@@ -13,7 +13,9 @@ import java.util.UUID;
 public interface StockRepository  extends JpaRepository<Stock, UUID> {
 
     // Finding specific stocks
-    Optional<Stock> findByCode(String code);
+    Optional<Stock> findByStockCode(String stockCode);
+
+    Optional<Stock> findByStockId(UUID stockId);
 
     Optional<Stock> findByCompanyName(String companyName);
 
@@ -36,12 +38,8 @@ public interface StockRepository  extends JpaRepository<Stock, UUID> {
     // Finding by ID
     List<Stock> findByAccount_AccountId(UUID accountId);
 
-
-
     // Filter by stock value
     List<Stock> findByStockValueGreaterThan(Double stockValue);
 
     List<Stock> findByStockValueLessThan(Double stockValue);
-
-    UUID stockId(UUID stockId);
 }

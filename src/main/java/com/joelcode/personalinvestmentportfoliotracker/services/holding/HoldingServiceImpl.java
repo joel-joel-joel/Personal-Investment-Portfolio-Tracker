@@ -12,6 +12,7 @@ import com.joelcode.personalinvestmentportfoliotracker.services.mapping.HoldingM
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -147,7 +148,12 @@ public class HoldingServiceImpl implements HoldingService {
                 // Recalculate average cost basis
                 BigDecimal totalCost = holding.getTotalCostBasis().add(quantity.multiply(pricePerShare));
                 BigDecimal totalShares = holding.getQuantity().add(quantity);
-                BigDecimal avgCost = totalCost.divide(totalShares, 2, BigDecimal.ROUND_HALF_UP);
+                BigDecimal avgCost;
+                if (totalShares.compareTo(BigDecimal.ZERO) == 0) {
+                    avgCost = BigDecimal.ZERO;
+                } else {
+                    avgCost = totalCost.divide(totalShares, 2, RoundingMode.HALF_UP);
+                }
 
                 holding.setQuantity(totalShares);
                 holding.setAverageCostBasis(avgCost);
