@@ -61,7 +61,6 @@ public class Transaction {
     private TransactionType transactionType;
 
     // Transaction type
-
     public enum TransactionType {
         BUY,
         SELL
