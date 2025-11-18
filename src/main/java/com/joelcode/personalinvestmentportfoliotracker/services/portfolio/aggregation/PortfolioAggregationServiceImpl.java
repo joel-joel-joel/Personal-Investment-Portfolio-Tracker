@@ -2,7 +2,7 @@ package com.joelcode.personalinvestmentportfoliotracker.services.portfolio.aggre
 
 import com.joelcode.personalinvestmentportfoliotracker.dto.account.AccountDTO;
 import com.joelcode.personalinvestmentportfoliotracker.dto.holding.HoldingDTO;
-import com.joelcode.personalinvestmentportfoliotracker.dto.model.AllocationBreakdownDTO;
+import com.joelcode.personalinvestmentportfoliotracker.dto.portfolio.AllocationBreakdownDTO;
 import com.joelcode.personalinvestmentportfoliotracker.entities.Holding;
 import com.joelcode.personalinvestmentportfoliotracker.repositories.AccountRepository;
 import com.joelcode.personalinvestmentportfoliotracker.repositories.HoldingRepository;
@@ -10,7 +10,7 @@ import com.joelcode.personalinvestmentportfoliotracker.services.account.AccountS
 import com.joelcode.personalinvestmentportfoliotracker.services.dividend.DividendCalculationService;
 import com.joelcode.personalinvestmentportfoliotracker.services.holding.HoldingCalculationService;
 import com.joelcode.personalinvestmentportfoliotracker.services.holding.HoldingService;
-import com.joelcode.personalinvestmentportfoliotracker.dto.model.PortfolioOverviewDTO;
+import com.joelcode.personalinvestmentportfoliotracker.dto.portfolio.PortfolioOverviewDTO;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;

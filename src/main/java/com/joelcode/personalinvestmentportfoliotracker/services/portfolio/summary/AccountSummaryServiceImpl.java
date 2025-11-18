@@ -1,16 +1,12 @@
 package com.joelcode.personalinvestmentportfoliotracker.services.portfolio.summary;
 
-import com.joelcode.personalinvestmentportfoliotracker.dto.model.HoldingSummaryDTO;
-import com.joelcode.personalinvestmentportfoliotracker.dto.model.AccountSummaryDTO;
+import com.joelcode.personalinvestmentportfoliotracker.dto.portfolio.HoldingSummaryDTO;
+import com.joelcode.personalinvestmentportfoliotracker.dto.portfolio.AccountSummaryDTO;
 import com.joelcode.personalinvestmentportfoliotracker.entities.Account;
 import com.joelcode.personalinvestmentportfoliotracker.entities.Holding;
-import com.joelcode.personalinvestmentportfoliotracker.entities.Stock;
 import com.joelcode.personalinvestmentportfoliotracker.repositories.AccountRepository;
 import com.joelcode.personalinvestmentportfoliotracker.repositories.HoldingRepository;
-import com.joelcode.personalinvestmentportfoliotracker.repositories.StockRepository;
 import com.joelcode.personalinvestmentportfoliotracker.services.dividend.DividendCalculationService;
-import com.joelcode.personalinvestmentportfoliotracker.services.dividend.DividendService;
-import com.joelcode.personalinvestmentportfoliotracker.services.holding.HoldingService;
 import com.joelcode.personalinvestmentportfoliotracker.services.stock.StockService;
 
 import java.math.BigDecimal;

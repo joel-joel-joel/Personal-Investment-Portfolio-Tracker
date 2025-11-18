@@ -1,4 +1,4 @@
-package com.joelcode.personalinvestmentportfoliotracker.security;
+package com.joelcode.personalinvestmentportfoliotracker.model;
 
 import com.joelcode.personalinvestmentportfoliotracker.entities.User;
 import org.springframework.security.core.GrantedAuthority;

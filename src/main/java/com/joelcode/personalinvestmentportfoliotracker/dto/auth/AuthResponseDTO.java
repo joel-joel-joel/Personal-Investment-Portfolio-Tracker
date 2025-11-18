@@ -2,7 +2,7 @@ package com.joelcode.personalinvestmentportfoliotracker.dto.auth;
 
 public class AuthResponseDTO {
 
-    // Authentication response DTO (output, immutable)
+    // Authentication response DTO (output)
     private String token;
     private String tokenType = "Bearer";
     private String username;

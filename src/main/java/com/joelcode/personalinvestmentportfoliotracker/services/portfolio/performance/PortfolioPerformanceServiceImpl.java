@@ -9,7 +9,7 @@ import com.joelcode.personalinvestmentportfoliotracker.repositories.PortfolioSna
 import com.joelcode.personalinvestmentportfoliotracker.services.account.AccountService;
 import com.joelcode.personalinvestmentportfoliotracker.services.dividend.DividendCalculationService;
 import com.joelcode.personalinvestmentportfoliotracker.services.holding.HoldingService;
-import com.joelcode.personalinvestmentportfoliotracker.dto.model.PortfolioPerformanceDTO;
+import com.joelcode.personalinvestmentportfoliotracker.dto.portfolio.PortfolioPerformanceDTO;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 

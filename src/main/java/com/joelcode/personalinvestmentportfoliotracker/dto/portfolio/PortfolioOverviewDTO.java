@@ -1,7 +1,6 @@
-package com.joelcode.personalinvestmentportfoliotracker.dto.model;
+package com.joelcode.personalinvestmentportfoliotracker.dto.portfolio;
 
 import com.joelcode.personalinvestmentportfoliotracker.dto.holding.HoldingDTO;
-import com.joelcode.personalinvestmentportfoliotracker.entities.Holding;
 
 import java.math.BigDecimal;
 import java.util.List;

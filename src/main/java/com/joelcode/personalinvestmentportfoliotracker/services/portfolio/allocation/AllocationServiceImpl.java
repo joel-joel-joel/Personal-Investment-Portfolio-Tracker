@@ -1,6 +1,6 @@
 package com.joelcode.personalinvestmentportfoliotracker.services.portfolio.allocation;
 
-import com.joelcode.personalinvestmentportfoliotracker.dto.model.AllocationBreakdownDTO;
+import com.joelcode.personalinvestmentportfoliotracker.dto.portfolio.AllocationBreakdownDTO;
 import com.joelcode.personalinvestmentportfoliotracker.entities.Holding;
 import com.joelcode.personalinvestmentportfoliotracker.repositories.HoldingRepository;
 import com.joelcode.personalinvestmentportfoliotracker.services.holding.HoldingCalculationService;

@@ -21,15 +21,22 @@ public class RegistrationRequest {
     @Size(min = 8, message = "Password must be at least 8 characters")
     private final String password;
 
+    @NotBlank (message = "Full name is required")
+    @Size(min = 8, message = "Full name must be at least 8 characters")
+    private final String fullName;
+
     // Jackson-compatible constructor
     @JsonCreator
     public RegistrationRequest(
             @JsonProperty ("email") String email,
             @JsonProperty ("username") String username,
-            @JsonProperty ("password") String password) {
+            @JsonProperty ("password") String password,
+            @JsonProperty ("fullName") String fullName){
         this.email = email;
         this.username = username;
         this.password = password;
+        this.fullName = fullName;
+
     }
 
     // Getters
@@ -38,4 +45,6 @@ public class RegistrationRequest {
     public String getUsername() {return username;}
 
     public String getPassword() {return password;}
+
+    public String getFullName() {return fullName;}
 }

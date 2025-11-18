@@ -2,10 +2,16 @@ package com.joelcode.personalinvestmentportfoliotracker.dto.auth;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.joelcode.personalinvestmentportfoliotracker.entities.User;
+import com.joelcode.personalinvestmentportfoliotracker.repositories.UserRepository;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+import java.util.Optional;
+
 public class LoginRequest {
+
+    private UserRepository userRepository;
 
     // Login request DTO (input)
     @NotBlank(message = "Username is required")

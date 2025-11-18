@@ -1,4 +1,4 @@
-package com.joelcode.personalinvestmentportfoliotracker.dto.model;
+package com.joelcode.personalinvestmentportfoliotracker.dto.portfolio;
 
 import java.math.BigDecimal;
 

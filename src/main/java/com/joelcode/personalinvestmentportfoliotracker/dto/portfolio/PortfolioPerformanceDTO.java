@@ -1,6 +1,4 @@
-package com.joelcode.personalinvestmentportfoliotracker.dto.model;
-
-import lombok.Data;
+package com.joelcode.personalinvestmentportfoliotracker.dto.portfolio;
 
 import java.math.BigDecimal;
 import java.util.UUID;
