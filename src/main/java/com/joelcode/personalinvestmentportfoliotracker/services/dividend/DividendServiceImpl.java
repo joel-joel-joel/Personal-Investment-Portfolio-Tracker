@@ -3,9 +3,12 @@ package com.joelcode.personalinvestmentportfoliotracker.services.dividend;
 import com.joelcode.personalinvestmentportfoliotracker.dto.dividend.DividendDTO;
 import com.joelcode.personalinvestmentportfoliotracker.dto.dividend.DividendCreateRequest;
 import com.joelcode.personalinvestmentportfoliotracker.entities.Dividend;
+import com.joelcode.personalinvestmentportfoliotracker.entities.Stock;
 import com.joelcode.personalinvestmentportfoliotracker.repositories.DividendRepository;
+import com.joelcode.personalinvestmentportfoliotracker.repositories.StockRepository;
+import com.joelcode.personalinvestmentportfoliotracker.services.dividendpayment.DividendPaymentService;
 import com.joelcode.personalinvestmentportfoliotracker.services.mapping.DividendMapper;
-
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,19 +18,23 @@ import java.util.stream.Collectors;
 @Service
 public class DividendServiceImpl implements DividendService {
 
-    // Define key fields
     private final DividendRepository dividendRepository;
+    private final StockRepository stockRepository;
     private final DividendValidationService dividendValidationService;
+    private final DividendPaymentService dividendPaymentService;
 
-    // Constructor
     public DividendServiceImpl(DividendRepository dividendRepository,
-                               DividendValidationService dividendValidationService) {
+                               StockRepository stockRepository,
+                               DividendValidationService dividendValidationService,
+                               DividendPaymentService dividendPaymentService) {
         this.dividendRepository = dividendRepository;
+        this.stockRepository = stockRepository;
         this.dividendValidationService = dividendValidationService;
+        this.dividendPaymentService = dividendPaymentService;
     }
 
-    // Create dividend entity from request dto
     @Override
+    @Transactional
     public DividendDTO createDividend(DividendCreateRequest request) {
 
         // Validate fields
@@ -36,13 +43,28 @@ public class DividendServiceImpl implements DividendService {
                 request.getPayDate()
         );
 
-        // Map request -> entity
-        Dividend dividend = DividendMapper.toEntity(request);
+        // Fetch stock
+        Stock stock = stockRepository.findById(request.getStockId())
+                .orElseThrow(() -> new RuntimeException("Stock not found with ID: " + request.getStockId()));
 
-        // Save to DB
+        // Check for duplicate dividend
+        if (dividendRepository.existsByStockAndPayDate(stock, request.getPayDate())) {
+            throw new RuntimeException("Dividend already exists for this stock on this pay date");
+        }
+
+        // Create dividend entity
+        Dividend dividend = new Dividend(
+                request.getAmountPerShare(),
+                request.getPayDate(),
+                stock
+        );
+
+        // Save dividend
         dividend = dividendRepository.save(dividend);
 
-        // Convert entity -> DTO
+        // Automatically create payment records for all accounts holding this stock
+        dividendPaymentService.processPaymentsForDividend(dividend.getDividendId());
+
         return DividendMapper.toDTO(dividend);
     }
 
@@ -61,8 +83,20 @@ public class DividendServiceImpl implements DividendService {
     }
 
     @Override
+    public List<DividendDTO> getDividendsByStock(UUID stockId) {
+        return dividendRepository.findByStock_StockId(stockId)
+                .stream()
+                .map(DividendMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
     public void deleteDividend(UUID dividendId) {
         Dividend dividend = dividendValidationService.validateDividendExists(dividendId);
+
+        // Note: This will cascade delete all associated DividendPayments
+        // Consider adding a check to prevent deletion if payments exist
         dividendRepository.delete(dividend);
     }
 }

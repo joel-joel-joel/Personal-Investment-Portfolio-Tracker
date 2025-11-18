@@ -17,18 +17,22 @@ public interface DividendRepository extends JpaRepository<Dividend, UUID> {
 
     // Stock-level dividend queries only (NO account linkage)
 
+    // Find by stock
     List<Dividend> findByStock(Stock stock);
 
     List<Dividend> findByStock_StockId(UUID stockId);
 
     List<Dividend> findByStock_StockCode(String stockCode);
 
+    // Existence checks
     boolean existsByStockAndPayDate(Stock stock, LocalDateTime payDate);
 
+    // Find by amount
     List<Dividend> findByAmountPerShareGreaterThan(BigDecimal amountPerShare);
 
     List<Dividend> findByAmountPerShareLessThan(BigDecimal amountPerShare);
 
+    // Filter by date
     List<Dividend> findByPayDate(LocalDateTime payDate);
 
     List<Dividend> findByPayDateAfter(LocalDateTime payDate);

@@ -1,0 +1,40 @@
+package com.joelcode.personalinvestmentportfoliotracker.services.mapping;
+
+import com.joelcode.personalinvestmentportfoliotracker.dto.dividendpayment.DividendPaymentCreateRequest;
+import com.joelcode.personalinvestmentportfoliotracker.dto.dividendpayment.DividendPaymentDTO;
+import com.joelcode.personalinvestmentportfoliotracker.entities.Account;
+import com.joelcode.personalinvestmentportfoliotracker.entities.Dividend;
+import com.joelcode.personalinvestmentportfoliotracker.entities.DividendPayment;
+import com.joelcode.personalinvestmentportfoliotracker.entities.Stock;
+
+public class DividendPaymentMapper {
+
+    public static DividendPaymentDTO toDTO(DividendPayment payment) {
+        if (payment == null) {
+            return null;
+        }
+        return new DividendPaymentDTO(payment);
+    }
+
+    public static DividendPayment toEntity(DividendPaymentCreateRequest request,
+                                           Account account,
+                                           Dividend dividend,
+                                           Stock stock) {
+        if (request == null) {
+            return null;
+        }
+
+        DividendPayment payment = new DividendPayment();
+        payment.setAccount(account);
+        payment.setStock(stock);
+        payment.setDividend(dividend);
+        payment.setShareQuantity(request.getShareQuantity());
+        payment.setPaymentDate(request.getPaymentDate());
+        payment.setStatus(DividendPayment.PaymentStatus.PAID);
+
+        // Calculate total amount automatically
+        payment.calculateTotalAmount();
+
+        return payment;
+    }
+}

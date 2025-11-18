@@ -15,5 +15,7 @@ public interface DividendService {
 
     List<DividendDTO> getAllDividends();
 
+    List<DividendDTO> getDividendsByStock(UUID stockId);
+
     void deleteDividend(UUID id);
 }

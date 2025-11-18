@@ -27,6 +27,8 @@ public interface HoldingRepository extends JpaRepository<Holding, UUID> {
     // Find by stock
     List<Holding> findByStock(Stock stock);
 
+    List<Holding> findByStock_StockId(UUID stockId);
+
     Optional<Holding> findByAccountAndStock(Account account, Stock stock);
 
     Optional<Holding> getHoldingByAccountIdAndStockId(UUID accountId, UUID stockId);
