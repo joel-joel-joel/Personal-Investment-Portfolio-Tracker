@@ -7,5 +7,7 @@ import java.util.UUID;
 
 public interface AllocationBreakdownService {
     List<AllocationBreakdownDTO> getAllocationForAccount(UUID accountId);
+
+    List<AllocationBreakdownDTO> getAllocationForUser(UUID userId);
 }
 

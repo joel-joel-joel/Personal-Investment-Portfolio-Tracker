@@ -199,4 +199,16 @@ public class DividendPaymentServiceImpl implements DividendPaymentService {
         DividendPayment payment = validationService.validatePaymentExists(paymentId);
         paymentRepository.delete(payment);
     }
+
+    @Override
+    public List<DividendPaymentDTO> getAllDividendPayments() {
+        // Fetch all dividend payment entities
+        List<DividendPayment> payments = paymentRepository.findAll();
+
+        // Map each entity to a DTO
+        return payments.stream()
+                .map(DividendPaymentMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
 }

@@ -2,15 +2,18 @@ package com.joelcode.personalinvestmentportfoliotracker.services.portfolio.alloc
 
 import com.joelcode.personalinvestmentportfoliotracker.dto.portfolio.AllocationBreakdownDTO;
 import com.joelcode.personalinvestmentportfoliotracker.entities.Holding;
+import com.joelcode.personalinvestmentportfoliotracker.entities.User;
 import com.joelcode.personalinvestmentportfoliotracker.repositories.HoldingRepository;
 import com.joelcode.personalinvestmentportfoliotracker.services.holding.HoldingCalculationService;
 import com.joelcode.personalinvestmentportfoliotracker.services.holding.HoldingService;
+import com.joelcode.personalinvestmentportfoliotracker.services.user.UserValidationService;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class AllocationBreakdownServiceImpl implements AllocationBreakdownService {
@@ -19,14 +22,17 @@ public class AllocationBreakdownServiceImpl implements AllocationBreakdownServic
     private final HoldingService holdingService;
     private final HoldingCalculationService holdingCalcService;
     private final HoldingRepository holdingRepository;
+    private final UserValidationService userValidationService;
 
     // Constructor
     public AllocationBreakdownServiceImpl(HoldingService holdingService,
                                           HoldingCalculationService holdingCalcService,
-                                          HoldingRepository holdingRepository) {
+                                          HoldingRepository holdingRepository,
+                                          UserValidationService userValidationService) {
         this.holdingService = holdingService;
         this.holdingCalcService = holdingCalcService;
         this.holdingRepository = holdingRepository;
+        this.userValidationService = userValidationService;
     }
 
     // Interface methods
@@ -56,5 +62,16 @@ public class AllocationBreakdownServiceImpl implements AllocationBreakdownServic
                 })
                 .toList();
     }
+
+    public List<AllocationBreakdownDTO> getAllocationForUser(UUID userId) {
+        // Validate user exists
+        User user = userValidationService.validateUserExists(userId);
+
+        // Aggregate allocations across all accounts
+        return user.getAccounts().stream()
+                .flatMap(account -> getAllocationForAccount(account.getAccountId()).stream())
+                .collect(Collectors.toList());
+    }
+
 }
 

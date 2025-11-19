@@ -26,7 +26,7 @@ public class AllocationBreakdownController {
     // Get allocation for all accounts of a user
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<AllocationBreakdownDTO>> getAllocationForUser(@PathVariable UUID userId) {
-        List<AllocationDTO> allocations = allocationService.getAllocationForUser(userId);
+        List<AllocationBreakdownDTO> allocations = allocationService.getAllocationForUser(userId);
         return ResponseEntity.ok(allocations);
     }
 }

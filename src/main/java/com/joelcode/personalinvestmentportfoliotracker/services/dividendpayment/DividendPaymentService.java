@@ -33,4 +33,6 @@ public interface DividendPaymentService {
     List<DividendPaymentDTO> getDividendPaymentsForAccount(UUID accountId);
 
     List<DividendPaymentDTO> getDividendPaymentsForStock(UUID stockId);
+
+    List<DividendPaymentDTO> getAllDividendPayments();
 }
