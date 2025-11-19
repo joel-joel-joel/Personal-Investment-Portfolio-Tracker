@@ -13,10 +13,10 @@ public class AccountCreateRequest {
     // Account creation request DTO (input)
     @NotBlank(message = "Account name is required")
     @Size(min = 3, max = 50, message = "Account name must be between 3 and 50 characters")
-    private final String accountName;
+    private String accountName;
 
     @NotNull(message = "User id is required")
-    private final UUID userId;
+    private UUID userId;
 
     // Jackson-compatible constructor
     @JsonCreator
@@ -27,7 +27,9 @@ public class AccountCreateRequest {
         this.userId = userId;
     }
 
-    // Getters
+    public AccountCreateRequest() {}
+
+    // Getters and setters
     public String getAccountName() {
         return accountName;
     }
@@ -35,4 +37,13 @@ public class AccountCreateRequest {
     public UUID getUserId() {
         return userId;
     }
+
+    public void setAccountName(String accountName) {
+        this.accountName = accountName;
+    }
+
+    public void setUserId(UUID userId) {
+        this.userId = userId;
+    }
+
 }

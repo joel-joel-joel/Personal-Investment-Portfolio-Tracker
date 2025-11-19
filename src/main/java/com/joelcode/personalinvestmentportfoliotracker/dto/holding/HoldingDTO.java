@@ -9,19 +9,19 @@ import java.util.UUID;
 public class HoldingDTO {
 
     // Holding response DTO (output)
-    private final UUID holdingId;
-    private final UUID accountId;
-    private final UUID stockId;
-    private final String stockSymbol;
-    private final BigDecimal quantity;
-    private final BigDecimal averageCostBasis;
-    private final BigDecimal totalCostBasis;
-    private final BigDecimal realizedGain;
-    private final LocalDateTime firstPurchaseDate;
-    private final BigDecimal currentPrice;
-    private final BigDecimal currentValue;
-    private final BigDecimal unrealizedGain;
-    private final BigDecimal unrealizedGainPercent;
+    private UUID holdingId;
+    private UUID accountId;
+    private UUID stockId;
+    private String stockSymbol;
+    private BigDecimal quantity;
+    private BigDecimal averageCostBasis;
+    private BigDecimal totalCostBasis;
+    private BigDecimal realizedGain;
+    private LocalDateTime firstPurchaseDate;
+    private BigDecimal currentPrice;
+    private BigDecimal currentValue;
+    private BigDecimal unrealizedGain;
+    private BigDecimal unrealizedGainPercent;
 
     // Constructor
     public HoldingDTO(UUID holdingId, UUID accountId, UUID stockId, String stockSymbol, BigDecimal quantity,
@@ -59,7 +59,9 @@ public class HoldingDTO {
         this.unrealizedGainPercent = holding.getUnrealizedGainPercent(currentPrice);
     }
 
-    // Getters
+    public HoldingDTO() {}
+
+    // Getters and setters
     public UUID getHoldingId() {
         return holdingId;
     }
@@ -111,4 +113,26 @@ public class HoldingDTO {
     public BigDecimal getUnrealizedGainPercent() {
         return unrealizedGainPercent;
     }
+
+    public UUID setHoldingId(UUID holdingId) {return this.holdingId = holdingId;}
+
+    public UUID setAccountId(UUID accountId) {return this.accountId = accountId;}
+
+    public UUID setStockId(UUID stockId) {return this.stockId = stockId;}
+
+    public String setStockSymbol(String stockSymbol) {return this.stockSymbol = stockSymbol;}
+
+    public BigDecimal setQuantity(BigDecimal quantity) {return this.quantity = quantity;}
+
+    public BigDecimal setAverageCostBasis(BigDecimal averageCostBasis) {return this.averageCostBasis = averageCostBasis;}
+
+    public BigDecimal setTotalCostBasis(BigDecimal totalCostBasis) {return this.totalCostBasis = totalCostBasis;}
+
+    public BigDecimal setRealizedGain(BigDecimal realizedGain) {return this.realizedGain = realizedGain;}
+
+    public LocalDateTime setFirstPurchaseDate(LocalDateTime firstPurchaseDate) {return this.firstPurchaseDate = firstPurchaseDate;}
+
+    public BigDecimal setCurrentPrice(BigDecimal currentPrice) {return this.currentPrice = currentPrice;}
+
+    public BigDecimal setCurrentValue(BigDecimal currentValue) {return this.currentValue = currentValue;}
 }

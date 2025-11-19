@@ -38,7 +38,7 @@ public class AccountServiceImpl implements AccountService {
     // Constructor
     public AccountServiceImpl(AccountRepository accountRepository, AccountValidationService accountValidationService,
                               TransactionMapper transactionMapper, HoldingMapper holdingMapper,
-                              PriceHistoryServiceImpl priceHistoryService,
+                              PriceHistoryService priceHistoryService,
                               SimpMessagingTemplate messagingTemplate) {
         this.accountRepository = accountRepository;
         this.accountValidationService = accountValidationService;
