@@ -8,10 +8,9 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
-import java.util.List;
 
 // Centralized CORS Configuration. This configuration allows frontend application running on a different
-// origin (domain/port) to make requests to this backend API.
+// origin (domain/port) to make requests to this backend API. This is used by both the websocket and REST controllers
 
 @Configuration
 public class CorsConfig {
@@ -26,7 +25,8 @@ public class CorsConfig {
     @Value("${cors.max-age:3600}")
     private Long maxAge;
 
-    // Configure CORS globally for all endpoint. This bean is used by SecurityConfig
+    // Configure CORS globally for all endpoint. Defines what http or frontend requests are allowed to communicate to
+    // backend
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
@@ -80,6 +80,7 @@ public class CorsConfig {
         // How long (in seconds) the browser can cache preflight response
         configuration.setMaxAge(maxAge);
 
+        // Register all the cors allowances to the controllers
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
 

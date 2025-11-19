@@ -9,8 +9,9 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 // WebSocket configuration for real-time portfolio updates
 // Enables bi-directional communication between server and clients
 
-// This class takes in http requests and creates STOMP rules to send out to connected users or those connected to a
-// STOMP endpoint. Its basically a conversion from http to websocket. This is ONLY for real time updates
+// This class takes in websocket connect requests and creates STOMP rules to send out to connected users or those connected to a
+// STOMP endpoint. Its basically a conversion from connect requests to json via websocket and sent back to frontend.
+// This is ONLY for real time updates
 
 @Configuration
 @EnableWebSocketMessageBroker

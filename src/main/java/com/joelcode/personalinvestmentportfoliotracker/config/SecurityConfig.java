@@ -20,6 +20,10 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
 
+
+// This class validates incoming http checks. For HTTP requests it checks and validates the jwt token before sending to
+// REST controllers whereas for websockec connects it checks that the headers are allowed to allow connection to backend
+//
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
