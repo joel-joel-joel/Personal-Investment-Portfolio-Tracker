@@ -1,15 +1,20 @@
 package com.joelcode.personalinvestmentportfoliotracker.services.portfolio.performance;
 
+import com.joelcode.personalinvestmentportfoliotracker.dto.holding.HoldingDTO;
 import com.joelcode.personalinvestmentportfoliotracker.entities.Account;
 import com.joelcode.personalinvestmentportfoliotracker.entities.Holding;
 import com.joelcode.personalinvestmentportfoliotracker.entities.PortfolioSnapshot;
+import com.joelcode.personalinvestmentportfoliotracker.entities.User;
 import com.joelcode.personalinvestmentportfoliotracker.repositories.AccountRepository;
 import com.joelcode.personalinvestmentportfoliotracker.repositories.HoldingRepository;
 import com.joelcode.personalinvestmentportfoliotracker.repositories.PortfolioSnapshotRepository;
 import com.joelcode.personalinvestmentportfoliotracker.services.account.AccountService;
+import com.joelcode.personalinvestmentportfoliotracker.services.account.AccountValidationService;
 import com.joelcode.personalinvestmentportfoliotracker.services.dividend.DividendCalculationService;
+import com.joelcode.personalinvestmentportfoliotracker.services.dividendpayment.DividendPaymentService;
 import com.joelcode.personalinvestmentportfoliotracker.services.holding.HoldingService;
 import com.joelcode.personalinvestmentportfoliotracker.dto.portfolio.PortfolioPerformanceDTO;
+import com.joelcode.personalinvestmentportfoliotracker.services.user.UserValidationService;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -27,18 +32,27 @@ public class PortfolioPerformanceServiceImpl implements PortfolioPerformanceServ
     private final PortfolioSnapshotRepository snapshotRepository;
     private final AccountRepository accountRepository;
     private final HoldingRepository holdingRepository;
+    private final AccountValidationService accountValidationService;
+    private final DividendPaymentService dividendPaymentService;
+    private final UserValidationService userValidationService;
 
     // Constructor
     public PortfolioPerformanceServiceImpl (AccountService accountService, HoldingService holdingService,
                                             DividendCalculationService dividendCalculationService,
                                             PortfolioSnapshotRepository snapshotRepository,
-                                            AccountRepository accountRepository, HoldingRepository holdingRepository) {
+                                            AccountRepository accountRepository, HoldingRepository holdingRepository,
+                                            AccountValidationService accountValidationService,
+                                            DividendPaymentService dividendPaymentService,
+                                            UserValidationService userValidationService) {
         this.accountService = accountService;
         this.holdingService = holdingService;
         this.dividendCalculationService = dividendCalculationService;
         this.snapshotRepository = snapshotRepository;
         this.accountRepository = accountRepository;
         this.holdingRepository = holdingRepository;
+        this.accountValidationService = accountValidationService;
+        this.dividendPaymentService = dividendPaymentService;
+        this.userValidationService = userValidationService;
     }
 
     @Override
@@ -115,6 +129,113 @@ public class PortfolioPerformanceServiceImpl implements PortfolioPerformanceServ
         snapshotRepository.save(snapshot);
 
     }
+
+    @Override
+    public PortfolioPerformanceDTO getPerformanceForAccount(UUID accountId) {
+        // Validate account exists
+        Account account = accountValidationService.validateAccountExists(accountId);
+
+        // Get holdings as DTOs
+        List<HoldingDTO> holdings = holdingService.getHoldingsForAccount(accountId);
+
+        // Calculate total invested
+        BigDecimal totalInvested = holdings.stream()
+                .map(h -> h.getAverageCostBasis().multiply(h.getQuantity()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        // Calculate total current value
+        BigDecimal totalPortfolioValue = holdings.stream()
+                .map(h -> h.getCurrentPrice().multiply(h.getQuantity()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        // Unrealized gain
+        BigDecimal totalUnrealizedGain = totalPortfolioValue.subtract(totalInvested);
+
+        // Realized gain (placeholder, replace with transactions logic)
+        BigDecimal totalRealizedGain = BigDecimal.ZERO;
+
+        // Total dividends
+        BigDecimal totalDividends = dividendPaymentService.getDividendPaymentsForAccount(accountId).stream()
+                .map(dto -> dto.getAmountPerShare())
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        // Cash balance
+        BigDecimal cashBalance = account.getAccountBalance() != null ? account.getAccountBalance() : BigDecimal.ZERO;
+
+        // ROI % = (Total Return / Total Invested) * 100
+        BigDecimal totalReturn = totalUnrealizedGain.add(totalRealizedGain).add(totalDividends);
+        BigDecimal roiPercentage = totalInvested.compareTo(BigDecimal.ZERO) > 0
+                ? totalReturn.multiply(BigDecimal.valueOf(100)).divide(totalInvested, 2, BigDecimal.ROUND_HALF_UP)
+                : BigDecimal.ZERO;
+
+        // Daily and monthly gain placeholders
+        BigDecimal dailyGain = BigDecimal.ZERO;   // Replace with actual calculation
+        BigDecimal monthlyGain = BigDecimal.ZERO; // Replace with actual calculation
+
+        return new PortfolioPerformanceDTO(
+                account.getAccountId(),    // accountId
+                totalPortfolioValue,       // totalPortfolioValue
+                totalInvested,             // totalInvested
+                totalRealizedGain,         // totalRealizedGain
+                totalUnrealizedGain,       // totalUnrealizedGain
+                totalDividends,            // totalDividends
+                cashBalance,               // cashBalance
+                roiPercentage,             // roiPercentage
+                dailyGain,                 // dailyGain
+                monthlyGain                // monthlyGain
+        );
+    }
+
+
+    @Override
+    public PortfolioPerformanceDTO getPerformanceForUser(UUID userId) {
+        // Validate user exists
+        User user = userValidationService.validateUserExists(userId);
+
+        BigDecimal totalInvested = BigDecimal.ZERO;
+        BigDecimal totalPortfolioValue = BigDecimal.ZERO;
+        BigDecimal totalRealizedGain = BigDecimal.ZERO;
+        BigDecimal totalUnrealizedGain = BigDecimal.ZERO;
+        BigDecimal totalDividends = BigDecimal.ZERO;
+        BigDecimal cashBalance = BigDecimal.ZERO;
+
+        // Aggregate performance across all accounts
+        for (Account account : user.getAccounts()) {
+            PortfolioPerformanceDTO accountPerf = getPerformanceForAccount(account.getAccountId());
+            totalInvested = totalInvested.add(accountPerf.getTotalInvested());
+            totalPortfolioValue = totalPortfolioValue.add(accountPerf.getTotalPortfolioValue());
+            totalRealizedGain = totalRealizedGain.add(accountPerf.getTotalRealizedGain());
+            totalUnrealizedGain = totalUnrealizedGain.add(accountPerf.getTotalUnrealizedGain());
+            totalDividends = totalDividends.add(accountPerf.getTotalDividends());
+            cashBalance = cashBalance.add(account.getAccountBalance() != null ? account.getAccountBalance() : BigDecimal.ZERO);
+        }
+
+        // Total return = unrealized + realized + dividends
+        BigDecimal totalReturn = totalUnrealizedGain.add(totalRealizedGain).add(totalDividends);
+
+        // ROI % = (Total Return / Total Invested) * 100
+        BigDecimal roiPercentage = totalInvested.compareTo(BigDecimal.ZERO) > 0
+                ? totalReturn.multiply(BigDecimal.valueOf(100)).divide(totalInvested, 2, BigDecimal.ROUND_HALF_UP)
+                : BigDecimal.ZERO;
+
+        // Daily and monthly gain placeholders
+        BigDecimal dailyGain = BigDecimal.ZERO;   // Replace with actual calculation
+        BigDecimal monthlyGain = BigDecimal.ZERO; // Replace with actual calculation
+
+        return new PortfolioPerformanceDTO(
+                null,                     // No single account for user-level
+                totalPortfolioValue,      // totalPortfolioValue
+                totalInvested,            // totalInvested
+                totalRealizedGain,        // totalRealizedGain
+                totalUnrealizedGain,      // totalUnrealizedGain
+                totalDividends,           // totalDividends
+                cashBalance,              // cashBalance
+                roiPercentage,            // roiPercentage
+                dailyGain,                // dailyGain
+                monthlyGain               // monthlyGain
+        );
+    }
+
 
 
 

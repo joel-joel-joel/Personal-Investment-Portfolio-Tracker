@@ -9,4 +9,8 @@ public interface PortfolioPerformanceService {
     PortfolioPerformanceDTO calculatePortfolioPerformance(UUID accountId);
 
     void createPortfolioSnapshot(UUID accountId);
+
+    PortfolioPerformanceDTO getPerformanceForAccount(UUID accountId);
+
+    PortfolioPerformanceDTO getPerformanceForUser(UUID userId);
 }

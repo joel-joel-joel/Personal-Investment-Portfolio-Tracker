@@ -1,7 +1,7 @@
 package com.joelcode.personalinvestmentportfoliotracker.controllers.portfoliocontrollers;
 
 import com.joelcode.personalinvestmentportfoliotracker.dto.portfolio.PortfolioAggregationDTO;
-import com.joelcode.personalinvestmentportfoliotracker.services.PortfolioAggregationService;
+import com.joelcode.personalinvestmentportfoliotracker.services.portfolio.aggregation.PortfolioAggregationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

@@ -1,9 +1,12 @@
 package com.joelcode.personalinvestmentportfoliotracker.dto.portfolio;
 
+import lombok.Data;
+
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
+@Data
 public class PortfolioAggregationDTO {
 
     private UUID accountId;

@@ -1,8 +1,11 @@
 package com.joelcode.personalinvestmentportfoliotracker.dto.portfolio;
 
+import lombok.Data;
+
 import java.math.BigDecimal;
 import java.util.UUID;
 
+@Data
 public class PortfolioPerformanceDTO {
 
     // Define key fields
@@ -20,17 +23,23 @@ public class PortfolioPerformanceDTO {
     // Constructors
     public PortfolioPerformanceDTO(UUID accountId, BigDecimal totalPortfolioValue, BigDecimal totalInvested,
                                    BigDecimal totalRealizedGain, BigDecimal totalUnrealizedGain,
-                                   BigDecimal totalDividends, BigDecimal cashBalance, BigDecimal roiPercentage,
-                                   BigDecimal dailyGain, BigDecimal monthlyGain) {
+                                   BigDecimal totalDividends, BigDecimal cashBalance,
+                                   BigDecimal roiPercentage, BigDecimal dailyGain, BigDecimal monthlyGain) {
         this.accountId = accountId;
         this.totalPortfolioValue = totalPortfolioValue;
         this.totalInvested = totalInvested;
         this.totalRealizedGain = totalRealizedGain;
         this.totalUnrealizedGain = totalUnrealizedGain;
         this.totalDividends = totalDividends;
+        this.cashBalance = cashBalance;
+        this.roiPercentage = roiPercentage;
+        this.dailyGain = dailyGain;
+        this.monthlyGain = monthlyGain;
     }
 
+
     public PortfolioPerformanceDTO() {}
+
 
     // Getters and Setters
     public UUID getAccountId() {return accountId;}

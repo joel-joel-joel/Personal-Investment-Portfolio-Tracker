@@ -1,6 +1,7 @@
 package com.joelcode.personalinvestmentportfoliotracker.services.portfolio.aggregation;
 
 import com.joelcode.personalinvestmentportfoliotracker.dto.portfolio.AllocationBreakdownDTO;
+import com.joelcode.personalinvestmentportfoliotracker.dto.portfolio.PortfolioAggregationDTO;
 import com.joelcode.personalinvestmentportfoliotracker.dto.portfolio.PortfolioOverviewDTO;
 
 import java.util.List;
@@ -12,5 +13,9 @@ public interface PortfolioAggregationService {
     PortfolioOverviewDTO getPortfolioOverview(UUID accountId);
 
     List<AllocationBreakdownDTO > getAllocationBreakdown(UUID accountId);
+
+    PortfolioAggregationDTO aggregateForUser(UUID userId);
+
+    PortfolioAggregationDTO aggregateForAccount(UUID accountId);
 
 }
