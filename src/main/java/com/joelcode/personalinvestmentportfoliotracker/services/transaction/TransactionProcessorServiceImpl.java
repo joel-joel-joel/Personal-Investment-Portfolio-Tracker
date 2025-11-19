@@ -1,5 +1,6 @@
 package com.joelcode.personalinvestmentportfoliotracker.services.transaction;
 
+import com.joelcode.personalinvestmentportfoliotracker.controllers.WebSocketController;
 import com.joelcode.personalinvestmentportfoliotracker.dto.transaction.TransactionCreateRequest;
 import com.joelcode.personalinvestmentportfoliotracker.dto.transaction.TransactionDTO;
 import com.joelcode.personalinvestmentportfoliotracker.entities.Account;
@@ -11,13 +12,16 @@ import com.joelcode.personalinvestmentportfoliotracker.services.dividend.Dividen
 import com.joelcode.personalinvestmentportfoliotracker.services.holding.HoldingCalculationService;
 import com.joelcode.personalinvestmentportfoliotracker.services.holding.HoldingService;
 import jakarta.transaction.Transactional;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 
 @Service
-public class TransactionProcessorServiceImpl implements TransactionProcessorService{
+public class TransactionProcessorServiceImpl implements TransactionProcessorService {
 
     // Define key fields
     private final TransactionService transactionService;
@@ -27,13 +31,16 @@ public class TransactionProcessorServiceImpl implements TransactionProcessorServ
     private final DividendCalculationService dividendCalculationService;
     private final AccountRepository accountRepository;
     private final HoldingRepository holdingRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
 
     // Constructor
-    public TransactionProcessorServiceImpl (TransactionService transactionService, HoldingService holdingService,
-                                            HoldingCalculationService holdingCalculationService,
-                                            AccountService accountService,
-                                            DividendCalculationService dividendCalculationService, AccountRepository accountRepository, HoldingRepository holdingRepository) {
+    public TransactionProcessorServiceImpl(TransactionService transactionService, HoldingService holdingService,
+                                           HoldingCalculationService holdingCalculationService,
+                                           AccountService accountService,
+                                           DividendCalculationService dividendCalculationService,
+                                           AccountRepository accountRepository, HoldingRepository holdingRepository,
+                                           SimpMessagingTemplate messagingTemplate) {
         this.transactionService = transactionService;
         this.holdingService = holdingService;
         this.holdingCalculationService = holdingCalculationService;
@@ -41,63 +48,70 @@ public class TransactionProcessorServiceImpl implements TransactionProcessorServ
         this.dividendCalculationService = dividendCalculationService;
         this.accountRepository = accountRepository;
         this.holdingRepository = holdingRepository;
+        this.messagingTemplate = messagingTemplate;
     }
 
     // Interface function
     @Override
     @Transactional
-    public TransactionDTO processTransaction(TransactionCreateRequest request){
+    public TransactionDTO processTransaction(TransactionCreateRequest request) {
 
         // Retrieve account related to transaction
         Account account = accountRepository.findByAccountId(request.getAccountId())
                 .orElseThrow(() -> new IllegalArgumentException("Account not found"));
 
+        // --- Capture previous portfolio value BEFORE any updates ---
+        BigDecimal holdingsValueBefore = holdingCalculationService.calculateTotalPortfolioValue(account.getAccountId());
+        BigDecimal previousPortfolioValue = holdingsValueBefore.add(account.getAccountBalance());
+
         // If it is a buy transaction
         if (request.getTransactionType().name().equalsIgnoreCase("BUY")) {
-
-            // Check if account has enough balance for a buy
-            if (account.getAccountBalance().doubleValue() < request.getPricePerShare().doubleValue() * request.getShareQuantity().doubleValue()) {
+            // Check if account has enough balance
+            BigDecimal totalCost = request.getPricePerShare().multiply(request.getShareQuantity());
+            if (account.getAccountBalance().compareTo(totalCost) < 0) {
                 throw new IllegalArgumentException("Insufficient account balance");
-            } else {
-                // Subtract buy amount from balance
-                account.setAccountBalance(account.getAccountBalance().subtract(request.getPricePerShare().multiply(request.getShareQuantity())));
             }
+            account.setAccountBalance(account.getAccountBalance().subtract(totalCost));
         }
         // If it is a sell transaction
         else if (request.getTransactionType().name().equalsIgnoreCase("SELL")) {
-            // Retrieve the requested holding for a sale
             Optional<Holding> holdingOpt = holdingRepository.getHoldingByAccountIdAndStockId(request.getAccountId(), request.getStockId());
 
-            // Check if the holding exists
-            if (holdingOpt == null){
+            if (holdingOpt.isEmpty()) {
                 throw new IllegalArgumentException("No holding found for account and stock");
-            } else {
-                Holding holding = holdingOpt.get();
-                // Check account has sufficient shares
-                if (holding.getQuantity().doubleValue() < request.getShareQuantity().doubleValue()) {
-                    throw new IllegalArgumentException("Insufficient holding quantity");
-                }
-
-                // Update account holding for the share
-                holdingService.updateHoldingAfterSale(holding, request.getShareQuantity(), request.getPricePerShare());
-
-                // Add sale to balance
-                account.setAccountBalance(account.getAccountBalance().add(request.getPricePerShare().multiply(request.getShareQuantity())));
             }
+
+            Holding holding = holdingOpt.get();
+            if (holding.getQuantity().compareTo(request.getShareQuantity()) < 0) {
+                throw new IllegalArgumentException("Insufficient holding quantity");
+            }
+
+            // Update holding and account balance
+            holdingService.updateHoldingAfterSale(holding, request.getShareQuantity(), request.getPricePerShare());
+            account.setAccountBalance(account.getAccountBalance().add(request.getPricePerShare().multiply(request.getShareQuantity())));
         }
 
         // Save account balance
-        accountService.updateAccountBalance(accountRepository.findByAccountId(request.getAccountId())
-                .orElseThrow(() -> new IllegalArgumentException("Account not found")), account.getAccountBalance());
+        accountService.updateAccountBalance(account, account.getAccountBalance());
 
         // Update or create holding
         holdingService.updateOrCreateHoldingFromTransaction(request);
 
-        // Convert request to dto
+        // Convert request to DTO
         TransactionDTO dto = transactionService.createTransaction(request);
+
+        // --- Calculate new portfolio value ---
+        BigDecimal currentPortfolioValue = holdingCalculationService.calculateTotalPortfolioValue(account.getAccountId());
+        BigDecimal portfolioChange = currentPortfolioValue.subtract(previousPortfolioValue);
+
+        // Send WebSocket numeric update
+        WebSocketController.PortfolioUpdateMessage updateMessage = new WebSocketController.PortfolioUpdateMessage(
+                account.getAccountId(),
+                currentPortfolioValue,
+                portfolioChange,
+                LocalDateTime.now()
+        );
 
         return dto;
     }
-
-
 }

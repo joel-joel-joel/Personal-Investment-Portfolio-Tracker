@@ -1,14 +1,17 @@
 package com.joelcode.personalinvestmentportfoliotracker.services.pricehistory;
 
+import com.joelcode.personalinvestmentportfoliotracker.controllers.WebSocketController;
 import com.joelcode.personalinvestmentportfoliotracker.dto.pricehistory.PriceHistoryCreateRequest;
 import com.joelcode.personalinvestmentportfoliotracker.dto.pricehistory.PriceHistoryDTO;
 import com.joelcode.personalinvestmentportfoliotracker.entities.PriceHistory;
 import com.joelcode.personalinvestmentportfoliotracker.exceptions.CustomAuthenticationException;
 import com.joelcode.personalinvestmentportfoliotracker.repositories.PriceHistoryRepository;
 import com.joelcode.personalinvestmentportfoliotracker.services.mapping.PriceHistoryMapper;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -20,12 +23,18 @@ public class PriceHistoryServiceImpl implements PriceHistoryService{
     // Define key fields
     private final PriceHistoryRepository priceHistoryRepository;
     private final PriceHistoryValidationService validationService;
+    private final SimpMessagingTemplate messagingTemplate;
+    private final WebSocketController webSocketController;
 
     // Constructor
     public PriceHistoryServiceImpl(PriceHistoryRepository priceHistoryRepository,
-                                   PriceHistoryValidationService validationService) {
+                                   PriceHistoryValidationService validationService,
+                                   SimpMessagingTemplate messagingTemplate,
+                                   WebSocketController webSocketController) {
         this.priceHistoryRepository = priceHistoryRepository;
         this.validationService = validationService;
+        this.messagingTemplate = messagingTemplate;
+        this.webSocketController = webSocketController;
     }
 
     // Create price history entity from request dto
@@ -86,13 +95,25 @@ public class PriceHistoryServiceImpl implements PriceHistoryService{
 
     @Override
     public PriceHistoryDTO getLatestPriceForStock(UUID stockId) {
-        // Fetch latest price (order by date descending, get first)
+        // Fetch latest price from repository
         Optional<PriceHistory> latest = priceHistoryRepository
                 .findTopByStock_IdOrderByDateDesc(stockId);
 
-        return latest.map(PriceHistoryMapper::toDTO)
-                .orElse(null); // returns null if no price exists
+        if (latest.isPresent()) {
+            PriceHistory priceHistory = latest.get();
+            String stockCode = priceHistory.getStock().getStockCode();
+            BigDecimal latestPrice = priceHistory.getClosePrice();
+
+            // Broadcast via WebSocket using centralized controller method
+            webSocketController.broadcastStockPriceUpdate(stockId, stockCode, latestPrice);
+
+            // Return DTO to caller
+            return PriceHistoryMapper.toDTO(priceHistory);
+        } else {
+            return null; // or throw an exception if preferred
+        }
     }
+
 
 
 }

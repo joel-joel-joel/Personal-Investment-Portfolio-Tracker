@@ -1,11 +1,14 @@
 package com.joelcode.personalinvestmentportfoliotracker.services.dividendpayment;
 
+import com.joelcode.personalinvestmentportfoliotracker.controllers.WebSocketController;
 import com.joelcode.personalinvestmentportfoliotracker.dto.dividendpayment.DividendPaymentCreateRequest;
 import com.joelcode.personalinvestmentportfoliotracker.dto.dividendpayment.DividendPaymentDTO;
 import com.joelcode.personalinvestmentportfoliotracker.entities.*;
 import com.joelcode.personalinvestmentportfoliotracker.repositories.*;
+import com.joelcode.personalinvestmentportfoliotracker.services.holding.HoldingCalculationService;
 import com.joelcode.personalinvestmentportfoliotracker.services.mapping.DividendPaymentMapper;
 import jakarta.transaction.Transactional;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -23,19 +26,25 @@ public class DividendPaymentServiceImpl implements DividendPaymentService {
     private final StockRepository stockRepository;
     private final HoldingRepository holdingRepository;
     private final DividendPaymentValidationService validationService;
+    private final SimpMessagingTemplate messagingTemplate;
+    private final HoldingCalculationService holdingCalculationService;
 
     public DividendPaymentServiceImpl(DividendPaymentRepository paymentRepository,
                                       DividendRepository dividendRepository,
                                       AccountRepository accountRepository,
                                       StockRepository stockRepository,
                                       HoldingRepository holdingRepository,
-                                      DividendPaymentValidationService validationService) {
+                                      DividendPaymentValidationService validationService,
+                                      SimpMessagingTemplate messagingTemplate,
+                                      HoldingCalculationService holdingCalculationService) {
         this.paymentRepository = paymentRepository;
         this.dividendRepository = dividendRepository;
         this.accountRepository = accountRepository;
         this.stockRepository = stockRepository;
         this.holdingRepository = holdingRepository;
         this.validationService = validationService;
+        this.messagingTemplate = messagingTemplate;
+        this.holdingCalculationService = holdingCalculationService;
     }
 
     @Override
@@ -64,6 +73,43 @@ public class DividendPaymentServiceImpl implements DividendPaymentService {
 
         // Save to database
         payment = paymentRepository.save(payment);
+
+        // Calculate updated portfolio value
+        BigDecimal previousPortfolioValue = account.getAccountBalance().add(
+                holdingCalculationService.calculateTotalUnrealizedGain(account.getAccountId())
+        );
+        BigDecimal updatedPortfolioValue = previousPortfolioValue.add(
+                request.getShareQuantity().multiply(dividend.getAmountPerShare())
+        );
+        BigDecimal change = updatedPortfolioValue.subtract(previousPortfolioValue);
+
+        // Update account balance in memory (optional, DB update might happen elsewhere)
+        account.setAccountBalance(account.getAccountBalance().add(
+                request.getShareQuantity().multiply(dividend.getAmountPerShare())
+        ));
+
+        // WebSocket notification: user alert
+        messagingTemplate.convertAndSend(
+                "/topic/dividends",
+                new WebSocketController.UserNotification(
+                        "New dividend payment for stock " + stock.getStockCode() +
+                                " on " + dividend.getPayDate() +
+                                " at " + dividend.getAmountPerShare() + " per share, total payment is "
+                                + (request.getShareQuantity().multiply(dividend.getAmountPerShare())),
+                        LocalDateTime.now()
+                )
+        );
+
+        // WebSocket notification: portfolio update
+        messagingTemplate.convertAndSend(
+                "/topic/portfolio/" + account.getAccountId(),
+                new WebSocketController.PortfolioUpdateMessage(
+                        account.getAccountId(),
+                        updatedPortfolioValue,
+                        change,
+                        LocalDateTime.now()
+                )
+        );
 
         return DividendPaymentMapper.toDTO(payment);
     }

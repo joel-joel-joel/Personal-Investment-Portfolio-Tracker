@@ -159,4 +159,27 @@ public class WebSocketController {
         public LocalDateTime getTimestamp() { return timestamp; }
         public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
     }
+
+    public static class HoldingUpdateMessage {
+        private UUID accountId;
+        private UUID stockId;
+        private BigDecimal quantity;
+        private BigDecimal totalCostBasis;
+        private BigDecimal averageCostBasis;
+        private BigDecimal realizedGain;
+        private LocalDateTime timestamp;
+
+        public HoldingUpdateMessage(UUID accountId, UUID stockId, BigDecimal quantity,
+                                    BigDecimal totalCostBasis, BigDecimal averageCostBasis,
+                                    BigDecimal realizedGain, LocalDateTime timestamp) {
+            this.accountId = accountId;
+            this.stockId = stockId;
+            this.quantity = quantity;
+            this.totalCostBasis = totalCostBasis;
+            this.averageCostBasis = averageCostBasis;
+            this.realizedGain = realizedGain;
+            this.timestamp = timestamp;
+        }
+    }
+
 }

@@ -55,4 +55,5 @@ public interface PriceHistoryRepository extends JpaRepository<PriceHistory, UUID
     List<PriceHistory> findByClosePriceLessThan(BigDecimal closePrice);
 
 
+    UUID stock(Stock stock);
 }

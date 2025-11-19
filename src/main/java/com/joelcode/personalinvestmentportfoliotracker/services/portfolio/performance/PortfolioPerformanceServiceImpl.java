@@ -1,5 +1,6 @@
 package com.joelcode.personalinvestmentportfoliotracker.services.portfolio.performance;
 
+import com.joelcode.personalinvestmentportfoliotracker.controllers.WebSocketController;
 import com.joelcode.personalinvestmentportfoliotracker.dto.dividendpayment.DividendPaymentDTO;
 import com.joelcode.personalinvestmentportfoliotracker.dto.holding.HoldingDTO;
 import com.joelcode.personalinvestmentportfoliotracker.entities.Account;
@@ -17,10 +18,12 @@ import com.joelcode.personalinvestmentportfoliotracker.services.holding.HoldingS
 import com.joelcode.personalinvestmentportfoliotracker.dto.portfolio.PortfolioPerformanceDTO;
 import com.joelcode.personalinvestmentportfoliotracker.services.user.UserValidationService;
 import jakarta.transaction.Transactional;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -37,6 +40,8 @@ public class PortfolioPerformanceServiceImpl implements PortfolioPerformanceServ
     private final AccountValidationService accountValidationService;
     private final DividendPaymentService dividendPaymentService;
     private final UserValidationService userValidationService;
+    private final SimpMessagingTemplate messagingTemplate;
+    private final WebSocketController webSocketController;
 
     // Constructor
     public PortfolioPerformanceServiceImpl (AccountService accountService, HoldingService holdingService,
@@ -45,7 +50,9 @@ public class PortfolioPerformanceServiceImpl implements PortfolioPerformanceServ
                                             AccountRepository accountRepository, HoldingRepository holdingRepository,
                                             AccountValidationService accountValidationService,
                                             DividendPaymentService dividendPaymentService,
-                                            UserValidationService userValidationService) {
+                                            UserValidationService userValidationService,
+                                            SimpMessagingTemplate messagingTemplate,
+                                            WebSocketController webSocketController) {
         this.accountService = accountService;
         this.holdingService = holdingService;
         this.dividendCalculationService = dividendCalculationService;
@@ -55,6 +62,8 @@ public class PortfolioPerformanceServiceImpl implements PortfolioPerformanceServ
         this.accountValidationService = accountValidationService;
         this.dividendPaymentService = dividendPaymentService;
         this.userValidationService = userValidationService;
+        this.messagingTemplate = messagingTemplate;
+        this.webSocketController = webSocketController;
     }
 
     @Override
@@ -131,6 +140,19 @@ public class PortfolioPerformanceServiceImpl implements PortfolioPerformanceServ
         snapshot.setSnapshotDate(java.time.LocalDate.now());
 
         snapshotRepository.save(snapshot);
+
+        // Web socket notification
+        WebSocketController.PortfolioUpdateMessage updateMessage = new WebSocketController.PortfolioUpdateMessage(
+                snapshot.getAccount().getAccountId(),
+                performance.getTotalPortfolioValue(),
+                BigDecimal.ZERO,
+                LocalDateTime.now()
+        );
+
+        messagingTemplate.convertAndSend(
+                "/topic/portfolio/" + accountId,
+                updateMessage
+        );
 
     }
 

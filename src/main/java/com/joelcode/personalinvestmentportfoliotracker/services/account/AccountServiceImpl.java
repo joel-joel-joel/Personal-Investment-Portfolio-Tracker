@@ -1,5 +1,6 @@
 package com.joelcode.personalinvestmentportfoliotracker.services.account;
 
+import com.joelcode.personalinvestmentportfoliotracker.controllers.WebSocketController;
 import com.joelcode.personalinvestmentportfoliotracker.dto.account.AccountCreateRequest;
 import com.joelcode.personalinvestmentportfoliotracker.dto.account.AccountDTO;
 import com.joelcode.personalinvestmentportfoliotracker.dto.account.AccountUpdateRequest;
@@ -13,9 +14,11 @@ import com.joelcode.personalinvestmentportfoliotracker.services.mapping.HoldingM
 import com.joelcode.personalinvestmentportfoliotracker.services.mapping.TransactionMapper;
 import com.joelcode.personalinvestmentportfoliotracker.services.pricehistory.PriceHistoryService;
 import com.joelcode.personalinvestmentportfoliotracker.services.pricehistory.PriceHistoryServiceImpl;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -29,16 +32,20 @@ public class AccountServiceImpl implements AccountService {
     private final TransactionMapper transactionMapper;
     private final HoldingMapper holdingMapper;
     private final PriceHistoryService priceHistoryService;
+    private final SimpMessagingTemplate messagingTemplate;
+
 
     // Constructor
     public AccountServiceImpl(AccountRepository accountRepository, AccountValidationService accountValidationService,
                               TransactionMapper transactionMapper, HoldingMapper holdingMapper,
-                              PriceHistoryServiceImpl priceHistoryService) {
+                              PriceHistoryServiceImpl priceHistoryService,
+                              SimpMessagingTemplate messagingTemplate) {
         this.accountRepository = accountRepository;
         this.accountValidationService = accountValidationService;
         this.transactionMapper = transactionMapper;
         this.holdingMapper = holdingMapper;
         this.priceHistoryService = priceHistoryService;
+        this.messagingTemplate = messagingTemplate;
     }
 
     // Interface functions
@@ -53,6 +60,18 @@ public class AccountServiceImpl implements AccountService {
 
         // Save account to db
         account = accountRepository.save(account);
+
+        WebSocketController.PortfolioUpdateMessage updateMessage = new WebSocketController.PortfolioUpdateMessage(
+                account.getAccountId(),
+                BigDecimal.ZERO, // New account is created with a balance of zero
+                BigDecimal.ZERO, // Zero change as it is a creation
+                LocalDateTime.now()
+        );
+
+        messagingTemplate.convertAndSend(
+                "/topic/portfolio/" + account.getAccountId(),
+                updateMessage
+        );
 
         // Map entity back to dto
         return AccountMapper.toDTO(account);
@@ -79,9 +98,23 @@ public class AccountServiceImpl implements AccountService {
     public AccountDTO updateAccount(UUID accountId, AccountUpdateRequest request) {
         Account account = accountValidationService.validateAccountExistsById(accountId);
 
+        BigDecimal previousBalance = account.getAccountBalance();
+
         AccountMapper.updateEntity(account, request);
 
         account = accountRepository.save(account);
+
+        WebSocketController.PortfolioUpdateMessage updateMessage = new WebSocketController.PortfolioUpdateMessage(
+                account.getAccountId(),
+                account.getAccountBalance(),
+                account.getAccountBalance().subtract(previousBalance), // Zero change as it is a creation
+                LocalDateTime.now()
+        );
+
+        messagingTemplate.convertAndSend(
+                "/topic/portfolio/" + account.getAccountId(),
+                updateMessage
+        );
 
         return AccountMapper.toDTO(account);
     }
@@ -102,6 +135,18 @@ public class AccountServiceImpl implements AccountService {
         BigDecimal newBalance = currentBalance.add(amount);
         account.setAccountBalance(newBalance);
         accountRepository.save(account);
+
+        WebSocketController.PortfolioUpdateMessage updateMessage = new WebSocketController.PortfolioUpdateMessage(
+                account.getAccountId(),
+                account.getAccountBalance(),
+                newBalance.subtract(currentBalance), // Zero change as it is a creation
+                LocalDateTime.now()
+        );
+
+        messagingTemplate.convertAndSend(
+                "/topic/portfolio/" + account.getAccountId(),
+                updateMessage
+        );
 
     }
 

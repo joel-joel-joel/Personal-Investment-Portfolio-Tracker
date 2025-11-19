@@ -1,5 +1,6 @@
 package com.joelcode.personalinvestmentportfoliotracker.services.holding;
 
+import com.joelcode.personalinvestmentportfoliotracker.controllers.WebSocketController;
 import com.joelcode.personalinvestmentportfoliotracker.dto.holding.HoldingCreateRequest;
 import com.joelcode.personalinvestmentportfoliotracker.dto.holding.HoldingDTO;
 import com.joelcode.personalinvestmentportfoliotracker.dto.holding.HoldingUpdateRequest;
@@ -11,10 +12,12 @@ import com.joelcode.personalinvestmentportfoliotracker.repositories.HoldingRepos
 import com.joelcode.personalinvestmentportfoliotracker.services.account.AccountValidationService;
 import com.joelcode.personalinvestmentportfoliotracker.services.mapping.HoldingMapper;
 import com.joelcode.personalinvestmentportfoliotracker.services.pricehistory.PriceHistoryServiceImpl;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -28,16 +31,22 @@ public class HoldingServiceImpl implements HoldingService {
     private final HoldingValidationService holdingValidationService;
     private final AccountValidationService accountValidationService;
     private final PriceHistoryServiceImpl priceHistoryService;
+    private final WebSocketController webSocketController;
+    private final SimpMessagingTemplate messagingTemplate;
 
     // Constructor
     public HoldingServiceImpl(HoldingRepository holdingRepository,
                               HoldingValidationService holdingValidationService,
                               AccountValidationService accountValidationService,
-                              PriceHistoryServiceImpl priceHistoryService) {
+                              PriceHistoryServiceImpl priceHistoryService,
+                              WebSocketController webSocketController,
+                              SimpMessagingTemplate messagingTemplate) {
         this.holdingRepository = holdingRepository;
         this.holdingValidationService = holdingValidationService;
         this.accountValidationService = accountValidationService;
         this.priceHistoryService = priceHistoryService;
+        this.webSocketController = webSocketController;
+        this.messagingTemplate = messagingTemplate;
     }
 
     // Create holding entity from request dto
@@ -61,6 +70,22 @@ public class HoldingServiceImpl implements HoldingService {
 
         // Save to DB
         holding = holdingRepository.save(holding);
+
+        WebSocketController.HoldingUpdateMessage updateMessage = new WebSocketController.HoldingUpdateMessage(
+                holding.getAccount().getAccountId(),
+                holding.getStock().getStockId(),
+                holding.getQuantity(),
+                holding.getTotalCostBasis(),
+                holding.getAverageCostBasis(),
+                holding.getRealizedGain(),
+                LocalDateTime.now()
+        );
+
+        // Broadcast update to all subscribers for this account
+        messagingTemplate.convertAndSend(
+                "/topic/portfolio/" + holding.getAccount().getAccountId(),
+                updateMessage
+        );
 
         // Convert entity -> DTO
         return HoldingMapper.toDTO(holding, BigDecimal.valueOf(stock.getStockValue()));
@@ -119,6 +144,23 @@ public class HoldingServiceImpl implements HoldingService {
         // Save to DB
         holding = holdingRepository.save(holding);
 
+        WebSocketController.HoldingUpdateMessage updateMessage = new WebSocketController.HoldingUpdateMessage(
+                holding.getAccount().getAccountId(),
+                holding.getStock().getStockId(),
+                holding.getQuantity(),
+                holding.getTotalCostBasis(),
+                holding.getAverageCostBasis(),
+                holding.getRealizedGain(),
+                LocalDateTime.now()
+        );
+
+        // Broadcast update to all subscribers for this account
+        messagingTemplate.convertAndSend(
+                "/topic/portfolio/" + holding.getAccount().getAccountId(),
+                updateMessage
+        );
+
+
         // Convert entity -> DTO
         return HoldingMapper.toDTO(holding, BigDecimal.valueOf(holding.getStock().getStockValue()));
     }
@@ -136,6 +178,23 @@ public class HoldingServiceImpl implements HoldingService {
         holding.setTotalCostBasis(holding.getAverageCostBasis().multiply(holding.getQuantity()));
 
         holdingRepository.save(holding);
+
+        WebSocketController.HoldingUpdateMessage updateMessage = new WebSocketController.HoldingUpdateMessage(
+                holding.getAccount().getAccountId(),
+                holding.getStock().getStockId(),
+                holding.getQuantity(),
+                holding.getTotalCostBasis(),
+                holding.getAverageCostBasis(),
+                holding.getRealizedGain(),
+                LocalDateTime.now()
+        );
+
+        // Broadcast update to all subscribers for this account
+        messagingTemplate.convertAndSend(
+                "/topic/portfolio/" + holding.getAccount().getAccountId(),
+                updateMessage
+        );
+
     }
 
     @Override
@@ -177,6 +236,22 @@ public class HoldingServiceImpl implements HoldingService {
 
             holdingRepository.save(holding);
 
+            WebSocketController.HoldingUpdateMessage updateMessage = new WebSocketController.HoldingUpdateMessage(
+                    holding.getAccount().getAccountId(),
+                    holding.getStock().getStockId(),
+                    holding.getQuantity(),
+                    holding.getTotalCostBasis(),
+                    holding.getAverageCostBasis(),
+                    holding.getRealizedGain(),
+                    LocalDateTime.now()
+            );
+
+            // Broadcast update to all subscribers for this account
+            messagingTemplate.convertAndSend(
+                    "/topic/portfolio/" + holding.getAccount().getAccountId(),
+                    updateMessage
+            );
+
         } else {
             // No holding exists → create new only for BUY
             if (request.getTransactionType().name().equalsIgnoreCase("BUY")) {
@@ -193,6 +268,7 @@ public class HoldingServiceImpl implements HoldingService {
                 throw new IllegalArgumentException("Cannot sell stock you don't hold");
             }
         }
+
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.joelcode.personalinvestmentportfoliotracker.services.dividend;
 
+import com.joelcode.personalinvestmentportfoliotracker.controllers.WebSocketController;
 import com.joelcode.personalinvestmentportfoliotracker.dto.dividend.DividendDTO;
 import com.joelcode.personalinvestmentportfoliotracker.dto.dividend.DividendCreateRequest;
 import com.joelcode.personalinvestmentportfoliotracker.entities.Dividend;
@@ -9,8 +10,10 @@ import com.joelcode.personalinvestmentportfoliotracker.repositories.StockReposit
 import com.joelcode.personalinvestmentportfoliotracker.services.dividendpayment.DividendPaymentService;
 import com.joelcode.personalinvestmentportfoliotracker.services.mapping.DividendMapper;
 import jakarta.transaction.Transactional;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -22,15 +25,22 @@ public class DividendServiceImpl implements DividendService {
     private final StockRepository stockRepository;
     private final DividendValidationService dividendValidationService;
     private final DividendPaymentService dividendPaymentService;
+    private final WebSocketController webSocketController;
+    private final SimpMessagingTemplate messagingTemplate;
+
 
     public DividendServiceImpl(DividendRepository dividendRepository,
                                StockRepository stockRepository,
                                DividendValidationService dividendValidationService,
-                               DividendPaymentService dividendPaymentService) {
+                               DividendPaymentService dividendPaymentService,
+                               WebSocketController webSocketController,
+                               SimpMessagingTemplate messagingTemplate) {
         this.dividendRepository = dividendRepository;
         this.stockRepository = stockRepository;
         this.dividendValidationService = dividendValidationService;
         this.dividendPaymentService = dividendPaymentService;
+        this.webSocketController = webSocketController;
+        this.messagingTemplate = messagingTemplate;
     }
 
     @Override
@@ -64,6 +74,17 @@ public class DividendServiceImpl implements DividendService {
 
         // Automatically create payment records for all accounts holding this stock
         dividendPaymentService.processPaymentsForDividend(dividend.getDividendId());
+
+        // WebSocket notification
+         messagingTemplate.convertAndSend(
+                "/topic/dividends",  // topic for all subscribers
+                new WebSocketController.UserNotification(
+                        "New dividend announced for stock " + stock.getStockCode() +
+                                " on " + dividend.getPayDate() +
+                                " at " + dividend.getAmountPerShare() + " per share",
+                        LocalDateTime.now()
+                )
+        );
 
         return DividendMapper.toDTO(dividend);
     }
