@@ -16,7 +16,7 @@ import java.util.UUID;
 public class AccountController {
 
     @Autowired
-    private AccountService accountService;
+    public AccountService accountService;
 
     // Get all accounts
     @GetMapping
