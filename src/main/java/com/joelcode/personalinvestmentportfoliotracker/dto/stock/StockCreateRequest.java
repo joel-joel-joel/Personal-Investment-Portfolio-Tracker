@@ -16,19 +16,19 @@ public class StockCreateRequest {
     // Stock creation request DTO (input)
     @NotBlank (message = "Stock ID is required")
     @Size(max = 20, message = "Stock ID must be at most 20 characters")
-    private final UUID stockId;
+    private UUID stockId;
 
     @NotBlank (message = "Stock code is required")
     @Size(max = 20, message = "Stock code must be at most 20 characters")
-    private final String stockCode;
+    private String stockCode;
 
     @NotBlank (message = "Company name is required")
     @Size(max = 100, message = "Company name must be at most 100 characters")
-    private final String companyName;
+    private String companyName;
 
     @NotNull(message = "Stock value is required")
     @Positive(message = "Stock value must be positive")
-    private final BigDecimal stockValue;
+    private BigDecimal stockValue;
 
     // Jackson-compatible constructor
     @JsonCreator
@@ -43,7 +43,9 @@ public class StockCreateRequest {
         this.stockValue = stockValue;
     }
 
-    // Getters
+    public StockCreateRequest() {}
+
+    // Getters and setters
     public String getStockCode() {return stockCode;}
 
     public String getCompanyName() {return companyName;}
@@ -51,4 +53,12 @@ public class StockCreateRequest {
     public BigDecimal getStockValue() {return stockValue;}
 
     public UUID getStockId() {return stockId;}
+
+    public void setStockId(String stockId) {this.stockId = UUID.fromString(stockId);}
+
+    public void setCompanyName(String companyName) {this.companyName = companyName;}
+
+    public void setStockCode(String stockCode) {this.stockCode = stockCode;}
+
+    public void setStockValue(BigDecimal stockValue) {this.stockValue = stockValue;}
 }

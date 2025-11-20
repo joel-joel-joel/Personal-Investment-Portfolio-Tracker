@@ -132,7 +132,7 @@ class StockControllerTest {
     void testUpdateStock_Success() {
         // Setup update request and identical control updated stock
         UUID stockId = UUID.randomUUID();
-        StockUpdateRequest request = new StockUpdateRequest("AAPL", "Apple Incorporated", stockId, BigDecimal.valueOf(155.0));
+        StockUpdateRequest request = new StockUpdateRequest("AAPL", "Apple Incorporated", stockId);
         StockDTO updated = new StockDTO(stockId, "AAPL", "Apple Incorporated", BigDecimal.valueOf(155));
 
         // Map method return value to setup
@@ -152,7 +152,7 @@ class StockControllerTest {
     void testUpdateStock_NotFound() {
         // Setup stock id and update request
         UUID stockId = UUID.randomUUID();
-        StockUpdateRequest request = new StockUpdateRequest("AAPL", "Apple Incorporated", stockId, BigDecimal.valueOf(155.0));
+        StockUpdateRequest request = new StockUpdateRequest("AAPL", "Apple Incorporated", stockId);
 
         // Map method return value to setup
         when(stockService.updateStock(stockId, request)).thenReturn(null);

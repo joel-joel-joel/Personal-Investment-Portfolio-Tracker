@@ -22,7 +22,6 @@ public class StockMapper {
     public static void updateEntity(Stock stock, StockUpdateRequest request){
         if (request.getStockCode() != null) {stock.setStockCode(request.getStockCode());}
         if (request.getCompanyName() != null) {stock.setCompanyName(request.getCompanyName());}
-        if (request.getStockValue() != null) {stock.setStockValue(request.getStockValue());}
     }
 
     // Convert stock entity from stock response DTO

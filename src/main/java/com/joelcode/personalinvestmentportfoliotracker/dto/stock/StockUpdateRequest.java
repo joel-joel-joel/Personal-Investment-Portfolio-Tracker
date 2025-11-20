@@ -21,20 +21,16 @@ public class StockUpdateRequest {
     @Size(max = 100, message = "Company name must be at most 100 characters")
     private String companyName;
 
-    @Positive(message = "Stock value must be positive")
-    private BigDecimal stockValue;
 
     // Jackson-compatible constructor
     @JsonCreator
     public StockUpdateRequest(
             @JsonProperty("stockCode") String stockCode,
             @JsonProperty ("companyName") String companyName,
-            @JsonProperty ("stockId") UUID stockId,
-            @JsonProperty ("stockValue") BigDecimal stockValue) {
+            @JsonProperty ("stockId") UUID stockId){
         this.stockCode = stockCode;
         this.stockId = stockId;
         this.companyName = companyName;
-        this.stockValue = stockValue;
     }
 
     // Getters and setters
@@ -50,7 +46,4 @@ public class StockUpdateRequest {
 
     public void setCompanyName(String companyName) {this.companyName = companyName;}
 
-    public BigDecimal getStockValue() {return stockValue;}
-
-    public void setStockValue(BigDecimal stockValue) {this.stockValue = stockValue;}
 }

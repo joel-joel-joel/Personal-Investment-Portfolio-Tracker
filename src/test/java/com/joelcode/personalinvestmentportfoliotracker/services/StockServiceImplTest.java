@@ -93,8 +93,7 @@ public class StockServiceImplTest {
         StockUpdateRequest request = new StockUpdateRequest(
                 "AAPL",
                 "Apple Inc.",
-                stockId,
-                BigDecimal.valueOf(160.0)
+                stockId
         );
 
         when(stockValidationService.validateStockExists(stockId)).thenReturn(testStock);
