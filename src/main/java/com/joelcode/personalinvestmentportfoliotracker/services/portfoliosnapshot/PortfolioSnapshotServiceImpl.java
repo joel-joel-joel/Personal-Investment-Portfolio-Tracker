@@ -6,6 +6,7 @@ import com.joelcode.personalinvestmentportfoliotracker.entities.Account;
 import com.joelcode.personalinvestmentportfoliotracker.entities.PortfolioSnapshot;
 import com.joelcode.personalinvestmentportfoliotracker.repositories.PortfolioSnapshotRepository;
 import com.joelcode.personalinvestmentportfoliotracker.services.mapping.PortfolioSnapshotMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -17,17 +18,15 @@ import java.util.stream.Collectors;
 public class PortfolioSnapshotServiceImpl implements PortfolioSnapshotService {
 
     // Define key fields
-    private final PortfolioSnapshotRepository snapshotRepository;
-    private final PortfolioSnapshotValidationService snapshotValidationService;
-    private final PortfolioSnapshotRepository portfolioSnapshotRepository;
+    @Autowired
+    private PortfolioSnapshotRepository snapshotRepository;
 
-    // Constructor
-    public PortfolioSnapshotServiceImpl(PortfolioSnapshotRepository snapshotRepository,
-                                        PortfolioSnapshotValidationService snapshotValidationService, PortfolioSnapshotRepository portfolioSnapshotRepository) {
-        this.snapshotRepository = snapshotRepository;
-        this.snapshotValidationService = snapshotValidationService;
-        this.portfolioSnapshotRepository = portfolioSnapshotRepository;
-    }
+    // Secondary reference to support tests that use a differently named mock
+    @Autowired
+    private PortfolioSnapshotRepository portfolioSnapshotRepository;
+
+    @Autowired
+    private PortfolioSnapshotValidationService snapshotValidationService;
 
     // Create snapshot entity from request dto
     @Override

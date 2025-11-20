@@ -15,21 +15,21 @@ public class TransactionCreateRequest {
 
     // Transaction request creation DTO (input)
     @NotBlank (message = "Stock code is required")
-    private final UUID stockId;
+    private UUID stockId;
 
     @NotNull(message = "Account id is required")
-    private final UUID accountId;
+    private UUID accountId;
 
     @NotNull(message = "Share quantity is required")
     @Positive (message = "Share quantity must be positive or zero")
-    private final BigDecimal shareQuantity;
+    private BigDecimal shareQuantity;
 
     @NotNull (message = "Price per share is required")
     @Positive(message = "Price per share must be positive or zero")
-    private final BigDecimal pricePerShare;
+    private BigDecimal pricePerShare;
 
     @NotNull (message = "Transaction type is required")
-    private final Transaction.TransactionType transactionType;
+    private Transaction.TransactionType transactionType;
 
 
 
@@ -48,7 +48,9 @@ public class TransactionCreateRequest {
         this.transactionType = transactionType;
     }
 
-    // Getters
+    public TransactionCreateRequest() {};
+
+    // Getters and setters
     public UUID getStockId() {return stockId;}
 
     public UUID getAccountId() {return accountId;}
@@ -66,4 +68,15 @@ public class TransactionCreateRequest {
                 shareQuantity.compareTo(BigDecimal.ZERO) > 0 &&
                 pricePerShare.compareTo(BigDecimal.ZERO) > 0;
     }
+
+    public void setStockId(UUID stockId) {this.stockId = stockId;}
+
+    public void setAccountId(UUID accountId) {this.accountId = accountId;}
+
+    public void setShareQuantity(BigDecimal shareQuantity) {this.shareQuantity = shareQuantity;}
+
+    public void setPricePerShare(BigDecimal pricePerShare) {this.pricePerShare = pricePerShare;}
+
+    public void setTransactionType(Transaction.TransactionType transactionType) {this.transactionType = transactionType;}
+
 }

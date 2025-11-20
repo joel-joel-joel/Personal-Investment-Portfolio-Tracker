@@ -10,9 +10,9 @@ import java.util.UUID;
 public class AccountDTO {
 
     // Account response DTO (output)
-    private final String accountName;
-    private final UUID accountId;
-    private final UserDTO user;
+    private String accountName;
+    private UUID accountId;
+    private UserDTO user;
     private BigDecimal cashBalance;
 
     // Constructor
@@ -29,6 +29,8 @@ public class AccountDTO {
         this.user = new UserDTO(account.getUser());
         this.cashBalance = account.getAccountBalance();
     }
+
+    public AccountDTO() {}
 
     // Getters
     public String getAccountName() {return accountName;}

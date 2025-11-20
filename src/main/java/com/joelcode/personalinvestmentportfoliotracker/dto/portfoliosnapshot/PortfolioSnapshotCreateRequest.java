@@ -11,28 +11,35 @@ public class PortfolioSnapshotCreateRequest {
 
     // Portfolio snapshot creation request DTO (input)
     @NotNull(message = "Account ID is required")
-    private final UUID accountId;
+    private UUID accountId;
 
     @NotNull(message = "Snapshot date is required")
-    private final LocalDate snapshotDate;
+    private LocalDate snapshotDate;
 
     @NotNull(message = "Total value is required")
     @DecimalMin(value = "0.00", message = "Total value cannot be negative")
-    private final BigDecimal totalValue;
+    private BigDecimal totalValue;
 
     @NotNull(message = "Cash balance is required")
     @DecimalMin(value = "0.00", message = "Cash balance cannot be negative")
-    private final BigDecimal cashBalance;
+    private BigDecimal cashBalance;
 
     @NotNull(message = "Total invested is required")
     @DecimalMin(value = "0.00", message = "Total invested cannot be negative")
-    private final BigDecimal totalInvested;
+    private BigDecimal totalInvested;
 
-    private final BigDecimal totalGain;
+    @NotNull(message = "Total gain is required")
+    @DecimalMin(value = "0.00", message = "Total gain cannot be negative")
+    private BigDecimal totalGain;
 
-    private final BigDecimal dayChange;
+    @NotNull(message = "Day change is required")
+    @DecimalMin(value = "0.00", message = "Day change cannot be negative")
+    private BigDecimal dayChange;
 
-    private final BigDecimal dayChangePercent;
+    @NotNull(message = "Day change percent is required")
+    @DecimalMin(value = "0.00", message = "Day change percent cannot be negative")
+    @DecimalMin(value = "0.00", message = "Day change percent cannot be greater than 100")
+    private BigDecimal dayChangePercent;
 
     // Constructor
     public PortfolioSnapshotCreateRequest(UUID accountId, LocalDate snapshotDate, BigDecimal totalValue,
@@ -48,36 +55,38 @@ public class PortfolioSnapshotCreateRequest {
         this.dayChangePercent = dayChangePercent;
     }
 
-    // Getters
-    public UUID getAccountId() {
-        return accountId;
-    }
+    public PortfolioSnapshotCreateRequest() {}
 
-    public LocalDate getSnapshotDate() {
-        return snapshotDate;
-    }
+    // Getters and setters
+    public UUID getAccountId() {return accountId;}
 
-    public BigDecimal getTotalValue() {
-        return totalValue;
-    }
+    public LocalDate getSnapshotDate() {return snapshotDate;}
 
-    public BigDecimal getCashBalance() {
-        return cashBalance;
-    }
+    public BigDecimal getTotalValue() {return totalValue;}
 
-    public BigDecimal getTotalInvested() {
-        return totalInvested;
-    }
+    public BigDecimal getCashBalance() {return cashBalance;}
 
-    public BigDecimal getTotalGain() {
-        return totalGain;
-    }
+    public BigDecimal getTotalInvested() {return totalInvested;}
 
-    public BigDecimal getDayChange() {
-        return dayChange;
-    }
+    public BigDecimal getTotalGain() {return totalGain;}
 
-    public BigDecimal getDayChangePercent() {
-        return dayChangePercent;
-    }
+    public BigDecimal getDayChange() {return dayChange;}
+
+    public BigDecimal getDayChangePercent() {return dayChangePercent;}
+
+    public void setAccountId(UUID accountId) {this.accountId = accountId;}
+
+    public void setSnapshotDate(LocalDate snapshotDate) {this.snapshotDate = snapshotDate;}
+
+    public void setTotalValue(BigDecimal totalValue) {this.totalValue = totalValue;}
+
+    public void setCashBalance(BigDecimal cashBalance) {this.cashBalance = cashBalance;}
+
+    public void setTotalInvested(BigDecimal totalInvested) {this.totalInvested = totalInvested;}
+
+    public void setTotalGain(BigDecimal totalGain) {this.totalGain = totalGain;}
+
+    public void setDayChangePercent(BigDecimal dayChangePercent) {this.dayChangePercent = dayChangePercent;}
+
+    public void setDayChange(BigDecimal dayChange) {this.dayChange = dayChange;}
 }

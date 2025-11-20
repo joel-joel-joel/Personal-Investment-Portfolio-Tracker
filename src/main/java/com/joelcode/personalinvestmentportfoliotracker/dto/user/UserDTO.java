@@ -7,9 +7,9 @@ import java.util.UUID;
 public class UserDTO {
 
     // User response DTO (output)
-    private final UUID userId;
-    private final String username;
-    private final String email;
+    private UUID userId;
+    private String username;
+    private String email;
 
     // Constructor
     public UserDTO(UUID userId, String username, String email) {
@@ -23,6 +23,8 @@ public class UserDTO {
         this.username = user.getUsername();
         this.email = user.getEmail();
     }
+
+    public UserDTO() {}
 
     // Getters
     public UUID getUserId() {

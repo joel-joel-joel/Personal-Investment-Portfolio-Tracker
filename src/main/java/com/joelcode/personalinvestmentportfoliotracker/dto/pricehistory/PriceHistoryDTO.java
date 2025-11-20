@@ -9,10 +9,10 @@ import java.util.UUID;
 public class PriceHistoryDTO {
 
     // Price history response DTO (output)
-    private final UUID priceHistoryId;
-    private final LocalDateTime closeDate;
-    private final BigDecimal closePrice;
-    private final UUID stockId;
+    private UUID priceHistoryId;
+    private LocalDateTime closeDate;
+    private BigDecimal closePrice;
+    private UUID stockId;
 
     // Constructors
     public PriceHistoryDTO(UUID priceHistoryId, LocalDateTime closeDate, BigDecimal closePrice, UUID stockId) {
@@ -29,7 +29,9 @@ public class PriceHistoryDTO {
         this.stockId = priceHistory.getStock().getStockId();
     }
 
-    // Getters
+    public PriceHistoryDTO() {}
+
+    // Getters and setters
     public UUID getPriceHistoryId() {return priceHistoryId;}
 
     public LocalDateTime getCloseDate() {return closeDate;}
@@ -37,5 +39,13 @@ public class PriceHistoryDTO {
     public BigDecimal getClosePrice() {return closePrice;}
 
     public UUID getStockCode() {return stockId;}
+
+    public void setPriceHistoryId(UUID priceHistoryId) {this.priceHistoryId = priceHistoryId;}
+
+    public void setCloseDate(LocalDateTime closeDate) {this.closeDate = closeDate;}
+
+    public void setClosePrice(BigDecimal closePrice) {this.closePrice = closePrice;}
+
+    public void setStockCode(UUID stockCode) {this.stockId = stockCode;}
 
 }

@@ -9,17 +9,17 @@ import java.util.UUID;
 public class PortfolioSnapshotDTO {
 
     // Portfolio snapshot response DTO (output)
-    private final UUID snapshotId;
-    private final UUID accountId;
-    private final LocalDate snapshotDate;
-    private final BigDecimal totalValue;
-    private final BigDecimal cashBalance;
-    private final BigDecimal totalInvested;
-    private final BigDecimal totalGain;
-    private final BigDecimal totalGainPercent;
-    private final BigDecimal dayChange;
-    private final BigDecimal dayChangePercent;
-    private final BigDecimal marketValue;
+    private UUID snapshotId;
+    private UUID accountId;
+    private LocalDate snapshotDate;
+    private BigDecimal totalValue;
+    private BigDecimal cashBalance;
+    private BigDecimal totalInvested;
+    private BigDecimal totalGain;
+    private BigDecimal totalGainPercent;
+    private BigDecimal dayChange;
+    private BigDecimal dayChangePercent;
+    private BigDecimal marketValue;
 
     // Constructor
     public PortfolioSnapshotDTO(UUID snapshotId, UUID accountId, LocalDate snapshotDate, BigDecimal totalValue,
@@ -53,48 +53,50 @@ public class PortfolioSnapshotDTO {
         this.marketValue = snapshot.getMarketValue();
     }
 
-    // Getters
-    public UUID getSnapshotId() {
-        return snapshotId;
-    }
+    public PortfolioSnapshotDTO() {}
 
-    public UUID getAccountId() {
-        return accountId;
-    }
+    // Getters and setters
+    public UUID getSnapshotId() {return snapshotId;}
 
-    public LocalDate getSnapshotDate() {
-        return snapshotDate;
-    }
+    public UUID getAccountId() {return accountId;}
 
-    public BigDecimal getTotalValue() {
-        return totalValue;
-    }
+    public LocalDate getSnapshotDate() {return snapshotDate;}
 
-    public BigDecimal getCashBalance() {
-        return cashBalance;
-    }
+    public BigDecimal getTotalValue() {return totalValue;}
 
-    public BigDecimal getTotalInvested() {
-        return totalInvested;
-    }
+    public BigDecimal getCashBalance() {return cashBalance;}
 
-    public BigDecimal getTotalGain() {
-        return totalGain;
-    }
+    public BigDecimal getTotalInvested() {return totalInvested;}
 
-    public BigDecimal getTotalGainPercent() {
-        return totalGainPercent;
-    }
+    public BigDecimal getTotalGain() {return totalGain;}
 
-    public BigDecimal getDayChange() {
-        return dayChange;
-    }
+    public BigDecimal getTotalGainPercent() {return totalGainPercent;}
 
-    public BigDecimal getDayChangePercent() {
-        return dayChangePercent;
-    }
+    public BigDecimal getDayChange() {return dayChange;}
 
-    public BigDecimal getMarketValue() {
-        return marketValue;
-    }
+    public BigDecimal getDayChangePercent() {return dayChangePercent;}
+
+    public BigDecimal getMarketValue() {return marketValue;}
+
+    public void setSnapshotId(UUID snapshotId) {this.snapshotId = snapshotId;}
+
+    public void setAccountId(UUID accountId) {this.accountId = accountId;}
+
+    public void setSnapshotDate(LocalDate snapshotDate) {this.snapshotDate = snapshotDate;}
+
+    public void setTotalValue(BigDecimal totalValue) {this.totalValue = totalValue;}
+
+    public void setCashBalance(BigDecimal cashBalance) {this.cashBalance = cashBalance;}
+
+    public void setTotalInvested(BigDecimal totalInvested) {this.totalInvested = totalInvested;}
+
+    public void setTotalGain(BigDecimal totalGain) {this.totalGain = totalGain;}
+
+    public void setTotalGainPercent(BigDecimal totalGainPercent) {this.totalGainPercent = totalGainPercent;}
+
+    public void setDayChangePercent(BigDecimal dayChangePercent) {this.dayChangePercent = dayChangePercent;}
+
+    public void setDayChange(BigDecimal dayChange) {this.dayChange = dayChange;}
+
+    public void setMarketValue(BigDecimal marketValue) {this.marketValue = marketValue;}
 }

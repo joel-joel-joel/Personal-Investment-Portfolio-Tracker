@@ -15,14 +15,14 @@ public class PriceHistoryCreateRequest {
     // Price history creation request (input)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @NotNull (message = "Close date is required")
-    private final LocalDateTime closeDate;
+    private LocalDateTime closeDate;
 
     @NotNull (message = "Stock ID is required")
-    private final UUID stockId;
+    private UUID stockId;
 
     @NotNull (message = "Close price is required")
     @PositiveOrZero (message = "Close price must be positive")
-    private final BigDecimal closePrice;
+    private BigDecimal closePrice;
 
     // Jackson-compatible constructor
     @JsonCreator
@@ -35,12 +35,20 @@ public class PriceHistoryCreateRequest {
         this.closePrice = closePrice;
     }
 
+    public PriceHistoryCreateRequest() {}
+
     // Getters
     public LocalDateTime getCloseDate() {return closeDate;}
 
     public UUID getStockId() {return stockId;}
 
     public BigDecimal getClosePrice() {return closePrice;}
+
+    public void setCloseDate(LocalDateTime closeDate) {this.closeDate = closeDate;}
+
+    public void setStockId(UUID stockId) {this.stockId = stockId;}
+
+    public void setClosePrice(BigDecimal closePrice) {this.closePrice = closePrice;}
 
 
 }

@@ -88,9 +88,14 @@ public class Account {
 
     public void setUser(User user) {this.user = user;}
 
-    public UUID getUserid(){return this.user.getUserId();}
+    public UUID getUserid(){
+        return this.user != null ? this.user.getUserId() : null;
+    }
 
     public void setUserId(UUID userId){
+        if (this.user == null) {
+            this.user = new User();
+        }
         this.user.setUserId(userId);
     }
 

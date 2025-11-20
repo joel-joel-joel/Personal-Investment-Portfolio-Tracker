@@ -126,7 +126,12 @@ public class Transaction {
 
     public void setStockId(UUID stockId) {this.stock.setStockId(stockId);}
 
-    public void setAccountId(UUID accountId) {this.account.setAccountId(accountId);}
+    public void setAccountId(UUID accountId) {
+        if (this.account == null) {
+            this.account = new Account();
+        }
+        this.account.setAccountId(accountId);
+    }
 
     public TransactionType getTransactionType() {
         return transactionType;
