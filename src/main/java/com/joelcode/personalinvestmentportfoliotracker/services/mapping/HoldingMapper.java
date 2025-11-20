@@ -16,15 +16,20 @@ public class HoldingMapper {
 
     // Convert holding creation request DTO to entity
     public static Holding toEntity(HoldingCreateRequest request, Account account, Stock stock) {
-        Holding holding = new Holding();
-        holding.setAccount(account);
-        holding.setStock(stock);
-        holding.setQuantity(request.getQuantity());
-        holding.setAverageCostBasis(request.getAverageCostBasis());
-        holding.setTotalCostBasis(request.getTotalCostBasis());
-        holding.setRealizedGain(BigDecimal.ZERO);
-        holding.setFirstPurchaseDate(LocalDateTime.now());
-        return holding;
+        if (account != null && stock != null){
+            Holding holding = new Holding();
+            holding.setAccount(account);
+            holding.setStock(stock);
+            holding.setQuantity(request.getQuantity());
+            holding.setAverageCostBasis(request.getAverageCostBasis());
+            holding.setTotalCostBasis(request.getTotalCostBasis());
+            holding.setRealizedGain(BigDecimal.ZERO);
+            holding.setFirstPurchaseDate(LocalDateTime.now());
+            return holding;
+        } else {
+            throw new NullPointerException("Account cannot be null");
+        }
+
     }
 
     // Update holding entity from update request DTO

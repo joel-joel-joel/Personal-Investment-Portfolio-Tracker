@@ -84,9 +84,7 @@ public class Stock {
         return companyName;
     }
 
-    public void setCompanyName(String companyName) {
-        this.companyName = companyName;
-    }
+    public void setCompanyName(String companyName) {this.companyName = companyName;}
 
     public BigDecimal getStockValue() {
         return stockValue;

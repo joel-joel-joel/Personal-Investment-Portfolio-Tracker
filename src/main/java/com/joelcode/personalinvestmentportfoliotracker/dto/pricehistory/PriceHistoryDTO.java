@@ -38,7 +38,7 @@ public class PriceHistoryDTO {
 
     public BigDecimal getClosePrice() {return closePrice;}
 
-    public UUID getStockCode() {return stockId;}
+    public UUID getStockId() {return stockId;}
 
     public void setPriceHistoryId(UUID priceHistoryId) {this.priceHistoryId = priceHistoryId;}
 

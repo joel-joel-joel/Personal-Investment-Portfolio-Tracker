@@ -10,22 +10,22 @@ public class HoldingCreateRequest {
 
     // Holding creation request DTO (input)
     @NotNull(message = "Account ID is required")
-    private final UUID accountId;
+    private UUID accountId;
 
     @NotNull(message = "Stock ID is required")
-    private final UUID stockId;
+    private UUID stockId;
 
     @NotNull(message = "Quantity is required")
     @DecimalMin(value = "0.00000001", message = "Quantity must be greater than zero")
-    private final BigDecimal quantity;
+    private BigDecimal quantity;
 
     @NotNull(message = "Average cost basis is required")
     @DecimalMin(value = "0.01", message = "Average cost basis must be greater than zero")
-    private final BigDecimal averageCostBasis;
+    private BigDecimal averageCostBasis;
 
     @NotNull(message = "Total cost basis is required")
     @DecimalMin(value = "0.01", message = "Total cost basis must be greater than zero")
-    private final BigDecimal totalCostBasis;
+    private BigDecimal totalCostBasis;
 
     // Constructor
     public HoldingCreateRequest(UUID accountId, UUID stockId, BigDecimal quantity, BigDecimal averageCostBasis, BigDecimal totalCostBasis) {
@@ -36,7 +36,9 @@ public class HoldingCreateRequest {
         this.totalCostBasis = totalCostBasis;
     }
 
-    // Getters
+    public HoldingCreateRequest() {}
+
+    // Getters and setters
     public UUID getAccountId() {
         return accountId;
     }
@@ -56,4 +58,17 @@ public class HoldingCreateRequest {
     public BigDecimal getTotalCostBasis() {
         return totalCostBasis;
     }
+
+    public void setAccountId(UUID accountId) {this.accountId = accountId;}
+
+    public void setStockId(UUID stockId) {this.stockId = stockId;}
+
+    public void setQuantity(BigDecimal quantity) {this.quantity = quantity;}
+
+    public void setAverageCostBasis(BigDecimal averageCostBasis) {this.averageCostBasis = averageCostBasis;}
+
+    public void setTotalCostBasis(BigDecimal totalCostBasis) {this.totalCostBasis = totalCostBasis;}
+
+    public HoldingCreateRequest setAccountId(String accountId) {this.accountId = UUID.fromString(accountId); return this;}
+
 }

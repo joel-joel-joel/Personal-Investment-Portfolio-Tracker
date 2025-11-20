@@ -19,6 +19,8 @@ public class DividendMapper {
     public static Dividend toEntity(DividendCreateRequest request, Stock stock) {
         if (request == null) {
             return null;
+        } else if (stock == null) {
+            throw new NullPointerException("Stock cannot be null");
         }
 
         return new Dividend(

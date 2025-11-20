@@ -13,6 +13,10 @@ public class PortfolioSnapshotMapper {
 
     // Convert portfolio snapshot creation request DTO to entity
     public static PortfolioSnapshot toEntity(PortfolioSnapshotCreateRequest request, Account account) {
+        if (account == null) {
+            throw new NullPointerException("Account cannot be null");
+        }
+
         PortfolioSnapshot snapshot = new PortfolioSnapshot();
         snapshot.setAccount(account);
         snapshot.setSnapshotDate(request.getSnapshotDate());

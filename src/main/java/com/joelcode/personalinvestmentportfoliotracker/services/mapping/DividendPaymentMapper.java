@@ -26,6 +26,10 @@ public class DividendPaymentMapper {
             return null;
         }
 
+        if (dividend == null) {
+            throw new NullPointerException("Dividend cannot be null");
+        }
+
         DividendPayment payment = new DividendPayment();
         payment.setAccount(account);
         payment.setStock(stock);
