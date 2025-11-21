@@ -8,10 +8,8 @@ import com.joelcode.personalinvestmentportfoliotracker.services.mapping.Dividend
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.cglib.core.Local;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -35,7 +33,7 @@ class DividendMapperTest {
 
         // Assert
         assertNotNull(dividend);
-        assertEquals(BigDecimal.valueOf(2.5), dividend.getAmountPerShare());
+        assertEquals(BigDecimal.valueOf(2.5), dividend.getDividendAmountPerShare());
         assertEquals(now, dividend.getPayDate());
         assertEquals(stock, dividend.getStock());
     }
@@ -74,7 +72,7 @@ class DividendMapperTest {
         stock.setStockId(UUID.randomUUID());
         dividend.setStock(stock);
 
-        dividend.setAmountPerShare(BigDecimal.valueOf(3.0));
+        dividend.setDividendAmountPerShare(BigDecimal.valueOf(3.0));
         dividend.setPayDate(LocalDateTime.now());
 
         // Act

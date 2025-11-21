@@ -81,13 +81,13 @@ public class DividendPaymentServiceImpl implements DividendPaymentService {
                 holdingCalculationService.calculateTotalUnrealizedGain(account.getAccountId())
         );
         BigDecimal updatedPortfolioValue = previousPortfolioValue.add(
-                request.getShareQuantity().multiply(dividend.getAmountPerShare())
+                request.getShareQuantity().multiply(dividend.getDividendAmountPerShare())
         );
         BigDecimal change = updatedPortfolioValue.subtract(previousPortfolioValue);
 
         // Update account balance in memory (optional, DB update might happen elsewhere)
         account.setAccountBalance(account.getAccountBalance().add(
-                request.getShareQuantity().multiply(dividend.getAmountPerShare())
+                request.getShareQuantity().multiply(dividend.getDividendAmountPerShare())
         ));
 
         // WebSocket notification: user alert
@@ -96,8 +96,8 @@ public class DividendPaymentServiceImpl implements DividendPaymentService {
                 new WebSocketController.UserNotification(
                         "New dividend payment for stock " + stock.getStockCode() +
                                 " on " + dividend.getPayDate() +
-                                " at " + dividend.getAmountPerShare() + " per share, total payment is "
-                                + (request.getShareQuantity().multiply(dividend.getAmountPerShare())),
+                                " at " + dividend.getDividendAmountPerShare() + " per share, total payment is "
+                                + (request.getShareQuantity().multiply(dividend.getDividendAmountPerShare())),
                         LocalDateTime.now()
                 )
         );
@@ -233,7 +233,7 @@ public class DividendPaymentServiceImpl implements DividendPaymentService {
                     stock,
                     dividend,
                     holding.getQuantity(),
-                    dividend.getAmountPerShare().multiply(holding.getQuantity()),
+                    dividend.getDividendAmountPerShare().multiply(holding.getQuantity()),
                     dividend.getPayDate()
             );
 

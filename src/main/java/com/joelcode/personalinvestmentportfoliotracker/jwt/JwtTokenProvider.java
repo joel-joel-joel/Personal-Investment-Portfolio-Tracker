@@ -75,17 +75,16 @@ public class JwtTokenProvider {
             getClaims(token); // If this doesn't throw, token is valid
             return true;
         } catch (SecurityException ex) {
-            System.err.println("Invalid JWT signature: " + ex.getMessage());
+            throw new SecurityException("Invalid JWT signature: " + ex.getMessage());
         } catch (MalformedJwtException ex) {
-            System.err.println("Invalid JWT token: " + ex.getMessage());
+            throw new MalformedJwtException("Invalid JWT token: " + ex.getMessage());
         } catch (ExpiredJwtException ex) {
-            System.err.println("Expired JWT token: " + ex.getMessage());
+            throw new ExpiredJwtException(ex.getHeader(), ex.getClaims(), "JWT token is expired: " + ex.getMessage());
         } catch (UnsupportedJwtException ex) {
-            System.err.println("Unsupported JWT token: " + ex.getMessage());
+            throw new UnsupportedJwtException("Unsupported JWT token: " + ex.getMessage());
         } catch (IllegalArgumentException ex) {
-            System.err.println("JWT claims string is empty: " + ex.getMessage());
+            throw new IllegalArgumentException("JWT claims string is empty: " + ex.getMessage());
         }
-        return false;
     }
 
     // Validate jwt is not expired

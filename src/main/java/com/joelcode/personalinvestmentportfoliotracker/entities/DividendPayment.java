@@ -65,7 +65,7 @@ public class DividendPayment {
     // Calculate total amount automatically
     public void calculateTotalAmount() {
         if (dividend != null && shareQuantity != null) {
-            this.totalAmount = dividend.getAmountPerShare().multiply(shareQuantity);
+            this.totalAmount = dividend.getDividendAmountPerShare().multiply(shareQuantity);
         }
     }
 

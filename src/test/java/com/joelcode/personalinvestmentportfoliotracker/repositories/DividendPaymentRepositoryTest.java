@@ -8,11 +8,9 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -47,7 +45,7 @@ class DividendPaymentRepositoryTest {
         entityManager.persistAndFlush(testStock);
 
         testDividend = new Dividend();
-        testDividend.setAmountPerShare(BigDecimal.valueOf(2.5));
+        testDividend.setDividendAmountPerShare(BigDecimal.valueOf(2.5));
         testDividend.setPayDate(LocalDateTime.now());
         testDividend.setStock(testStock);
         entityManager.persistAndFlush(testDividend);

@@ -19,7 +19,7 @@ public class Dividend {
     private UUID dividendId;
 
     @Column(nullable = false)
-    private BigDecimal amountPerShare;
+    private BigDecimal dividendPerShare;
 
     @Column(nullable = false)
     private LocalDateTime payDate;
@@ -38,9 +38,9 @@ public class Dividend {
     // Constructors
     public Dividend() {}
 
-    public Dividend(BigDecimal amountPerShare, LocalDateTime payDate, Stock stock) {
+    public Dividend(BigDecimal dividendPerShare, LocalDateTime payDate, Stock stock) {
         this.stock = stock;
-        this.amountPerShare = amountPerShare;
+        this.dividendPerShare = dividendPerShare;
         this.payDate = payDate;
         this.announcementDate = LocalDateTime.now();
     }
@@ -50,9 +50,9 @@ public class Dividend {
 
     public void setDividendId(UUID dividendId) {this.dividendId = dividendId;}
 
-    public BigDecimal getAmountPerShare() {return amountPerShare;}
+    public BigDecimal getDividendAmountPerShare() {return dividendPerShare;}
 
-    public void setAmountPerShare(BigDecimal amountPerShare) {this.amountPerShare = amountPerShare;}
+    public void setDividendAmountPerShare(BigDecimal dividendPerShare) {this.dividendPerShare = dividendPerShare;}
 
     public LocalDateTime getPayDate() {return payDate;}
 

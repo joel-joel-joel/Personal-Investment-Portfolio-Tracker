@@ -75,7 +75,7 @@ public class DividendPaymentServiceImplTest {
         testDividend = new Dividend();
         testDividend.setDividendId(dividendId);
         testDividend.setStock(testStock);
-        testDividend.setAmountPerShare(BigDecimal.valueOf(0.25));
+        testDividend.setDividendAmountPerShare(BigDecimal.valueOf(0.25));
         testDividend.setPayDate(LocalDateTime.now());
 
         testPayment = new DividendPayment();

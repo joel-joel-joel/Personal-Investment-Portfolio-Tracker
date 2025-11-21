@@ -33,11 +33,11 @@ public class TransactionCreateRequest {
 
 
 
-    // Jackson-compatible constructor
+    // Jackson-compatible constructor (and also used by tests)
     @JsonCreator
     public TransactionCreateRequest(
-            @JsonProperty ("stockId") UUID stockId,
             @JsonProperty ("accountId") UUID accountId,
+            @JsonProperty ("stockId") UUID stockId,
             @JsonProperty ("shareQuantity") BigDecimal shareQuantity,
             @JsonProperty ("pricePerShare") BigDecimal pricePerShare,
             @JsonProperty ("transactionType") Transaction.TransactionType transactionType) {

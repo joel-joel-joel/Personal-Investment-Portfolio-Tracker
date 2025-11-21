@@ -13,7 +13,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
-@Profile("!test")
 public class TransactionServiceImpl implements TransactionService {
 
     // Define key fields
@@ -32,7 +31,7 @@ public class TransactionServiceImpl implements TransactionService {
     // Create a new transaction and show essential information
     @Override
     public TransactionDTO createTransaction(TransactionCreateRequest request) {
-        transactionValidationService.validateTransactionType(request.getTransactionType().name());
+        transactionValidationService.validateTransactionType(request.getTransactionType());
 
         // Validate transaction type
         if (request.getTransactionType().name().equalsIgnoreCase("BUY")) {

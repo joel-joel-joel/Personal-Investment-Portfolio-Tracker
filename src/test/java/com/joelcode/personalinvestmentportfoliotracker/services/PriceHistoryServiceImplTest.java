@@ -101,6 +101,7 @@ public class PriceHistoryServiceImplTest {
         try (MockedStatic<PriceHistoryMapper> mapperMock = Mockito.mockStatic(PriceHistoryMapper.class)) {
             mapperMock.when(() -> PriceHistoryMapper.toDTO(testPriceHistory)).thenReturn(new PriceHistoryDTO());
 
+
             List<PriceHistoryDTO> result = priceHistoryService.getAllPriceHistories();
 
             assertEquals(1, result.size());
@@ -118,16 +119,29 @@ public class PriceHistoryServiceImplTest {
 
     @Test
     void testGetCurrentPrice_ReturnsPrice() {
-        when(priceHistoryRepository.findByStock_StockIdOrderByCloseDateAsc(stockId)).thenReturn((List<PriceHistory>) BigDecimal.valueOf(100));
+        UUID stockId = UUID.randomUUID();
 
+        // Mock PriceHistory
+        PriceHistory mockPrice = new PriceHistory();
+        mockPrice.setClosePrice(BigDecimal.valueOf(100));
+
+        // Stub repository with Optional
+        when(priceHistoryRepository.findTopByStock_StockIdOrderByCloseDateDesc(stockId))
+                .thenReturn(Optional.of(mockPrice));
+
+        // Call service
         BigDecimal price = priceHistoryService.getCurrentPrice(stockId);
 
+        // Assert
         assertEquals(BigDecimal.valueOf(100), price);
     }
 
+
     @Test
     void testGetPriceHistoryForStock_ReturnsList() {
-        when(priceHistoryRepository.findByStock_StockId(stockId)).thenReturn(List.of(testPriceHistory));
+        // Stub the exact repository method called by the service
+        when(priceHistoryRepository.findByStock_StockIdOrderByCloseDateAsc(stockId))
+                .thenReturn(List.of(testPriceHistory));
 
         try (MockedStatic<PriceHistoryMapper> mapperMock = Mockito.mockStatic(PriceHistoryMapper.class)) {
             mapperMock.when(() -> PriceHistoryMapper.toDTO(testPriceHistory)).thenReturn(new PriceHistoryDTO());

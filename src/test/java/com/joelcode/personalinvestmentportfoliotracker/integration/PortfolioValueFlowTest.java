@@ -296,7 +296,7 @@ class PortfolioValueFlowTest {
 
         Dividend dividend = new Dividend();
         dividend.setStock(stock);
-        dividend.setAmountPerShare(BigDecimal.valueOf(2.5));
+        dividend.setDividendAmountPerShare(BigDecimal.valueOf(2.5));
         dividend.setPayDate(LocalDateTime.now());
         entityManager.persistAndFlush(dividend);
 

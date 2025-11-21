@@ -25,7 +25,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
-@Profile("!test")
 public class HoldingServiceImpl implements HoldingService {
 
     // Define key fields

@@ -28,9 +28,9 @@ public interface DividendRepository extends JpaRepository<Dividend, UUID> {
     boolean existsByStockAndPayDate(Stock stock, LocalDateTime payDate);
 
     // Find by amount
-    List<Dividend> findByAmountPerShareGreaterThan(BigDecimal amountPerShare);
+    List<Dividend> findByDividendPerShareGreaterThan(BigDecimal dividendPerShare);
 
-    List<Dividend> findByAmountPerShareLessThan(BigDecimal amountPerShare);
+    List<Dividend> findByDividendPerShareLessThan(BigDecimal dividendPerShare);
 
     // Filter by date
     List<Dividend> findByPayDate(LocalDateTime payDate);

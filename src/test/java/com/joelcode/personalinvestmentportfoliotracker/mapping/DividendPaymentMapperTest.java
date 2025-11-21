@@ -27,7 +27,7 @@ class DividendPaymentMapperTest {
         account.setAccountId(UUID.randomUUID());
 
         Dividend dividend = new Dividend();
-        dividend.setAmountPerShare(BigDecimal.valueOf(2.5));
+        dividend.setDividendAmountPerShare(BigDecimal.valueOf(2.5));
 
         Stock stock = new Stock();
         stock.setStockId(UUID.randomUUID());

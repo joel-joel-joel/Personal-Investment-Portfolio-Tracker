@@ -140,7 +140,7 @@ class DividendFlowTest {
         // Act - Create dividend
         Dividend dividend = new Dividend();
         dividend.setStock(testStock);
-        dividend.setAmountPerShare(BigDecimal.valueOf(2.5));
+        dividend.setDividendAmountPerShare(BigDecimal.valueOf(2.5));
         dividend.setPayDate(payDate);
 
         // Persist and flush using standard EntityManager
@@ -153,7 +153,7 @@ class DividendFlowTest {
         // Assert - Verify dividend created
         assertNotNull(dividend.getDividendId());
         assertEquals(testStock.getStockId(), dividend.getStock().getStockId());
-        assertEquals(BigDecimal.valueOf(2.5), dividend.getAmountPerShare());
+        assertEquals(BigDecimal.valueOf(2.5), dividend.getDividendAmountPerShare());
 
         // Assert - Verify payment created for account holding this stock
         List<DividendPayment> payments = dividendPaymentRepository.findByDividend_DividendId(dividend.getDividendId());
@@ -193,7 +193,7 @@ class DividendFlowTest {
         // Act - Create dividend
         Dividend dividend = new Dividend();
         dividend.setStock(testStock);
-        dividend.setAmountPerShare(BigDecimal.valueOf(2.5));
+        dividend.setDividendAmountPerShare(BigDecimal.valueOf(2.5));
         dividend.setPayDate(payDate);
 
         // Persist and flush using standard EntityManager
@@ -233,7 +233,7 @@ class DividendFlowTest {
         // Create first dividend
         Dividend dividend1 = new Dividend();
         dividend1.setStock(testStock);
-        dividend1.setAmountPerShare(BigDecimal.valueOf(2.5));
+        dividend1.setDividendAmountPerShare(BigDecimal.valueOf(2.5));
         dividend1.setPayDate(payDate);
         entityManager.persist(dividend1);
         entityManager.flush();
@@ -256,7 +256,7 @@ class DividendFlowTest {
         // Create first dividend
         Dividend dividend1 = new Dividend();
         dividend1.setStock(testStock);
-        dividend1.setAmountPerShare(BigDecimal.valueOf(2.5));
+        dividend1.setDividendAmountPerShare(BigDecimal.valueOf(2.5));
         dividend1.setPayDate(payDate1);
         entityManager.persist(dividend1);
         entityManager.flush();
@@ -264,7 +264,7 @@ class DividendFlowTest {
         // Create second dividend
         Dividend dividend2 = new Dividend();
         dividend2.setStock(testStock);
-        dividend2.setAmountPerShare(BigDecimal.valueOf(3.0));
+        dividend2.setDividendAmountPerShare(BigDecimal.valueOf(3.0));
         dividend2.setPayDate(payDate2);
         entityManager.persist(dividend2);
         entityManager.flush();
@@ -309,14 +309,14 @@ class DividendFlowTest {
         // Create dividends for both stocks
         Dividend dividend1 = new Dividend();
         dividend1.setStock(testStock);
-        dividend1.setAmountPerShare(BigDecimal.valueOf(2.5));
+        dividend1.setDividendAmountPerShare(BigDecimal.valueOf(2.5));
         dividend1.setPayDate(payDate);
         entityManager.persist(dividend1);
         entityManager.flush();
 
         Dividend dividend2 = new Dividend();
         dividend2.setStock(secondStock);
-        dividend2.setAmountPerShare(BigDecimal.valueOf(1.5));
+        dividend2.setDividendAmountPerShare(BigDecimal.valueOf(1.5));
         dividend2.setPayDate(payDate);
         entityManager.persist(dividend2);
         entityManager.flush();
@@ -356,7 +356,7 @@ class DividendFlowTest {
 
         Dividend dividend = new Dividend();
         dividend.setStock(testStock);
-        dividend.setAmountPerShare(BigDecimal.valueOf(2.5));
+        dividend.setDividendAmountPerShare(BigDecimal.valueOf(2.5));
         dividend.setPayDate(payDate);
         entityManager.persist(dividend);
         entityManager.flush();
@@ -377,7 +377,7 @@ class DividendFlowTest {
 
         Dividend dividend = new Dividend();
         dividend.setStock(testStock);
-        dividend.setAmountPerShare(BigDecimal.valueOf(2.5));
+        dividend.setDividendAmountPerShare(BigDecimal.valueOf(2.5));
         dividend.setPayDate(payDate);
         entityManager.persist(dividend);
         entityManager.flush();
@@ -412,7 +412,7 @@ class DividendFlowTest {
 
         Dividend dividend = new Dividend();
         dividend.setStock(testStock);
-        dividend.setAmountPerShare(BigDecimal.valueOf(2.5));
+        dividend.setDividendAmountPerShare(BigDecimal.valueOf(2.5));
         dividend.setPayDate(payDate);
         entityManager.persist(dividend);
         entityManager.flush();

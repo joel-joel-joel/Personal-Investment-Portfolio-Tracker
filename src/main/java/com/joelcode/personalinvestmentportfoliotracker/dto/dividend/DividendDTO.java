@@ -33,7 +33,7 @@ public class DividendDTO {
         this.dividendId = dividend.getDividendId();
         this.stockId = dividend.getStockId();
         this.stockCode = dividend.getStock() != null ? dividend.getStock().getStockCode() : null;
-        this.dividendPerShare = dividend.getAmountPerShare();
+        this.dividendPerShare = dividend.getDividendAmountPerShare();
         this.payDate = dividend.getPayDate();
         this.announcementDate = dividend.getAnnouncementDate();
     }

@@ -83,7 +83,7 @@ public class DividendServiceImpl implements DividendService {
                 new WebSocketController.UserNotification(
                         "New dividend announced for stock " + stock.getStockCode() +
                                 " on " + dividend.getPayDate() +
-                                " at " + dividend.getAmountPerShare() + " per share",
+                                " at " + dividend.getDividendAmountPerShare() + " per share",
                         LocalDateTime.now()
                 )
         );

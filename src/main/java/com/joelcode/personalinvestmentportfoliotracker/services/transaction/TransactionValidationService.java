@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import java.util.UUID;
 
 @Service
-@Profile("!test")
 public class TransactionValidationService {
 
     // Define key fields
@@ -41,8 +40,8 @@ public class TransactionValidationService {
     }
 
     // Checks that the transaction type is either BUY or SELL
-    public void validateTransactionType(String type) {
-        if (!type.equalsIgnoreCase("BUY") && !type.equalsIgnoreCase("SELL")) {
+    public void validateTransactionType(Transaction.TransactionType type) {
+        if (!type.equals(Transaction.TransactionType.BUY) && !type.equals(Transaction.TransactionType.SELL)) {
             throw new IllegalArgumentException("Invalid transaction type. Must be BUY or SELL.");
         }
     }
