@@ -1,3 +1,4 @@
+
 # ==================== OPENAPI / SWAGGER CONFIGURATION ====================
 springdoc:
   api-docs:
@@ -9,6 +10,8 @@ springdoc:
 spring:
   application:
     name: Personal Investment Portfolio Tracker
+  profiles:
+    default: dev
 
   jackson:
     serialization:
@@ -146,7 +149,6 @@ spring:
       - org.springframework.boot.autoconfigure.data.r2dbc.R2dbcDataAutoConfiguration
       - org.springframework.boot.autoconfigure.data.r2dbc.R2dbcRepositoriesAutoConfiguration
       - org.springframework.modulith.events.jpa.JpaEventPublicationAutoConfiguration
-      - org.springframework.modulith.events.jdbc.JdbcEventPublicationAutoConfiguration
       - org.springframework.modulith.events.config.EventPublicationAutoConfiguration
 
 h2:

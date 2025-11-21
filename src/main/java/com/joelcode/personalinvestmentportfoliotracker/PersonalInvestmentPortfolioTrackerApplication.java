@@ -8,13 +8,11 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @SpringBootApplication
-@EnableJpaRepositories(basePackages = "com.joelcode.personalinvestmentportfoliotracker.repositories")
 public class PersonalInvestmentPortfolioTrackerApplication {
 
-    @GetMapping
-
     public static void main(String[] args) {
-        SpringApplication.run(PersonalInvestmentPortfolioTrackerApplication.class, args);
+        SpringApplication app = new SpringApplication(PersonalInvestmentPortfolioTrackerApplication.class);
+        app.setAdditionalProfiles("dev");   // fallback if no profile supplied
+        app.run(args);
     }
-
 }
