@@ -14,6 +14,7 @@ import com.joelcode.personalinvestmentportfoliotracker.services.mapping.AccountM
 import com.joelcode.personalinvestmentportfoliotracker.services.mapping.HoldingMapper;
 import com.joelcode.personalinvestmentportfoliotracker.services.pricehistory.PriceHistoryServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,6 +22,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@Profile("!test")
 public class SearchServiceImpl implements SearchService {
 
     @Autowired

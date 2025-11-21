@@ -10,6 +10,7 @@ import com.joelcode.personalinvestmentportfoliotracker.services.holding.HoldingS
 import com.joelcode.personalinvestmentportfoliotracker.services.account.AccountValidationService;
 import com.joelcode.personalinvestmentportfoliotracker.services.user.UserValidationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
+@Profile("!test")
 public class PortfolioOverviewServiceImpl implements PortfolioOverviewService {
 
 

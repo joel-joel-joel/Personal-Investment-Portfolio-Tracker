@@ -7,6 +7,7 @@ import com.joelcode.personalinvestmentportfoliotracker.entities.PortfolioSnapsho
 import com.joelcode.personalinvestmentportfoliotracker.repositories.PortfolioSnapshotRepository;
 import com.joelcode.personalinvestmentportfoliotracker.services.mapping.PortfolioSnapshotMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -15,6 +16,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@Profile("!test")
 public class PortfolioSnapshotServiceImpl implements PortfolioSnapshotService {
 
     // Define key fields
@@ -105,7 +107,7 @@ public class PortfolioSnapshotServiceImpl implements PortfolioSnapshotService {
     @Override
     public List<PortfolioSnapshotDTO> getSnapshotsForAccount(UUID accountId) {
         // Fetch all snapshots for the account
-        List<PortfolioSnapshot> snapshots = portfolioSnapshotRepository.findByAccount_IdOrderBySnapshotDateDesc(accountId);
+        List<PortfolioSnapshot> snapshots = portfolioSnapshotRepository.findByAccount_AccountIdOrderBySnapshotDateDesc(accountId);
 
         // Map to DTOs
         List<PortfolioSnapshotDTO> snapshotDTOs = snapshots.stream()

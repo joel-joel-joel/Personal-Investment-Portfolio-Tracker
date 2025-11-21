@@ -12,6 +12,7 @@ import com.joelcode.personalinvestmentportfoliotracker.repositories.HoldingRepos
 import com.joelcode.personalinvestmentportfoliotracker.services.account.AccountValidationService;
 import com.joelcode.personalinvestmentportfoliotracker.services.mapping.HoldingMapper;
 import com.joelcode.personalinvestmentportfoliotracker.services.pricehistory.PriceHistoryServiceImpl;
+import org.springframework.context.annotation.Profile;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +25,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@Profile("!test")
 public class HoldingServiceImpl implements HoldingService {
 
     // Define key fields

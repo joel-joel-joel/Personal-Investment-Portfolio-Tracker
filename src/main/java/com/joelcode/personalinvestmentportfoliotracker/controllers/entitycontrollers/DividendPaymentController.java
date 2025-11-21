@@ -4,6 +4,7 @@ import com.joelcode.personalinvestmentportfoliotracker.dto.dividendpayment.Divid
 import com.joelcode.personalinvestmentportfoliotracker.dto.dividendpayment.DividendPaymentCreateRequest;
 import com.joelcode.personalinvestmentportfoliotracker.services.dividendpayment.DividendPaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,6 +13,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/dividendpayments")
+@Profile("!test")
 public class DividendPaymentController {
 
     @Autowired

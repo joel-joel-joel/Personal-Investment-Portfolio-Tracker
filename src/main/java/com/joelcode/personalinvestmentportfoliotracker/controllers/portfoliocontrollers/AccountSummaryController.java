@@ -3,6 +3,7 @@ package com.joelcode.personalinvestmentportfoliotracker.controllers.portfoliocon
 import com.joelcode.personalinvestmentportfoliotracker.dto.portfolio.AccountSummaryDTO;
 import com.joelcode.personalinvestmentportfoliotracker.services.portfolio.summary.AccountSummaryService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,6 +12,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/accountsummary")
+@Profile("!test")
 public class AccountSummaryController {
 
     @Autowired

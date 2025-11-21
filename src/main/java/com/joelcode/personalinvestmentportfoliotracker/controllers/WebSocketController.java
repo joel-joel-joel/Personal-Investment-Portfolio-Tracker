@@ -1,6 +1,7 @@
 package com.joelcode.personalinvestmentportfoliotracker.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -14,6 +15,7 @@ import java.util.UUID;
 //Client sends to: /app/portfolio/subscribe
 //Server broadcasts to: /topic/portfolio/{accountId}
 @Controller
+@Profile("!test")
 public class WebSocketController {
 
     @Autowired

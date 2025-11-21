@@ -4,6 +4,7 @@ import com.joelcode.personalinvestmentportfoliotracker.entities.Account;
 import com.joelcode.personalinvestmentportfoliotracker.entities.PortfolioSnapshot;
 import com.joelcode.personalinvestmentportfoliotracker.repositories.AccountRepository;
 import com.joelcode.personalinvestmentportfoliotracker.repositories.PortfolioSnapshotRepository;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -11,6 +12,7 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 @Service
+@Profile("!test")
 public class PortfolioSnapshotValidationService {
 
     private final PortfolioSnapshotRepository snapshotRepository;

@@ -7,14 +7,17 @@ import com.joelcode.personalinvestmentportfoliotracker.entities.*;
 import com.joelcode.personalinvestmentportfoliotracker.repositories.*;
 import com.joelcode.personalinvestmentportfoliotracker.services.dividend.DividendServiceImpl;
 import com.joelcode.personalinvestmentportfoliotracker.services.dividendpayment.DividendPaymentServiceImpl;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -23,12 +26,19 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@DataJpaTest
-@ActiveProfiles("test")
+@SpringBootTest(
+        properties = {
+                "spring.autoconfigure.exclude=" +
+                        "org.springframework.boot.autoconfigure.r2dbc.R2dbcAutoConfiguration," +
+                        "org.springframework.boot.autoconfigure.data.r2dbc.R2dbcDataAutoConfiguration," +
+                        "org.springframework.boot.autoconfigure.data.r2dbc.R2dbcRepositoriesAutoConfiguration"
+        }
+)@ActiveProfiles("test")
+@Transactional  // Add this to rollback after each test
 class DividendFlowTest {
 
     @Autowired
-    private TestEntityManager entityManager;
+    private EntityManager entityManager;
 
     @Autowired
     private DividendRepository dividendRepository;
@@ -64,21 +74,24 @@ class DividendFlowTest {
         testUser = new User();
         testUser.setUsername("testuser");
         testUser.setEmail("test@example.com");
-        entityManager.persistAndFlush(testUser);
+        testUser.setPassword("password");
+        testUser.setFullName("Test User");
+        testUser.setRoles(User.Role.ROLE_USER);
+        userRepository.save(testUser);
 
         // Create account
         testAccount = new Account();
         testAccount.setAccountName("Trading Account");
         testAccount.setAccountBalance(BigDecimal.valueOf(50000.0));
         testAccount.setUser(testUser);
-        entityManager.persistAndFlush(testAccount);
+        accountRepository.save(testAccount);
 
         // Create stock
         testStock = new Stock();
         testStock.setStockCode("AAPL");
         testStock.setCompanyName("Apple Inc");
         testStock.setStockValue(BigDecimal.valueOf(150.0));
-        entityManager.persistAndFlush(testStock);
+        stockRepository.save(testStock);
 
         // Create holding (100 shares of AAPL)
         Holding testHolding = new Holding();
@@ -89,18 +102,9 @@ class DividendFlowTest {
         testHolding.setTotalCostBasis(BigDecimal.valueOf(14000.0));
         testHolding.setRealizedGain(BigDecimal.ZERO);
         testHolding.setFirstPurchaseDate(LocalDateTime.now().minusMonths(1));
-        entityManager.persistAndFlush(testHolding);
+        holdingRepository.save(testHolding);
 
         // Initialize services
-        dividendService = new DividendServiceImpl(
-                dividendRepository,
-                stockRepository,
-                null, // DividendValidationService - will handle null in test
-                dividendPaymentService,
-                null, // WebSocketController
-                messagingTemplate
-        );
-
         dividendPaymentService = new DividendPaymentServiceImpl(
                 dividendPaymentRepository,
                 dividendRepository,
@@ -111,7 +115,18 @@ class DividendFlowTest {
                 messagingTemplate,
                 null // HoldingCalculationService
         );
+
+        dividendService = new DividendServiceImpl(
+                dividendRepository,
+                stockRepository,
+                null, // DividendValidationService
+                dividendPaymentService,
+                null, // WebSocketController
+                messagingTemplate
+        );
     }
+
+
 
     @Test
     void testDividendFlow_CreateDividendAndGeneratePayments() {
@@ -128,7 +143,10 @@ class DividendFlowTest {
         dividend.setStock(testStock);
         dividend.setAmountPerShare(BigDecimal.valueOf(2.5));
         dividend.setPayDate(payDate);
-        dividend = entityManager.persistAndFlush(dividend);
+
+        // Persist and flush using standard EntityManager
+        entityManager.persist(dividend);
+        entityManager.flush();
 
         // Process payments for dividend
         dividendPaymentService.processPaymentsForDividend(dividend.getDividendId());
@@ -157,7 +175,8 @@ class DividendFlowTest {
         secondAccount.setAccountName("Secondary Account");
         secondAccount.setAccountBalance(BigDecimal.valueOf(30000.0));
         secondAccount.setUser(testUser);
-        entityManager.persistAndFlush(secondAccount);
+        entityManager.persist(secondAccount);
+        entityManager.flush();
 
         Holding secondHolding = new Holding();
         secondHolding.setAccount(secondAccount);
@@ -167,7 +186,8 @@ class DividendFlowTest {
         secondHolding.setTotalCostBasis(BigDecimal.valueOf(7250.0));
         secondHolding.setRealizedGain(BigDecimal.ZERO);
         secondHolding.setFirstPurchaseDate(LocalDateTime.now().minusMonths(2));
-        entityManager.persistAndFlush(secondHolding);
+        entityManager.persist(secondHolding);
+        entityManager.flush();
 
         LocalDateTime payDate = LocalDateTime.now().plusMonths(1);
 
@@ -176,7 +196,11 @@ class DividendFlowTest {
         dividend.setStock(testStock);
         dividend.setAmountPerShare(BigDecimal.valueOf(2.5));
         dividend.setPayDate(payDate);
-        dividend = entityManager.persistAndFlush(dividend);
+
+        // Persist and flush using standard EntityManager
+        entityManager.persist(dividend);
+        entityManager.flush();
+
 
         // Process payments
         dividendPaymentService.processPaymentsForDividend(dividend.getDividendId());
@@ -212,7 +236,8 @@ class DividendFlowTest {
         dividend1.setStock(testStock);
         dividend1.setAmountPerShare(BigDecimal.valueOf(2.5));
         dividend1.setPayDate(payDate);
-        entityManager.persistAndFlush(dividend1);
+        entityManager.persist(dividend1);
+        entityManager.flush();
 
         // Act & Assert - Attempt to create duplicate
         boolean exists = dividendRepository.existsByStockAndPayDate(testStock, payDate);
@@ -234,14 +259,16 @@ class DividendFlowTest {
         dividend1.setStock(testStock);
         dividend1.setAmountPerShare(BigDecimal.valueOf(2.5));
         dividend1.setPayDate(payDate1);
-        dividend1 = entityManager.persistAndFlush(dividend1);
+        entityManager.persist(dividend1);
+        entityManager.flush();
 
         // Create second dividend
         Dividend dividend2 = new Dividend();
         dividend2.setStock(testStock);
         dividend2.setAmountPerShare(BigDecimal.valueOf(3.0));
         dividend2.setPayDate(payDate2);
-        dividend2 = entityManager.persistAndFlush(dividend2);
+        entityManager.persist(dividend2);
+        entityManager.flush();
 
         // Process payments for both dividends
         dividendPaymentService.processPaymentsForDividend(dividend1.getDividendId());
@@ -263,7 +290,8 @@ class DividendFlowTest {
         secondStock.setStockCode("MSFT");
         secondStock.setCompanyName("Microsoft");
         secondStock.setStockValue(BigDecimal.valueOf(300.0));
-        entityManager.persistAndFlush(secondStock);
+        entityManager.persist(secondStock);
+        entityManager.flush();
 
         // Create holding for second stock
         Holding secondStockHolding = new Holding();
@@ -274,7 +302,8 @@ class DividendFlowTest {
         secondStockHolding.setTotalCostBasis(BigDecimal.valueOf(14500.0));
         secondStockHolding.setRealizedGain(BigDecimal.ZERO);
         secondStockHolding.setFirstPurchaseDate(LocalDateTime.now().minusMonths(1));
-        entityManager.persistAndFlush(secondStockHolding);
+        entityManager.persist(secondStockHolding);
+        entityManager.flush();
 
         LocalDateTime payDate = LocalDateTime.now().plusMonths(1);
 
@@ -283,13 +312,15 @@ class DividendFlowTest {
         dividend1.setStock(testStock);
         dividend1.setAmountPerShare(BigDecimal.valueOf(2.5));
         dividend1.setPayDate(payDate);
-        dividend1 = entityManager.persistAndFlush(dividend1);
+        entityManager.persist(dividend1);
+        entityManager.flush();
 
         Dividend dividend2 = new Dividend();
         dividend2.setStock(secondStock);
         dividend2.setAmountPerShare(BigDecimal.valueOf(1.5));
         dividend2.setPayDate(payDate);
-        dividend2 = entityManager.persistAndFlush(dividend2);
+        entityManager.persist(dividend2);
+        entityManager.flush();
 
         // Process payments
         dividendPaymentService.processPaymentsForDividend(dividend1.getDividendId());
@@ -328,7 +359,8 @@ class DividendFlowTest {
         dividend.setStock(testStock);
         dividend.setAmountPerShare(BigDecimal.valueOf(2.5));
         dividend.setPayDate(payDate);
-        dividend = entityManager.persistAndFlush(dividend);
+        entityManager.persist(dividend);
+        entityManager.flush();
 
         // Act - Process payments for same dividend twice
         dividendPaymentService.processPaymentsForDividend(dividend.getDividendId());
@@ -348,7 +380,8 @@ class DividendFlowTest {
         dividend.setStock(testStock);
         dividend.setAmountPerShare(BigDecimal.valueOf(2.5));
         dividend.setPayDate(payDate);
-        dividend = entityManager.persistAndFlush(dividend);
+        entityManager.persist(dividend);
+        entityManager.flush();
 
         // Act - Process payments
         dividendPaymentService.processPaymentsForDividend(dividend.getDividendId());
@@ -373,7 +406,8 @@ class DividendFlowTest {
         newAccount.setAccountName("New Account");
         newAccount.setAccountBalance(BigDecimal.valueOf(20000.0));
         newAccount.setUser(testUser);
-        entityManager.persistAndFlush(newAccount);
+        entityManager.persist(newAccount);
+        entityManager.flush();
 
         LocalDateTime payDate = LocalDateTime.now().plusMonths(1);
 
@@ -381,7 +415,8 @@ class DividendFlowTest {
         dividend.setStock(testStock);
         dividend.setAmountPerShare(BigDecimal.valueOf(2.5));
         dividend.setPayDate(payDate);
-        dividend = entityManager.persistAndFlush(dividend);
+        entityManager.persist(dividend);
+        entityManager.flush();
 
         // Act - Process payments
         dividendPaymentService.processPaymentsForDividend(dividend.getDividendId());

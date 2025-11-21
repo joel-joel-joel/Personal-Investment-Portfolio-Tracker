@@ -2,11 +2,13 @@ package com.joelcode.personalinvestmentportfoliotracker.services.stock;
 
 import com.joelcode.personalinvestmentportfoliotracker.entities.Stock;
 import com.joelcode.personalinvestmentportfoliotracker.repositories.StockRepository;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
 @Service
+@Profile("!test")
 public class StockValidationService {
 
     // Define key field

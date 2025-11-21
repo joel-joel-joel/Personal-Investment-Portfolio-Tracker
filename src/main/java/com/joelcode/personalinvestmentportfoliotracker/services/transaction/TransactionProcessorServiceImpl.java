@@ -12,6 +12,7 @@ import com.joelcode.personalinvestmentportfoliotracker.services.dividend.Dividen
 import com.joelcode.personalinvestmentportfoliotracker.services.holding.HoldingCalculationService;
 import com.joelcode.personalinvestmentportfoliotracker.services.holding.HoldingService;
 import jakarta.transaction.Transactional;
+import org.springframework.context.annotation.Profile;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +22,7 @@ import java.util.Optional;
 
 
 @Service
+@Profile("!test")
 public class TransactionProcessorServiceImpl implements TransactionProcessorService {
 
     // Define key fields

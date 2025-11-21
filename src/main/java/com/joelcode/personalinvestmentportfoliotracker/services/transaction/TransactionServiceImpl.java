@@ -5,6 +5,7 @@ import com.joelcode.personalinvestmentportfoliotracker.dto.transaction.Transacti
 import com.joelcode.personalinvestmentportfoliotracker.entities.Transaction;
 import com.joelcode.personalinvestmentportfoliotracker.services.mapping.TransactionMapper;
 import com.joelcode.personalinvestmentportfoliotracker.repositories.TransactionRepository;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,6 +13,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@Profile("!test")
 public class TransactionServiceImpl implements TransactionService {
 
     // Define key fields

@@ -1,14 +1,14 @@
 package com.joelcode.personalinvestmentportfoliotracker.websockets;
 
+import com.joelcode.personalinvestmentportfoliotracker.PersonalInvestmentPortfolioTrackerApplication;
+import com.joelcode.personalinvestmentportfoliotracker.config.WebSocketConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
-import org.springframework.messaging.simp.stomp.StompFrameHandler;
-import org.springframework.messaging.simp.stomp.StompHeaders;
-import org.springframework.messaging.simp.stomp.StompSession;
-import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
+import org.springframework.messaging.simp.stomp.*;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.socket.client.WebSocketClient;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
@@ -21,9 +21,21 @@ import java.util.concurrent.TimeoutException;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        properties = "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration")
-@org.springframework.test.context.ActiveProfiles("test")
+@SpringBootTest(
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+        properties = {
+                "spring.autoconfigure.exclude=" +
+                        "org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration," +
+                        "org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration," +
+                        "org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration," +
+                        "org.springframework.boot.autoconfigure.r2dbc.R2dbcAutoConfiguration," +
+                        "org.springframework.boot.autoconfigure.data.r2dbc.R2dbcDataAutoConfiguration," +
+                        "org.springframework.boot.autoconfigure.data.r2dbc.R2dbcRepositoriesAutoConfiguration," +
+                        "org.springframework.modulith.events.jpa.JpaEventPublicationAutoConfiguration," +
+                        "org.springframework.modulith.events.jdbc.JdbcEventPublicationAutoConfiguration"
+        }
+)
+@ActiveProfiles("test")
 class WebSocketIntegrationTest {
 
     @LocalServerPort
@@ -42,10 +54,8 @@ class WebSocketIntegrationTest {
 
     @Test
     void testWebSocketConnection_Success() throws InterruptedException, ExecutionException, TimeoutException {
-        // Arrange
         CompletableFuture<StompSession> sessionFuture = new CompletableFuture<>();
 
-        // Act
         StompSession session = stompClient.connectAsync(url, new StompSessionHandlerAdapter() {
             @Override
             public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
@@ -53,14 +63,12 @@ class WebSocketIntegrationTest {
             }
         }).get(3, SECONDS);
 
-        // Assert
         assertNotNull(session);
         assertTrue(session.isConnected());
     }
 
     @Test
     void testWebSocketSubscription_ToTopic() throws InterruptedException, ExecutionException, TimeoutException {
-        // Arrange
         CompletableFuture<String> messageFuture = new CompletableFuture<>();
 
         StompSession session = stompClient.connectAsync(url, new StompSessionHandlerAdapter() {
@@ -80,17 +88,14 @@ class WebSocketIntegrationTest {
             }
         }).get(3, SECONDS);
 
-        // Assert
         assertNotNull(session);
         assertTrue(session.isConnected());
     }
 
     @Test
     void testWebSocketMessage_SendAndReceive() throws InterruptedException, ExecutionException, TimeoutException {
-        // Arrange
         CompletableFuture<StompSession> sessionFuture = new CompletableFuture<>();
 
-        // Act
         StompSession session = stompClient.connectAsync(url, new StompSessionHandlerAdapter() {
             @Override
             public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
@@ -98,7 +103,6 @@ class WebSocketIntegrationTest {
             }
         }).get(3, SECONDS);
 
-        // Assert
         assertNotNull(session);
         assertTrue(session.isConnected());
         assertTrue(sessionFuture.isDone());
@@ -106,34 +110,37 @@ class WebSocketIntegrationTest {
 
     @Test
     void testWebSocketApplicationDestinationPrefix_AppPrefix() throws InterruptedException, ExecutionException, TimeoutException {
-        // Arrange
         CompletableFuture<StompSession> sessionFuture = new CompletableFuture<>();
 
-        // Act
-        StompSession session = stompClient.connectAsync(url, new StompSessionHandlerAdapter() {
+        stompClient.connectAsync(url, new StompSessionHandlerAdapter() {
             @Override
             public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
-                // Try to send message to /app/portfolio endpoint
                 session.send("/app/portfolio", "test message");
                 sessionFuture.complete(session);
             }
-        }).get(3, SECONDS);
 
-        // Assert
+            @Override
+            public void handleException(StompSession session, StompCommand command, StompHeaders headers, byte[] payload, Throwable exception) {
+                sessionFuture.completeExceptionally(exception);
+            }
+        });
+
+        // Wait for the future to complete
+        StompSession session = sessionFuture.get(5, SECONDS);
+
         assertNotNull(session);
+        assertTrue(session.isConnected());
         assertTrue(sessionFuture.isDone());
     }
 
+
     @Test
     void testWebSocketUserDestination_QueuePrefix() throws InterruptedException, ExecutionException, TimeoutException {
-        // Arrange
         CompletableFuture<StompSession> sessionFuture = new CompletableFuture<>();
 
-        // Act
         StompSession session = stompClient.connectAsync(url, new StompSessionHandlerAdapter() {
             @Override
             public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
-                // Subscribe to user-specific queue
                 session.subscribe("/user/queue/notifications", new StompFrameHandler() {
                     @Override
                     public Type getPayloadType(StompHeaders headers) {
@@ -148,21 +155,17 @@ class WebSocketIntegrationTest {
             }
         }).get(3, SECONDS);
 
-        // Assert
         assertNotNull(session);
         assertTrue(session.isConnected());
     }
 
     @Test
     void testWebSocketBroker_TopicSubscription() throws InterruptedException, ExecutionException, TimeoutException {
-        // Arrange
         CompletableFuture<Boolean> subscriptionFuture = new CompletableFuture<>();
 
-        // Act
         StompSession session = stompClient.connectAsync(url, new StompSessionHandlerAdapter() {
             @Override
             public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
-                // Subscribe to /topic endpoint
                 session.subscribe("/topic/updates", new StompFrameHandler() {
                     @Override
                     public Type getPayloadType(StompHeaders headers) {
@@ -177,21 +180,17 @@ class WebSocketIntegrationTest {
             }
         }).get(3, SECONDS);
 
-        // Assert
         assertNotNull(session);
         assertTrue(session.isConnected());
     }
 
     @Test
     void testWebSocketBroker_QueueSubscription() throws InterruptedException, ExecutionException, TimeoutException {
-        // Arrange
         CompletableFuture<Boolean> subscriptionFuture = new CompletableFuture<>();
 
-        // Act
         StompSession session = stompClient.connectAsync(url, new StompSessionHandlerAdapter() {
             @Override
             public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
-                // Subscribe to /queue endpoint
                 session.subscribe("/queue/transactions", new StompFrameHandler() {
                     @Override
                     public Type getPayloadType(StompHeaders headers) {
@@ -206,17 +205,14 @@ class WebSocketIntegrationTest {
             }
         }).get(3, SECONDS);
 
-        // Assert
         assertNotNull(session);
         assertTrue(session.isConnected());
     }
 
     @Test
     void testWebSocketDisconnection_GracefulClose() throws InterruptedException, ExecutionException, TimeoutException {
-        // Arrange
         CompletableFuture<StompSession> sessionFuture = new CompletableFuture<>();
 
-        // Act
         StompSession session = stompClient.connectAsync(url, new StompSessionHandlerAdapter() {
             @Override
             public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
@@ -227,7 +223,6 @@ class WebSocketIntegrationTest {
         assertTrue(session.isConnected());
         session.disconnect();
 
-        // Assert
         assertFalse(session.isConnected());
     }
 }

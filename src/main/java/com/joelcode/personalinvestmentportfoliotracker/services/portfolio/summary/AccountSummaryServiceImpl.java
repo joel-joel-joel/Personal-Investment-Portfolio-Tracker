@@ -10,6 +10,8 @@ import com.joelcode.personalinvestmentportfoliotracker.repositories.HoldingRepos
 import com.joelcode.personalinvestmentportfoliotracker.services.dividend.DividendCalculationService;
 import com.joelcode.personalinvestmentportfoliotracker.services.stock.StockService;
 import com.joelcode.personalinvestmentportfoliotracker.services.user.UserValidationService;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -17,6 +19,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Service
+@Profile("!test")
 public class AccountSummaryServiceImpl implements AccountSummaryService{
 
     // Define key fields
@@ -43,7 +47,7 @@ public class AccountSummaryServiceImpl implements AccountSummaryService{
         Account account = accountRepository.findByAccountId(accountId)
                 .orElseThrow(() -> new IllegalArgumentException("Account not found"));
 
-        List<Holding> holdings = holdingRepository.getHoldingsEntitiesByAccount(accountId);
+        List<Holding> holdings = holdingRepository.findByAccount_AccountId(accountId);
 
         BigDecimal totalInvested = BigDecimal.ZERO;
         BigDecimal totalMarketValue = BigDecimal.ZERO;

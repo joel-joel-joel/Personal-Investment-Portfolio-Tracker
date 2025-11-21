@@ -9,6 +9,7 @@ import com.joelcode.personalinvestmentportfoliotracker.repositories.PriceHistory
 import com.joelcode.personalinvestmentportfoliotracker.repositories.StockRepository;
 import com.joelcode.personalinvestmentportfoliotracker.services.mapping.StockMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -17,6 +18,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@Profile("!test")
 public class StockServiceImpl implements StockService {
 
     // Define key fields

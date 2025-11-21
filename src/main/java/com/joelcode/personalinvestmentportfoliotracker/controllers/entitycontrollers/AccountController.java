@@ -5,6 +5,7 @@ import com.joelcode.personalinvestmentportfoliotracker.dto.account.AccountCreate
 import com.joelcode.personalinvestmentportfoliotracker.dto.account.AccountUpdateRequest;
 import com.joelcode.personalinvestmentportfoliotracker.services.account.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,6 +14,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/accounts")
+@Profile("!test")
 public class AccountController {
 
     @Autowired

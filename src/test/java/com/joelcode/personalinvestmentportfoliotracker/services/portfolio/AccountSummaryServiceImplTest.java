@@ -86,7 +86,7 @@ public class AccountSummaryServiceImplTest {
         testUser.setAccounts(accounts);
 
         // Link holdings repository
-        when(holdingRepository.getHoldingsEntitiesByAccount(accountId)).thenReturn(List.of(testHolding));
+        when(holdingRepository.findByAccount_AccountId(accountId)).thenReturn(List.of(testHolding));
     }
 
     @Test

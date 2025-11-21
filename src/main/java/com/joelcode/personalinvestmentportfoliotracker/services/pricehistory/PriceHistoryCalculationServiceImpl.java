@@ -1,11 +1,13 @@
 package com.joelcode.personalinvestmentportfoliotracker.services.pricehistory;
 
 import com.joelcode.personalinvestmentportfoliotracker.entities.PriceHistory;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@Profile("!test")
 public class PriceHistoryCalculationServiceImpl implements PriceHistoryCalculationService{
 
     // For common calculation operations

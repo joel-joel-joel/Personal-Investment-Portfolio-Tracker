@@ -7,6 +7,7 @@ import com.joelcode.personalinvestmentportfoliotracker.entities.User;
 import com.joelcode.personalinvestmentportfoliotracker.jwt.JwtTokenProvider;
 import com.joelcode.personalinvestmentportfoliotracker.repositories.UserRepository;
 import jakarta.validation.Valid;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -20,6 +21,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/auth")
 @CrossOrigin(origins = "*")
+@Profile("!test")
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;

@@ -9,6 +9,7 @@ import com.joelcode.personalinvestmentportfoliotracker.entities.User;
 import com.joelcode.personalinvestmentportfoliotracker.repositories.UserRepository;
 import com.joelcode.personalinvestmentportfoliotracker.services.mapping.AccountMapper;
 import com.joelcode.personalinvestmentportfoliotracker.services.mapping.UserMapper;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,6 +17,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@Profile("!test")
 public class UserServiceImpl implements UserService{
 
     // Define key fields

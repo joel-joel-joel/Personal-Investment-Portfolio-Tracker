@@ -8,6 +8,7 @@ import com.joelcode.personalinvestmentportfoliotracker.repositories.*;
 import com.joelcode.personalinvestmentportfoliotracker.services.holding.HoldingCalculationService;
 import com.joelcode.personalinvestmentportfoliotracker.services.mapping.DividendPaymentMapper;
 import jakarta.transaction.Transactional;
+import org.springframework.context.annotation.Profile;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +19,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@Profile("!test")
 public class DividendPaymentServiceImpl implements DividendPaymentService {
 
     private final DividendPaymentRepository paymentRepository;

@@ -4,6 +4,7 @@ import com.joelcode.personalinvestmentportfoliotracker.dto.pricehistory.PriceHis
 import com.joelcode.personalinvestmentportfoliotracker.dto.pricehistory.PriceHistoryCreateRequest;
 import com.joelcode.personalinvestmentportfoliotracker.services.pricehistory.PriceHistoryService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,6 +13,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/pricehistory")
+@Profile("!test")
 public class PriceHistoryController {
 
     @Autowired

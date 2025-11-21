@@ -7,6 +7,7 @@ import com.joelcode.personalinvestmentportfoliotracker.repositories.TransactionR
 import com.joelcode.personalinvestmentportfoliotracker.services.mapping.TransactionMapper;
 import com.joelcode.personalinvestmentportfoliotracker.services.transaction.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,6 +17,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/transactions")
+@Profile("!test")
 public class TransactionController {
 
     @Autowired

@@ -67,7 +67,7 @@ public class AllocationBreakdownServiceImplTest {
         // Prepare test holdings
         List<Holding> holdings = List.of(holding1, holding2);
 
-        when(holdingRepository.getHoldingsEntitiesByAccount(accountId))
+        when(holdingRepository.findByAccount_AccountId(accountId))
                 .thenReturn(holdings);
 
         // Mock calculated values
@@ -106,7 +106,7 @@ public class AllocationBreakdownServiceImplTest {
     @Test
     void testGetAllocationForAccount_EmptyHoldings_ReturnsEmptyList() {
 
-        when(holdingRepository.getHoldingsEntitiesByAccount(accountId))
+        when(holdingRepository.findByAccount_AccountId(accountId))
                 .thenReturn(new ArrayList<>());
 
         List<AllocationBreakdownDTO> result = allocationService.getAllocationForAccount(accountId);
@@ -121,7 +121,7 @@ public class AllocationBreakdownServiceImplTest {
 
         List<Holding> holdings = List.of(holding1);
 
-        when(holdingRepository.getHoldingsEntitiesByAccount(accountId))
+        when(holdingRepository.findByAccount_AccountId(accountId))
                 .thenReturn(holdings);
 
         // Mock current value = 0
@@ -152,7 +152,7 @@ public class AllocationBreakdownServiceImplTest {
                 .thenReturn(user);
 
         // Mock underlying account allocation call
-        when(holdingRepository.getHoldingsEntitiesByAccount(accId))
+        when(holdingRepository.findByAccount_AccountId(accId))
                 .thenReturn(List.of(holding1));
 
         when(holdingCalcService.calculateCurrentValue(holding1))

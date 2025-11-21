@@ -16,27 +16,24 @@ import java.util.UUID;
 @Repository
 public interface PriceHistoryRepository extends JpaRepository<PriceHistory, UUID> {
 
-    // Find price history
-    List<PriceHistory> findByStock_StockId(UUID stockId);
-
+    // By stock
     List<PriceHistory> findByStock(Stock stock);
 
-    List<PriceHistory> findByStock_IdOrderByDateAsc(UUID stockId);
+    List<PriceHistory> findByStock_StockId(UUID stockId);
 
-    List<PriceHistory> findByStock_IdOrderByDateDesc(UUID stockId);
+    // Order by date
+    List<PriceHistory> findByStock_StockIdOrderByCloseDateAsc(UUID stockId);
 
-    Optional<PriceHistory> findTopByStock_IdOrderByDateDesc(UUID stockId);
+    List<PriceHistory> findByStock_StockIdOrderByCloseDateDesc(UUID stockId);
 
-    List<PriceHistory> findByStock_IdAndDateBetween(UUID stockId, LocalDateTime start, LocalDateTime end);
+    Optional<PriceHistory> findTopByStock_StockIdOrderByCloseDateDesc(UUID stockId);
 
+    // By stock properties
     List<PriceHistory> findByStock_CompanyName(String companyName);
 
     List<PriceHistory> findByStock_StockCode(String stockCode);
 
-    @Query("SELECT p.closePrice FROM PriceHistory p WHERE p.stock.stockId = :stockId ORDER BY p.closeDate DESC")
-    Optional<BigDecimal> findLatestPriceByStockId(@Param("stockId") UUID stockId);
-
-    // Filter by closing date
+    // By closing date
     List<PriceHistory> findByCloseDateGreaterThan(LocalDateTime closeDate);
 
     List<PriceHistory> findByCloseDateLessThan(LocalDateTime closeDate);
@@ -47,13 +44,11 @@ public interface PriceHistoryRepository extends JpaRepository<PriceHistory, UUID
 
     Optional<PriceHistory> findTopByStockOrderByCloseDateDesc(Stock stock);
 
-    // Filter by closing price
+    // By closing price
     List<PriceHistory> findByClosePrice(BigDecimal closePrice);
 
     List<PriceHistory> findByClosePriceGreaterThan(BigDecimal closePrice);
 
     List<PriceHistory> findByClosePriceLessThan(BigDecimal closePrice);
 
-
-    UUID stock(Stock stock);
 }

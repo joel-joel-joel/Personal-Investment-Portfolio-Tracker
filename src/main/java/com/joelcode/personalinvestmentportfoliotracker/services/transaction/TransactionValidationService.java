@@ -4,11 +4,13 @@ import com.joelcode.personalinvestmentportfoliotracker.entities.Account;
 import com.joelcode.personalinvestmentportfoliotracker.entities.Transaction;
 import com.joelcode.personalinvestmentportfoliotracker.repositories.TransactionRepository;
 import com.joelcode.personalinvestmentportfoliotracker.repositories.AccountRepository;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
 @Service
+@Profile("!test")
 public class TransactionValidationService {
 
     // Define key fields

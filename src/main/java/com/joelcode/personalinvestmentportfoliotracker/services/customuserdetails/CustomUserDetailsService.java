@@ -3,10 +3,12 @@ package com.joelcode.personalinvestmentportfoliotracker.services.customuserdetai
 import com.joelcode.personalinvestmentportfoliotracker.entities.User;
 import com.joelcode.personalinvestmentportfoliotracker.model.CustomUserDetails;
 import com.joelcode.personalinvestmentportfoliotracker.repositories.UserRepository;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 
 @Service
+@Profile("!test")
 public class CustomUserDetailsService implements UserDetailsService {
 
     // This class queries repository to retrieve the information needed for a user entity

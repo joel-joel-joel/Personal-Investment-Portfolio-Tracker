@@ -3,6 +3,7 @@ package com.joelcode.personalinvestmentportfoliotracker.services.holding;
 import com.joelcode.personalinvestmentportfoliotracker.entities.Holding;
 import com.joelcode.personalinvestmentportfoliotracker.repositories.HoldingRepository;
 import com.joelcode.personalinvestmentportfoliotracker.services.stock.StockService;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -11,6 +12,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
+@Profile("!test")
 public class HoldingCalculationServiceImpl implements HoldingCalculationService {
 
     private final HoldingRepository holdingRepository;

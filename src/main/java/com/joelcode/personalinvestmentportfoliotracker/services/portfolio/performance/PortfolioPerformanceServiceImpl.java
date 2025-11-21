@@ -18,6 +18,7 @@ import com.joelcode.personalinvestmentportfoliotracker.services.holding.HoldingS
 import com.joelcode.personalinvestmentportfoliotracker.dto.portfolio.PortfolioPerformanceDTO;
 import com.joelcode.personalinvestmentportfoliotracker.services.user.UserValidationService;
 import jakarta.transaction.Transactional;
+import org.springframework.context.annotation.Profile;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +29,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
+@Profile("!test")
 public class PortfolioPerformanceServiceImpl implements PortfolioPerformanceService{
 
     private BigDecimal normalize(BigDecimal value) {
@@ -85,7 +87,7 @@ public class PortfolioPerformanceServiceImpl implements PortfolioPerformanceServ
         // Find account and retrieve holdings
         Account account = accountRepository.findByAccountId(accountId)
                 .orElseThrow(() -> new IllegalArgumentException("Account not found"));
-        List<Holding> holdings = holdingRepository.getHoldingsEntitiesByAccount(accountId);
+        List<Holding> holdings = holdingRepository.findByAccount_AccountId(accountId);
 
         BigDecimal totalCostBasis = BigDecimal.ZERO;
         BigDecimal totalUnrealizedGain = BigDecimal.ZERO;

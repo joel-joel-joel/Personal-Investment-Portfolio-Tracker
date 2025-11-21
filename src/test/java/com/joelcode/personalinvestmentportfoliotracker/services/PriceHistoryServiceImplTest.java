@@ -118,7 +118,7 @@ public class PriceHistoryServiceImplTest {
 
     @Test
     void testGetCurrentPrice_ReturnsPrice() {
-        when(priceHistoryRepository.findLatestPriceByStockId(stockId)).thenReturn(Optional.of(BigDecimal.valueOf(100)));
+        when(priceHistoryRepository.findByStock_StockIdOrderByCloseDateAsc(stockId)).thenReturn((List<PriceHistory>) BigDecimal.valueOf(100));
 
         BigDecimal price = priceHistoryService.getCurrentPrice(stockId);
 
@@ -127,7 +127,7 @@ public class PriceHistoryServiceImplTest {
 
     @Test
     void testGetPriceHistoryForStock_ReturnsList() {
-        when(priceHistoryRepository.findByStock_IdOrderByDateAsc(stockId)).thenReturn(List.of(testPriceHistory));
+        when(priceHistoryRepository.findByStock_StockId(stockId)).thenReturn(List.of(testPriceHistory));
 
         try (MockedStatic<PriceHistoryMapper> mapperMock = Mockito.mockStatic(PriceHistoryMapper.class)) {
             mapperMock.when(() -> PriceHistoryMapper.toDTO(testPriceHistory)).thenReturn(new PriceHistoryDTO());
@@ -140,7 +140,7 @@ public class PriceHistoryServiceImplTest {
 
     @Test
     void testGetLatestPriceForStock_ReturnsDTO() {
-        when(priceHistoryRepository.findTopByStock_IdOrderByDateDesc(stockId)).thenReturn(Optional.of(testPriceHistory));
+        when(priceHistoryRepository.findTopByStock_StockIdOrderByCloseDateDesc(stockId)).thenReturn(Optional.ofNullable(testPriceHistory));
 
         try (MockedStatic<PriceHistoryMapper> mapperMock = Mockito.mockStatic(PriceHistoryMapper.class)) {
             mapperMock.when(() -> PriceHistoryMapper.toDTO(testPriceHistory)).thenReturn(new PriceHistoryDTO());

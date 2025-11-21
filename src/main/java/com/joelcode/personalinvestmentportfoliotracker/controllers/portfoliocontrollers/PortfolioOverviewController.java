@@ -4,6 +4,7 @@ import com.joelcode.personalinvestmentportfoliotracker.dto.portfolio.PortfolioOv
 import com.joelcode.personalinvestmentportfoliotracker.dto.portfolio.PortfolioPerformanceDTO;
 import com.joelcode.personalinvestmentportfoliotracker.services.portfolio.overview.PortfolioOverviewService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,6 +13,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/portfolio/overview")
+@Profile("!test")
 public class PortfolioOverviewController {
 
     @Autowired

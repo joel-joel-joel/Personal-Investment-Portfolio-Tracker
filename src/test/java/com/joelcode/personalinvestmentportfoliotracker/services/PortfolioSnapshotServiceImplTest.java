@@ -180,7 +180,7 @@ public class PortfolioSnapshotServiceImplTest {
     // Test getting snapshots for account
     @Test
     void testGetSnapshotsForAccount_ReturnsCorrectList() {
-        when(portfolioSnapshotRepository.findByAccount_IdOrderBySnapshotDateDesc(accountId)).thenReturn(List.of(testSnapshot));
+        when(portfolioSnapshotRepository.findByAccount_AccountIdOrderBySnapshotDateDesc(accountId)).thenReturn(List.of(testSnapshot));
 
         try (MockedStatic<PortfolioSnapshotMapper> mapperMock = Mockito.mockStatic(PortfolioSnapshotMapper.class)) {
             mapperMock.when(() -> PortfolioSnapshotMapper.toDTO(testSnapshot)).thenReturn(new PortfolioSnapshotDTO());

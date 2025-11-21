@@ -19,7 +19,8 @@ public interface PortfolioSnapshotRepository extends JpaRepository<PortfolioSnap
 
 
     // Find by user
-    List<PortfolioSnapshot> findByUser_IdOrderByDateDesc(UUID userId);
+    @Query("SELECT ps FROM PortfolioSnapshot ps WHERE ps.account.user.userId = :userId ORDER BY ps.snapshotDate DESC")
+    List<PortfolioSnapshot> findByUserIdOrderBySnapshotDateDesc(@Param("userId") UUID userId);
 
     // Find by account
     List<PortfolioSnapshot> findByAccount(Account account);
@@ -28,7 +29,7 @@ public interface PortfolioSnapshotRepository extends JpaRepository<PortfolioSnap
 
     List<PortfolioSnapshot> findByAccountOrderBySnapshotDateAsc(Account account);
 
-    List<PortfolioSnapshot> findByAccount_IdOrderBySnapshotDateDesc(UUID accountId);
+    List<PortfolioSnapshot> findByAccount_AccountIdOrderBySnapshotDateDesc(UUID accountId);
 
     // Find by date
     Optional<PortfolioSnapshot> findByAccountAndSnapshotDate(Account account, LocalDate snapshotDate);

@@ -6,12 +6,14 @@ import com.joelcode.personalinvestmentportfoliotracker.entities.Stock;
 import com.joelcode.personalinvestmentportfoliotracker.repositories.AccountRepository;
 import com.joelcode.personalinvestmentportfoliotracker.repositories.HoldingRepository;
 import com.joelcode.personalinvestmentportfoliotracker.repositories.StockRepository;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
 @Service
+@Profile("!test")
 public class HoldingValidationService {
 
     private final HoldingRepository holdingRepository;

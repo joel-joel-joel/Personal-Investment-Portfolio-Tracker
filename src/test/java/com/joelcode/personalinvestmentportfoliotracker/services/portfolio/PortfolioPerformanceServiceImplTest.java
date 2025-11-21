@@ -121,7 +121,7 @@ public class PortfolioPerformanceServiceImplTest {
         // Mocks
         when(accountRepository.findByAccountId(accountId)).thenReturn(Optional.of(account));
         when(accountValidationService.validateAccountExistsById(accountId)).thenReturn(account);
-        when(holdingRepository.getHoldingsEntitiesByAccount(accountId)).thenReturn(List.of(holding));
+        when(holdingRepository.findByAccount_AccountId(accountId)).thenReturn(List.of(holding));
         when(holdingService.getHoldingsForAccount(accountId)).thenReturn(List.of(holdingDTO));
         when(dividendCalculationService.calculateTotalDividends(accountId)).thenReturn(BigDecimal.valueOf(25));
         when(dividendPaymentService.getDividendPaymentsForAccount(accountId)).thenReturn(List.of(

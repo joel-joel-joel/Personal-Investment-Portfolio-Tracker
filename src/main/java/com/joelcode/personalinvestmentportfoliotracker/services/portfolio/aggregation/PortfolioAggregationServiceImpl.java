@@ -20,6 +20,7 @@ import com.joelcode.personalinvestmentportfoliotracker.services.portfolio.alloca
 import com.joelcode.personalinvestmentportfoliotracker.services.pricehistory.PriceHistoryService;
 import com.joelcode.personalinvestmentportfoliotracker.services.user.UserValidationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -29,6 +30,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
+@Profile("!test")
 public class PortfolioAggregationServiceImpl implements PortfolioAggregationService {
 
     private final AccountService accountService;
@@ -105,7 +107,7 @@ public class PortfolioAggregationServiceImpl implements PortfolioAggregationServ
 
     @Override
     public List<AllocationBreakdownDTO> getAllocationBreakdown(UUID accountId) {
-        List<Holding> holdings = holdingRepository.getHoldingsEntitiesByAccount(accountId);
+        List<Holding> holdings = holdingRepository.findByAccount_AccountId(accountId);
 
         BigDecimal totalValue = holdings.stream()
                 .map(h -> safe(holdingCalculationService.calculateCurrentValue(h)))

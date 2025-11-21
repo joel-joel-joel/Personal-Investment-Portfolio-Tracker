@@ -7,6 +7,7 @@ import com.joelcode.personalinvestmentportfoliotracker.entities.PriceHistory;
 import com.joelcode.personalinvestmentportfoliotracker.exceptions.CustomAuthenticationException;
 import com.joelcode.personalinvestmentportfoliotracker.repositories.PriceHistoryRepository;
 import com.joelcode.personalinvestmentportfoliotracker.services.mapping.PriceHistoryMapper;
+import org.springframework.context.annotation.Profile;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +19,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@Profile("!test")
 public class PriceHistoryServiceImpl implements PriceHistoryService{
 
     // Define key fields
@@ -76,14 +78,14 @@ public class PriceHistoryServiceImpl implements PriceHistoryService{
 
     @Override
     public BigDecimal getCurrentPrice(UUID stockId) {
-        return priceHistoryRepository.findLatestPriceByStockId(stockId)
+        return priceHistoryRepository.findTopByStock_StockIdOrderByCloseDateDesc(stockId).map(PriceHistory::getClosePrice)
                 .orElseThrow(() -> new CustomAuthenticationException("No price found for stock " + stockId));
     }
 
     @Override
     public List<PriceHistoryDTO> getPriceHistoryForStock(UUID stockId) {
         // Fetch all price history records for the stock
-        List<PriceHistory> historyList = priceHistoryRepository.findByStock_IdOrderByDateAsc(stockId);
+        List<PriceHistory> historyList = priceHistoryRepository.findByStock_StockIdOrderByCloseDateAsc(stockId);
 
         // Map to DTOs
         List<PriceHistoryDTO> dtos = historyList.stream()
@@ -97,7 +99,7 @@ public class PriceHistoryServiceImpl implements PriceHistoryService{
     public PriceHistoryDTO getLatestPriceForStock(UUID stockId) {
         // Fetch latest price from repository
         Optional<PriceHistory> latest = priceHistoryRepository
-                .findTopByStock_IdOrderByDateDesc(stockId);
+                .findTopByStock_StockIdOrderByCloseDateDesc(stockId);
 
         if (latest.isPresent()) {
             PriceHistory priceHistory = latest.get();

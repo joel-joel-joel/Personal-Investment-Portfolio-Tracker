@@ -6,6 +6,7 @@ import com.joelcode.personalinvestmentportfoliotracker.entities.User;
 import com.joelcode.personalinvestmentportfoliotracker.repositories.HoldingRepository;
 import com.joelcode.personalinvestmentportfoliotracker.services.holding.HoldingCalculationService;
 import com.joelcode.personalinvestmentportfoliotracker.services.user.UserValidationService;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -16,6 +17,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@Profile("!test")
 public class AllocationBreakdownServiceImpl implements AllocationBreakdownService {
 
     private final HoldingCalculationService holdingCalcService;
@@ -32,7 +34,7 @@ public class AllocationBreakdownServiceImpl implements AllocationBreakdownServic
 
     @Override
     public List<AllocationBreakdownDTO> getAllocationForAccount(UUID accountId) {
-        List<Holding> holdings = holdingRepository.getHoldingsEntitiesByAccount(accountId);
+        List<Holding> holdings = holdingRepository.findByAccount_AccountId(accountId);
 
         // EDGE CASE: Empty holdings
         if (holdings == null || holdings.isEmpty()) {
