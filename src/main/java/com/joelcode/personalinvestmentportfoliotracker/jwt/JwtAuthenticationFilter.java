@@ -20,18 +20,12 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.UUID;
 
-
 @Component
 @Profile("!test")
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-
-    // This class receives and filters al incoming http requests and performs token validation
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
-
-    @Autowired
-    private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     @Autowired
     private UserRepository userRepository;
@@ -43,18 +37,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
+
+        // Bypass JWT for Swagger/OpenAPI and H2 console
+        String path = request.getRequestURI();
+        if (path.startsWith("/v3/api-docs") || path.startsWith("/swagger-ui") || path.startsWith("/h2-console")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         try {
             String jwt = getJwtFromRequest(request);
-
             if (StringUtils.hasText(jwt) && jwtTokenProvider.validateToken(jwt)) {
                 UUID userId = jwtTokenProvider.getUserIdFromToken(jwt);
-                User user = userRepository.findById(userId).orElseThrow(() -> new ServletException("User not found"));
+                User user = userRepository.findById(userId)
+                        .orElseThrow(() -> new ServletException("User not found"));
 
                 CustomUserDetails customUserDetails = customUserDetailsService.loadUserByUsername(user.getUsername());
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(customUserDetails, null, customUserDetails.getAuthorities());
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (Exception ex) {
@@ -71,8 +72,4 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
         return null;
     }
-
-
-
-
 }

@@ -1,6 +1,3 @@
-// UPDATE YOUR SecurityConfig.java TO USE THE CENTRALIZED CORS CONFIGURATION
-// Replace the corsConfigurationSource() method (lines 46-80) with this:
-
 package com.joelcode.personalinvestmentportfoliotracker.config;
 
 import com.joelcode.personalinvestmentportfoliotracker.jwt.JwtAuthenticationEntryPoint;
@@ -8,6 +5,7 @@ import com.joelcode.personalinvestmentportfoliotracker.jwt.JwtAuthenticationFilt
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -19,12 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.context.annotation.Profile;
 
-
-// This class validates incoming http checks. For HTTP requests it checks and validates the jwt token before sending to
-// REST controllers whereas for websockec connects it checks that the headers are allowed to allow connection to backend
-//
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
@@ -37,7 +30,6 @@ public class SecurityConfig {
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    // Inject the centralized CORS configuration
     @Autowired
     private CorsConfigurationSource corsConfigurationSource;
 
@@ -56,19 +48,16 @@ public class SecurityConfig {
 
         http.cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .csrf(csrf -> csrf.disable())
-                .exceptionHandling(exception ->
-                        exception.authenticationEntryPoint(jwtAuthenticationEntryPoint)
-                )
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
+                .exceptionHandling(exception -> exception.authenticationEntryPoint(jwtAuthenticationEntryPoint))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authz -> authz
                         // Public endpoints
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
-                        .requestMatchers("/ws/**").permitAll()  // WebSocket endpoint
+                        .requestMatchers("/ws/**").permitAll()
 
-                        // Protected endpoints (user must be logged in)
+                        // Protected endpoints
                         .requestMatchers("/api/accounts/**").authenticated()
                         .requestMatchers("/api/holdings/**").authenticated()
                         .requestMatchers("/api/stocks/**").authenticated()
@@ -84,12 +73,14 @@ public class SecurityConfig {
                         .requestMatchers("/api/dashboard/**").authenticated()
                         .requestMatchers("/api/search/**").authenticated()
 
-                        // Any other request requires authentication
                         .anyRequest().authenticated()
                 );
 
-        // Add JWT token filter before username/password authentication filter
+        // JWT filter
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
+        // For H2 console
+        http.headers(headers -> headers.frameOptions(frameOptions -> frameOptions.sameOrigin()));
 
         return http.build();
     }
