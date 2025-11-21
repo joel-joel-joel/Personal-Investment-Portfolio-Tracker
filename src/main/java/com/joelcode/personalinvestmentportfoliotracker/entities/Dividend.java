@@ -25,7 +25,7 @@ public class Dividend {
     private LocalDateTime payDate;
 
     @Column(nullable = false)
-    private LocalDateTime announcementDate;
+    private LocalDateTime announcementDate = LocalDateTime.now();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "stockId", nullable = false)

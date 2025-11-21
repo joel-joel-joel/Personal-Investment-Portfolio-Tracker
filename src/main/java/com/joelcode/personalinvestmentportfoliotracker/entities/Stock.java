@@ -43,7 +43,7 @@ public class Stock {
     private BigDecimal stockValue;
 
     @Column (nullable = false)
-    private BigDecimal dividendPerShare;
+    private BigDecimal dividendPerShare = BigDecimal.ZERO;
 
     @CreationTimestamp
     private LocalDateTime createdAt;

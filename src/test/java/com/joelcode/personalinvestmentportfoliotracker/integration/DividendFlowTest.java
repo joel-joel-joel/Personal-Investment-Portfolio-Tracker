@@ -31,10 +31,14 @@ import static org.junit.jupiter.api.Assertions.*;
                 "spring.autoconfigure.exclude=" +
                         "org.springframework.boot.autoconfigure.r2dbc.R2dbcAutoConfiguration," +
                         "org.springframework.boot.autoconfigure.data.r2dbc.R2dbcDataAutoConfiguration," +
-                        "org.springframework.boot.autoconfigure.data.r2dbc.R2dbcRepositoriesAutoConfiguration"
+                        "org.springframework.boot.autoconfigure.data.r2dbc.R2dbcRepositoriesAutoConfiguration," +
+                        "org.springframework.modulith.events.jpa.JpaEventPublicationAutoConfiguration," +
+                        "org.springframework.modulith.events.jdbc.JdbcEventPublicationAutoConfiguration," +
+                        "org.springframework.modulith.events.config.EventPublicationAutoConfiguration"
         }
-)@ActiveProfiles("test")
-@Transactional  // Add this to rollback after each test
+)
+@ActiveProfiles("test")
+@Transactional
 class DividendFlowTest {
 
     @Autowired
@@ -164,7 +168,7 @@ class DividendFlowTest {
         DividendPayment payment = payments.get(0);
         assertEquals(testAccount.getAccountId(), payment.getAccount().getAccountId());
         assertEquals(testStock.getStockId(), payment.getStock().getStockId());
-        assertEquals(100, payment.getShareQuantity());
+        assertEquals(BigDecimal.valueOf(100), payment.getShareQuantity());
         assertEquals(BigDecimal.valueOf(250.0), payment.getTotalAmount()); // 100 * 2.5
     }
 
@@ -214,7 +218,7 @@ class DividendFlowTest {
                 .filter(p -> p.getAccount().getAccountId().equals(testAccount.getAccountId()))
                 .findFirst()
                 .orElseThrow();
-        assertEquals(100, payment1.getShareQuantity());
+        assertEquals(BigDecimal.valueOf(100), payment1.getShareQuantity());
         assertEquals(BigDecimal.valueOf(250.0), payment1.getTotalAmount());
 
         // Verify second account payment
@@ -222,7 +226,7 @@ class DividendFlowTest {
                 .filter(p -> p.getAccount().getAccountId().equals(secondAccount.getAccountId()))
                 .findFirst()
                 .orElseThrow();
-        assertEquals(50, payment2.getShareQuantity());
+        assertEquals(BigDecimal.valueOf(50), payment2.getShareQuantity());
         assertEquals(BigDecimal.valueOf(125.0), payment2.getTotalAmount());
     }
 
@@ -280,7 +284,7 @@ class DividendFlowTest {
         // Assert
         assertNotNull(total);
         // 100 shares * 2.5 + 100 shares * 3.0 = 250 + 300 = 550
-        assertEquals(BigDecimal.valueOf(550.0), total);
+        assertEquals(BigDecimal.valueOf(550.00), total.setScale(1));
     }
 
     @Test
@@ -341,13 +345,13 @@ class DividendFlowTest {
                 testAccount.getAccountId(),
                 testStock.getStockId()
         );
-        assertEquals(BigDecimal.valueOf(250.0), totalAapl);
+        assertEquals(BigDecimal.valueOf(250.00), totalAapl.setScale(1));
 
         BigDecimal totalMsft = dividendPaymentRepository.calculateTotalDividendsByAccountAndStock(
                 testAccount.getAccountId(),
                 secondStock.getStockId()
         );
-        assertEquals(BigDecimal.valueOf(75.0), totalMsft); // 50 * 1.5
+        assertEquals(BigDecimal.valueOf(75.0), totalMsft.setScale(1)); // 50 * 1.5
     }
 
     @Test
