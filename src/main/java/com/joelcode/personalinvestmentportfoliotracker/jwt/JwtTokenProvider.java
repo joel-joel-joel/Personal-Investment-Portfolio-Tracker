@@ -21,7 +21,7 @@ public class JwtTokenProvider {
     private String jwtSecret;
 
     // Determines how long the JWT token is valid for.
-    @Value("${app.jwtexpiration}")
+    @Value("${app.jwt.expiration}")
     private int jwtExpirationInMs;
 
     // Generate jwt token for user

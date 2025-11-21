@@ -75,7 +75,7 @@ public class TransactionProcessorServiceImpl implements TransactionProcessorServ
         }
         // If it is a sell transaction
         else if (request.getTransactionType().name().equalsIgnoreCase("SELL")) {
-            Optional<Holding> holdingOpt = holdingRepository.getHoldingByAccountIdAndStockId(request.getAccountId(), request.getStockId());
+            Optional<Holding> holdingOpt = holdingRepository.getHoldingByAccount_AccountIdAndStock_StockId(request.getAccountId(), request.getStockId());
 
             if (holdingOpt.isEmpty()) {
                 throw new IllegalArgumentException("No holding found for account and stock");

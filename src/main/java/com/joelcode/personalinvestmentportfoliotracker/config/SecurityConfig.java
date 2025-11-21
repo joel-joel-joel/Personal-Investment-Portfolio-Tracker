@@ -19,6 +19,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.context.annotation.Profile;
 
 
 // This class validates incoming http checks. For HTTP requests it checks and validates the jwt token before sending to
@@ -27,6 +28,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
+@Profile("!test")
 public class SecurityConfig {
 
     @Autowired

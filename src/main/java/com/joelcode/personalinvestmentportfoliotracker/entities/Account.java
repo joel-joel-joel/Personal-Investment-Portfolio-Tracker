@@ -2,6 +2,7 @@ package com.joelcode.personalinvestmentportfoliotracker.entities;
 
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Type;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -114,6 +115,10 @@ public class Account {
     public void setHoldings(List<Holding> holdings) {
         this.holdings = holdings;
     }
+
+    public LocalDateTime getCreatedAt() {return createdAt;}
+
+    public void setCreatedAt(LocalDateTime createdAt) {this.createdAt = createdAt;}
 
     // Helper Methods
     public void addTransaction(Transaction transaction) {

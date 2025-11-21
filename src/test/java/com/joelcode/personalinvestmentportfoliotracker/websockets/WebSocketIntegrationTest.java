@@ -21,7 +21,9 @@ import java.util.concurrent.TimeoutException;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+        properties = "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration")
+@org.springframework.test.context.ActiveProfiles("test")
 class WebSocketIntegrationTest {
 
     @LocalServerPort

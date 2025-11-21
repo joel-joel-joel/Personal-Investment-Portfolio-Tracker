@@ -47,8 +47,8 @@ public class SearchServiceImpl implements SearchService {
     @Override
     public SearchDTO search(String query, UUID userId) {
 
-        // Search Stocks
-        List<StockDTO> stocks = stockRepository.findByNameContainingIgnoreCase(query)
+        // Search Stocks by company name (partial, case-insensitive)
+        List<StockDTO> stocks = stockRepository.findByCompanyNameContainingIgnoreCase(query)
                 .stream()
                 .map(StockMapper::toDTO)
                 .collect(Collectors.toList());
@@ -56,9 +56,9 @@ public class SearchServiceImpl implements SearchService {
         // Search Accounts
         List<Account> accountEntities;
         if (userId != null) {
-            accountEntities = accountRepository.findByUser_UserIdAndNameContainingIgnoreCase(userId, query);
+            accountEntities = accountRepository.findByUser_UserIdAndAccountNameContainingIgnoreCase(userId, query);
         } else {
-            accountEntities = accountRepository.findByNameContainingIgnoreCase(query);
+            accountEntities = accountRepository.findByAccountNameContainingIgnoreCase(query);
         }
 
         List<AccountDTO> accounts = accountEntities.stream()
@@ -68,9 +68,9 @@ public class SearchServiceImpl implements SearchService {
         // Search Holdings
         List<Holding> holdingEntities;
         if (userId != null) {
-            holdingEntities = holdingRepository.findByAccount_User_UserIdAndStock_NameContainingIgnoreCase(userId, query);
+            holdingEntities = holdingRepository.findByAccount_User_UserIdAndStock_CompanyNameContainingIgnoreCase(userId, query);
         } else {
-            holdingEntities = holdingRepository.findByStock_NameContainingIgnoreCase(query);
+            holdingEntities = holdingRepository.findByStock_CompanyNameContainingIgnoreCase(query);
         }
 
         List<HoldingDTO> holdings = holdingEntities.stream()

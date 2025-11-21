@@ -71,15 +71,15 @@ public class SearchServiceImplTest {
         String query = "app";
 
         // Mock stock search
-        when(stockRepository.findByNameContainingIgnoreCase(query))
+        when(stockRepository.findByCompanyNameContainingIgnoreCase(query))
                 .thenReturn(List.of(stock));
 
         // Mock account search
-        when(accountRepository.findByUser_UserIdAndNameContainingIgnoreCase(userId, query))
+        when(accountRepository.findByUser_UserIdAndAccountNameContainingIgnoreCase(userId, query))
                 .thenReturn(List.of(account));
 
         // Mock holdings search
-        when(holdingRepository.findByAccount_User_UserIdAndStock_NameContainingIgnoreCase(userId, query))
+        when(holdingRepository.findByAccount_User_UserIdAndStock_CompanyNameContainingIgnoreCase(userId, query))
                 .thenReturn(List.of(holding));
 
         // Mock price

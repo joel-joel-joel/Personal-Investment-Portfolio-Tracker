@@ -206,7 +206,7 @@ public class HoldingServiceImpl implements HoldingService {
         BigDecimal pricePerShare = request.getPricePerShare();
 
         // Try to fetch existing holding
-        Optional<Holding> holdingOpt = holdingRepository.getHoldingByAccountIdAndStockId(request.getAccountId(), request.getStockId());
+        Optional<Holding> holdingOpt = holdingRepository.getHoldingByAccount_AccountIdAndStock_StockId(request.getAccountId(), request.getStockId());
 
         if (holdingOpt.isPresent()) {
             Holding holding = holdingOpt.get();

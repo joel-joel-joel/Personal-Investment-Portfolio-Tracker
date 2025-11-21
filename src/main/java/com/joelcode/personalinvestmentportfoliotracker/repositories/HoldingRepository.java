@@ -31,13 +31,13 @@ public interface HoldingRepository extends JpaRepository<Holding, UUID> {
 
     Optional<Holding> findByAccountAndStock(Account account, Stock stock);
 
-    Optional<Holding> getHoldingByAccountIdAndStockId(UUID accountId, UUID stockId);
+    Optional<Holding> getHoldingByAccount_AccountIdAndStock_StockId(UUID accountId, UUID stockId);
 
     List<Holding> getHoldingsEntitiesByAccount(UUID accountId);
 
-    List<Holding> findByAccount_User_UserIdAndStock_NameContainingIgnoreCase(UUID userId, String stockNameFragment);
+    List<Holding> findByAccount_User_UserIdAndStock_CompanyNameContainingIgnoreCase(UUID userId, String stockNameFragment);
 
-    List<Holding> findByStock_NameContainingIgnoreCase(String name);
+    List<Holding> findByStock_CompanyNameContainingIgnoreCase(String name);
 
     // Find specific id
     Optional<Holding> findByHoldingId(UUID holdingId);
@@ -61,4 +61,6 @@ public interface HoldingRepository extends JpaRepository<Holding, UUID> {
 
     @Query("SELECT COUNT(h) FROM Holding h WHERE h.account = :account")
     Long countByAccount(@Param("account") Account account);
+
+    List<Holding> findByStock_NameContainingIgnoreCase(String query);
 }

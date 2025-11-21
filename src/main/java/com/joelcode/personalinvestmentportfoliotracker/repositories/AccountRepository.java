@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.awt.print.Pageable;
+import org.springframework.data.domain.Pageable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -33,9 +33,7 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
 
     List<Account> findByUser_UserIdAndAccountNameContainingIgnoreCase(UUID userId, String accountNameFragment);
 
-    List<Account> findByUser_UserIdAndNameContainingIgnoreCase(UUID userId, String accountNameFragment);
-
-    List<Account> findByNameContainingIgnoreCase(String name);
+    // Deprecated/wrong method names removed: use AccountName property instead
 
     // Filter by value
     List<Account> findByAccountBalanceGreaterThan(BigDecimal accountBalance);
