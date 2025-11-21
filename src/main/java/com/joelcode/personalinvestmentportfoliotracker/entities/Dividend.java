@@ -14,6 +14,19 @@ public class Dividend {
     // This entity represents a dividend announcement at the STOCK level
     // It does NOT track which accounts received it - that's DividendPayment's job
 
+
+    // Constructors
+    public Dividend(BigDecimal dividendPerShare, LocalDateTime payDate, Stock stock) {
+        this.stock = stock;
+        this.dividendPerShare = dividendPerShare;
+        this.payDate = payDate;
+        this.announcementDate = LocalDateTime.now();
+    }
+
+    public Dividend() {}
+
+
+    // Columns
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID dividendId;
@@ -27,6 +40,8 @@ public class Dividend {
     @Column(nullable = false)
     private LocalDateTime announcementDate = LocalDateTime.now();
 
+
+    // Relationships
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "stockId", nullable = false)
     private Stock stock;
@@ -35,15 +50,6 @@ public class Dividend {
     @OneToMany(mappedBy = "dividend", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<DividendPayment> payments = new ArrayList<>();
 
-    // Constructors
-    public Dividend() {}
-
-    public Dividend(BigDecimal dividendPerShare, LocalDateTime payDate, Stock stock) {
-        this.stock = stock;
-        this.dividendPerShare = dividendPerShare;
-        this.payDate = payDate;
-        this.announcementDate = LocalDateTime.now();
-    }
 
     // Getters and Setters
     public UUID getDividendId() {return dividendId;}

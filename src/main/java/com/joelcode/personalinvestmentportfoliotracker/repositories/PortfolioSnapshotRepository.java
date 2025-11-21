@@ -19,8 +19,11 @@ public interface PortfolioSnapshotRepository extends JpaRepository<PortfolioSnap
 
 
     // Find by user
+
+    // Find by Id and date
     @Query("SELECT ps FROM PortfolioSnapshot ps WHERE ps.account.user.userId = :userId ORDER BY ps.snapshotDate DESC")
     List<PortfolioSnapshot> findByUserIdOrderBySnapshotDateDesc(@Param("userId") UUID userId);
+
 
     // Find by account
     List<PortfolioSnapshot> findByAccount(Account account);
@@ -31,6 +34,7 @@ public interface PortfolioSnapshotRepository extends JpaRepository<PortfolioSnap
 
     List<PortfolioSnapshot> findByAccount_AccountIdOrderBySnapshotDateDesc(UUID accountId);
 
+
     // Find by date
     Optional<PortfolioSnapshot> findByAccountAndSnapshotDate(Account account, LocalDate snapshotDate);
 
@@ -40,27 +44,36 @@ public interface PortfolioSnapshotRepository extends JpaRepository<PortfolioSnap
 
     List<PortfolioSnapshot> findByAccountAndSnapshotDateBetween(Account account, LocalDate start, LocalDate end);
 
+
     // Find specific id
     Optional<PortfolioSnapshot> findBySnapshotId(UUID snapshotId);
 
+
     // Existence checks
     boolean existsByAccountAndSnapshotDate(Account account, LocalDate snapshotDate);
+
 
     // Filter by created date
     List<PortfolioSnapshot> findByCreatedAtAfter(LocalDateTime createdAtAfter);
 
     List<PortfolioSnapshot> findByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
 
+
     // Custom queries for analytics
+
+    // Find latest snapshot by acccount
     @Query("SELECT ps FROM PortfolioSnapshot ps WHERE ps.account = :account ORDER BY ps.snapshotDate DESC LIMIT 1")
     Optional<PortfolioSnapshot> findLatestByAccount(@Param("account") Account account);
 
+    // Find earliest snapshot by account
     @Query("SELECT ps FROM PortfolioSnapshot ps WHERE ps.account = :account ORDER BY ps.snapshotDate ASC LIMIT 1")
     Optional<PortfolioSnapshot> findEarliestByAccount(@Param("account") Account account);
 
+    // Find average total by account and date
     @Query("SELECT AVG(ps.totalValue) FROM PortfolioSnapshot ps WHERE ps.account = :account AND ps.snapshotDate BETWEEN :start AND :end")
     BigDecimal averageTotalValueByAccountAndDateRange(@Param("account") Account account, @Param("start") LocalDate start, @Param("end") LocalDate end);
 
+    // Find number of snpashots per account
     @Query("SELECT COUNT(ps) FROM PortfolioSnapshot ps WHERE ps.account = :account")
     Long countByAccount(@Param("account") Account account);
 }

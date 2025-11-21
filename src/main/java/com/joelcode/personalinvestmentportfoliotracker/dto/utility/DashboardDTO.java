@@ -9,6 +9,7 @@ import java.util.List;
 
 public class DashboardDTO {
 
+    // Dashboard response DTO (output)
     private PortfolioOverviewDTO portfolioOverview;
     private PortfolioPerformanceDTO portfolioPerformance;
     private List<AllocationBreakdownDTO> allocations;

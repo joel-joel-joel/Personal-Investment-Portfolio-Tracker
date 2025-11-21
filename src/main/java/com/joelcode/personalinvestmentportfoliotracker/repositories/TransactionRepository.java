@@ -23,6 +23,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
 
     List<Transaction> findByAccount_AccountIdOrderByCreatedAtDesc(UUID accountId);
 
+
     // By stock
     List<Transaction> findByStock(Stock stock);
 
@@ -31,6 +32,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
     List<Transaction> findByStock_StockCode(String stockCode);
 
     List<Transaction> findByStock_CompanyName(String companyName);
+
 
     // By account AND stock
     List<Transaction> findByAccountAndStock(Account account, Stock stock);
@@ -41,6 +43,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
 
     List<Transaction> findByAccount_AccountIdAndStock_CompanyName(UUID accountId, String companyName);
 
+
     // Filter by share quantity
     List<Transaction> findByShareQuantity(BigDecimal shareQuantity);
 
@@ -48,12 +51,14 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
 
     List<Transaction> findByShareQuantityLessThan(BigDecimal amount);
 
+
     // Filter by price per share
     List<Transaction> findByPricePerShare(BigDecimal price);
 
     List<Transaction> findByPricePerShareGreaterThan(BigDecimal price);
 
     List<Transaction> findByPricePerShareLessThan(BigDecimal price);
+
 
     // Filter by created date
     List<Transaction> findByCreatedAtAfter(LocalDateTime createdAt);

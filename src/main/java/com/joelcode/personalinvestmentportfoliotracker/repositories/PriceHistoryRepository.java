@@ -21,6 +21,7 @@ public interface PriceHistoryRepository extends JpaRepository<PriceHistory, UUID
 
     List<PriceHistory> findByStock_StockId(UUID stockId);
 
+
     // Order by date
     List<PriceHistory> findByStock_StockIdOrderByCloseDateAsc(UUID stockId);
 
@@ -28,10 +29,12 @@ public interface PriceHistoryRepository extends JpaRepository<PriceHistory, UUID
 
     Optional<PriceHistory> findTopByStock_StockIdOrderByCloseDateDesc(UUID stockId);
 
+
     // By stock properties
     List<PriceHistory> findByStock_CompanyName(String companyName);
 
     List<PriceHistory> findByStock_StockCode(String stockCode);
+
 
     // By closing date
     List<PriceHistory> findByCloseDateGreaterThan(LocalDateTime closeDate);
@@ -43,6 +46,7 @@ public interface PriceHistoryRepository extends JpaRepository<PriceHistory, UUID
     List<PriceHistory> findByStock_StockIdAndCloseDateBetween(UUID stockId, LocalDateTime start, LocalDateTime end);
 
     Optional<PriceHistory> findTopByStockOrderByCloseDateDesc(Stock stock);
+
 
     // By closing price
     List<PriceHistory> findByClosePrice(BigDecimal closePrice);

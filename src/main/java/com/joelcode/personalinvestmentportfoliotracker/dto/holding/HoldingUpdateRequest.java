@@ -30,35 +30,19 @@ public class HoldingUpdateRequest {
     public HoldingUpdateRequest() {}
 
     // Getters and setters
-    public BigDecimal getQuantity() {
-        return quantity;
-    }
+    public BigDecimal getQuantity() {return quantity;}
 
-    public void setQuantity(BigDecimal quantity) {
-        this.quantity = quantity;
-    }
+    public void setQuantity(BigDecimal quantity) {this.quantity = quantity;}
 
-    public BigDecimal getAverageCostBasis() {
-        return averageCostBasis;
-    }
+    public BigDecimal getAverageCostBasis() {return averageCostBasis;}
 
-    public void setAverageCostBasis(BigDecimal averageCostBasis) {
-        this.averageCostBasis = averageCostBasis;
-    }
+    public void setAverageCostBasis(BigDecimal averageCostBasis) {this.averageCostBasis = averageCostBasis;}
 
-    public BigDecimal getTotalCostBasis() {
-        return totalCostBasis;
-    }
+    public BigDecimal getTotalCostBasis() {return totalCostBasis;}
 
-    public void setTotalCostBasis(BigDecimal totalCostBasis) {
-        this.totalCostBasis = totalCostBasis;
-    }
+    public void setTotalCostBasis(BigDecimal totalCostBasis) {this.totalCostBasis = totalCostBasis;}
 
-    public BigDecimal getRealizedGain() {
-        return realizedGain;
-    }
+    public BigDecimal getRealizedGain() {return realizedGain;}
 
-    public void setRealizedGain(BigDecimal realizedGain) {
-        this.realizedGain = realizedGain;
-    }
+    public void setRealizedGain(BigDecimal realizedGain) {this.realizedGain = realizedGain;}
 }

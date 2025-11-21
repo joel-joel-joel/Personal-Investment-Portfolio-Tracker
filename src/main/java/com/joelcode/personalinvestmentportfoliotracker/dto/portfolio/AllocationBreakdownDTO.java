@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 
 public class AllocationBreakdownDTO {
 
-    // Define key fields
+    // Allocation breakdown response DTO (output)
     private String stockCode;
     private BigDecimal percentage;
     private BigDecimal currentValue;

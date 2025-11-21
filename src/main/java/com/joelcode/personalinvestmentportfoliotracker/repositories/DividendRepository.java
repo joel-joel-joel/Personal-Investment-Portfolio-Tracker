@@ -24,13 +24,16 @@ public interface DividendRepository extends JpaRepository<Dividend, UUID> {
 
     List<Dividend> findByStock_StockCode(String stockCode);
 
+
     // Existence checks
     boolean existsByStockAndPayDate(Stock stock, LocalDateTime payDate);
+
 
     // Find by amount
     List<Dividend> findByDividendPerShareGreaterThan(BigDecimal dividendPerShare);
 
     List<Dividend> findByDividendPerShareLessThan(BigDecimal dividendPerShare);
+
 
     // Filter by date
     List<Dividend> findByPayDate(LocalDateTime payDate);
@@ -40,6 +43,7 @@ public interface DividendRepository extends JpaRepository<Dividend, UUID> {
     List<Dividend> findByPayDateBefore(LocalDateTime payDate);
 
     List<Dividend> findByPayDateBetween(LocalDateTime start, LocalDateTime end);
+
 
     // Find all upcoming dividends
     @Query("SELECT d FROM Dividend d WHERE d.payDate > :currentDate ORDER BY d.payDate ASC")

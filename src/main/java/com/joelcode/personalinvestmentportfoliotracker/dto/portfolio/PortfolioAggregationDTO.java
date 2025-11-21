@@ -9,6 +9,7 @@ import java.util.UUID;
 @Data
 public class PortfolioAggregationDTO {
 
+    // Portfolio aggregation response DTO (output)
     private UUID accountId;
     private UUID userId;
     private BigDecimal totalValue;

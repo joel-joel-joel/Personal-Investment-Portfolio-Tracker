@@ -8,7 +8,7 @@ import java.util.UUID;
 @Data
 public class HoldingSummaryDTO {
 
-    // Define key fields
+    // Holding summary response DTO (output)
     private UUID stockId;
     private String stockCode;
     private BigDecimal quantity;

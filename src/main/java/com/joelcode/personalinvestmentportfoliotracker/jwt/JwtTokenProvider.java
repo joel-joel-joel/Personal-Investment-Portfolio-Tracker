@@ -11,10 +11,9 @@ import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.UUID;
 
+// This class is responsible for creating, parsing, and validating JWT tokens.
 @Component
 public class JwtTokenProvider {
-
-    // This class is responsible for creating, parsing, and validating JWT tokens.
 
     // Inject value from config for token signing
     @Value("${app.jwt.secret}")

@@ -19,13 +19,16 @@ public interface StockRepository  extends JpaRepository<Stock, UUID> {
 
     Optional<Stock> findByCompanyName(String companyName);
 
+
     // Filter lists of stocks
     List<Stock> findByCompanyNameContainingIgnoreCase(String companyName);
+
 
     // Existence checks
     boolean existsByStockCode(String stockCode);
 
     boolean existsByCompanyName(String companyName);
+
 
     // Filter by date
     List<Stock> findByCreatedAtAfter(LocalDateTime date);
@@ -37,6 +40,7 @@ public interface StockRepository  extends JpaRepository<Stock, UUID> {
 
     // Finding by ID
     List<Stock> findByAccount_AccountId(UUID accountId);
+
 
     // Filter by stock value
     List<Stock> findByStockValueGreaterThan(Double stockValue);

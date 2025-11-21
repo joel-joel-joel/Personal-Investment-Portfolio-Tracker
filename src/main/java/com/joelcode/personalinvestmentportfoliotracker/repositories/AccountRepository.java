@@ -20,11 +20,13 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
 
     Optional<Account> findByAccountId(UUID accountId);
 
+
     // Filter by date
     List<Account> findByCreatedAtAfter(LocalDateTime createdAtAfter);
 
     @Query("SELECT a FROM Account a WHERE a.createdAt BETWEEN :start AND :end")
     List<Account> findAccountWithinDateRange(LocalDateTime start, LocalDateTime end);
+
 
     // Filter list of accounts
     List<Account> findByUser_UserId(UUID userId, Pageable pageable);
@@ -33,7 +35,6 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
 
     List<Account> findByUser_UserIdAndAccountNameContainingIgnoreCase(UUID userId, String accountNameFragment);
 
-    // Deprecated/wrong method names removed: use AccountName property instead
 
     // Filter by value
     List<Account> findByAccountBalanceGreaterThan(BigDecimal accountBalance);

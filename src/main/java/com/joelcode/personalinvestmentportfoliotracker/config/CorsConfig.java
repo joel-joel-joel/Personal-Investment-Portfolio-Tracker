@@ -33,7 +33,7 @@ public class CorsConfig {
 
         // Allowed origins
         // DEVELOPMENT: Allow localhost with common ports
-        // PRODUCTION: Replace with your actual frontend domain
+        // PRODUCTION: Replace with actual frontend domain
         configuration.setAllowedOriginPatterns(Arrays.asList(
                 "http://localhost:3000",     // React default
                 "http://localhost:4200",     // Angular default

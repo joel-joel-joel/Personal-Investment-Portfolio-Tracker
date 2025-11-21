@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+// Exception handler for custom exceptions and throws. Done for clarity in error messages
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 

@@ -24,11 +24,13 @@ import java.util.List;
 @Profile("!test")
 public class AuthController {
 
+    // Define key fields
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
+    // Constructor
     public AuthController(AuthenticationManager authenticationManager,
                           JwtTokenProvider jwtTokenProvider,
                           UserRepository userRepository,

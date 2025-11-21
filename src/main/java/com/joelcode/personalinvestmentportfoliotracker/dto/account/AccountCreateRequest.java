@@ -38,12 +38,8 @@ public class AccountCreateRequest {
         return userId;
     }
 
-    public void setAccountName(String accountName) {
-        this.accountName = accountName;
-    }
+    public void setAccountName(String accountName) {this.accountName = accountName;}
 
-    public void setUserId(UUID userId) {
-        this.userId = userId;
-    }
+    public void setUserId(UUID userId) {this.userId = userId;}
 
 }

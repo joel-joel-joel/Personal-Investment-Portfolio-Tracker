@@ -12,21 +12,29 @@ public class DividendPayment {
     // This entity tracks ACTUAL dividend payments to specific accounts
     // Links: Account + Stock + Dividend + actual shares held
 
+    // Constructors
+    public DividendPayment(Account account, Stock stock, Dividend dividend,
+                           BigDecimal shareQuantity, BigDecimal totalAmount,
+                           LocalDateTime paymentDate) {
+        this.account = account;
+        this.stock = stock;
+        this.dividend = dividend;
+        this.shareQuantity = shareQuantity;
+        this.totalAmount = totalAmount;
+        this.paymentDate = paymentDate;
+        this.recordedAt = LocalDateTime.now();
+        this.status = PaymentStatus.PAID;
+    }
+
+    public DividendPayment() {
+        this.recordedAt = LocalDateTime.now();
+    }
+
+
+    // Columns
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID paymentId;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "accountId", nullable = false)
-    private Account account;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "stockId", nullable = false)
-    private Stock stock;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "dividendId", nullable = false)
-    private Dividend dividend;
 
     @Column(nullable = false)
     private BigDecimal shareQuantity;  // How many shares they owned on pay date
@@ -44,36 +52,26 @@ public class DividendPayment {
     @Column(nullable = false)
     private PaymentStatus status = PaymentStatus.PENDING;
 
-    // Constructors
-    public DividendPayment() {
-        this.recordedAt = LocalDateTime.now();
-    }
-
-    public DividendPayment(Account account, Stock stock, Dividend dividend,
-                           BigDecimal shareQuantity, BigDecimal totalAmount,
-                           LocalDateTime paymentDate) {
-        this.account = account;
-        this.stock = stock;
-        this.dividend = dividend;
-        this.shareQuantity = shareQuantity;
-        this.totalAmount = totalAmount;
-        this.paymentDate = paymentDate;
-        this.recordedAt = LocalDateTime.now();
-        this.status = PaymentStatus.PAID;
-    }
-
-    // Calculate total amount automatically
-    public void calculateTotalAmount() {
-        if (dividend != null && shareQuantity != null) {
-            this.totalAmount = dividend.getDividendAmountPerShare().multiply(shareQuantity);
-        }
-    }
-
     public enum PaymentStatus {
         PENDING,    // Dividend announced but not yet paid
         PAID,       // Payment completed
         CANCELLED   // Dividend cancelled
     }
+
+
+    // Relationships
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "accountId", nullable = false)
+    private Account account;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "stockId", nullable = false)
+    private Stock stock;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "dividendId", nullable = false)
+    private Dividend dividend;
+
 
     // Getters and Setters
     public UUID getPaymentId() {return paymentId;}
@@ -117,4 +115,12 @@ public class DividendPayment {
     public PaymentStatus getStatus() {return status;}
 
     public void setStatus(PaymentStatus status) {this.status = status;}
+
+    // Helper functions
+    // Calculate total amount automatically
+    public void calculateTotalAmount() {
+        if (dividend != null && shareQuantity != null) {
+            this.totalAmount = dividend.getDividendAmountPerShare().multiply(shareQuantity);
+        }
+    }
 }

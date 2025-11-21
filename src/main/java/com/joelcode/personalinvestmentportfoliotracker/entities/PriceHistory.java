@@ -12,8 +12,7 @@ public class PriceHistory {
 
     // This entity stores the price movement history of a stock from a certain point in time
 
-    // Constructor
-
+    // Constructors
     public PriceHistory(LocalDateTime closeDate, BigDecimal closePrice, Stock stock) {
         this.stock = stock;
         this.closeDate = closeDate;
@@ -22,8 +21,8 @@ public class PriceHistory {
 
     public PriceHistory() {}
 
-    // Key fields
 
+    // Column
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID priceHistoryId;
@@ -34,14 +33,14 @@ public class PriceHistory {
     @Column (nullable = false)
     private BigDecimal closePrice;
 
+
+    // Relationships
     @ManyToOne (fetch = FetchType.LAZY)
     @JoinColumn (name = "stockId", nullable = false)
     private Stock stock;
 
 
-
-    // Getters and setters
-
+    // Getter and setters
     public UUID getPriceHistoryId() {
         return priceHistoryId;
     }
@@ -78,8 +77,8 @@ public class PriceHistory {
 
     public void setStockId(UUID stockId) {this.stock.setStockId(stockId);}
 
-    // Helper functions (For filtering)
 
+    // Helper functions (For filtering)
     public boolean isAbove(BigDecimal threshold) {
         return closePrice.compareTo(threshold) > 0;
     }

@@ -15,8 +15,7 @@ public class User {
 
     // This entity stores is the overarching account for the app that can store different investing accounts
 
-    // Constructor
-
+    // Constructors
     public User (UUID userId, String email, String username, String password, String fullName) {
         this.userId = userId;
         this.username = username;
@@ -27,8 +26,7 @@ public class User {
 
     public User () {}
 
-    // Key fields
-
+    // Columns
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID userId;
@@ -61,14 +59,16 @@ public class User {
         this.updatedAt = LocalDateTime.now();
     }
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Account> accounts = new ArrayList<>();
-
-
     public enum Role {
         ROLE_USER,
         ROLE_ADMIN
     }
+
+
+    // Relationships
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Account> accounts = new ArrayList<>();
+
 
     // Getters and Setters
 

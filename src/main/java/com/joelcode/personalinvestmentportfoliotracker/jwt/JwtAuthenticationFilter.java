@@ -20,6 +20,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.UUID;
 
+// This class is  a Spring Security filter that intercepts incoming HTTP requests to extract jwt tokens to bypass for
+// swagger openapi and h2 consoles. It also validates token by credentials to setup security context
 @Component
 @Profile("!test")
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -45,6 +47,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
+        // Validate token from request by comparing userId to token Id
         try {
             String jwt = getJwtFromRequest(request);
             if (StringUtils.hasText(jwt) && jwtTokenProvider.validateToken(jwt)) {
@@ -52,6 +55,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 User user = userRepository.findById(userId)
                         .orElseThrow(() -> new ServletException("User not found"));
 
+                // Authenticate by user credentials
                 CustomUserDetails customUserDetails = customUserDetailsService.loadUserByUsername(user.getUsername());
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(customUserDetails, null, customUserDetails.getAuthorities());
@@ -65,6 +69,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
+    // Return bearer token name
     private String getJwtFromRequest(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {

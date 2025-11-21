@@ -15,8 +15,7 @@ public class Transaction {
     // This entity stores the transaction of an account, inclusive of information regarding how many shares are bought
     // and for how much
 
-    // Constructor
-
+    // Constructors
     public Transaction(BigDecimal shareQuantity, BigDecimal pricePerShare, BigDecimal commission, Stock stock, Account account) {
         this.stock = stock;
         this.shareQuantity = shareQuantity;
@@ -27,8 +26,8 @@ public class Transaction {
 
     public Transaction() {}
 
-    // Key fields
 
+    // Columns
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID transactionId;
@@ -48,6 +47,13 @@ public class Transaction {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
+    public enum TransactionType {
+        BUY,
+        SELL
+    }
+
+
+    // Relationships
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "stockId", nullable = false)
     private Stock stock;
@@ -59,12 +65,6 @@ public class Transaction {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TransactionType transactionType;
-
-    // Transaction type
-    public enum TransactionType {
-        BUY,
-        SELL
-    }
 
 
     // Getters and setters
@@ -133,16 +133,13 @@ public class Transaction {
         this.account.setAccountId(accountId);
     }
 
-    public TransactionType getTransactionType() {
-        return transactionType;
+    public TransactionType getTransactionType() {return transactionType;
     }
 
-    public void setTransactionType(TransactionType transactionType) {
-        this.transactionType = transactionType;
-    }
+    public void setTransactionType(TransactionType transactionType) {this.transactionType = transactionType;}
+
 
     // Helper Functions
-
     public BigDecimal getTotalCost() {
         return pricePerShare.multiply(shareQuantity).add(commission);
     }

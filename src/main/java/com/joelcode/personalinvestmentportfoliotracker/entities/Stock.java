@@ -16,8 +16,7 @@ public class Stock {
 
     // This entity stores information of the stock including the ticker, company and current value
 
-    // Constructor
-
+    // Constructors
     public Stock(String stockCode, String companyName, BigDecimal stockValue, BigDecimal dividendPerShare) {
         this.stockCode = stockCode;
         this.companyName = companyName;
@@ -27,8 +26,8 @@ public class Stock {
 
     public Stock() {}
 
-    // Key fields
 
+    // Columns
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID stockId;
@@ -52,9 +51,7 @@ public class Stock {
     private LocalDateTime updatedAt;
 
 
-    // Mapping to other entities (single stock to multiple dividends, transactions and histories,
-    // multiple stocks to multiple users and accounts)
-
+    // Relationships
     @OneToMany(mappedBy = "stock", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Transaction> transactions = new ArrayList<>();
 
@@ -68,8 +65,8 @@ public class Stock {
     @JoinColumn(name = "account_id")
     private Account account;
 
-    // Getters and setters
 
+    // Getters and setters
     public UUID getStockId() {return stockId;}
 
     public void setStockId(UUID stockId) {this.stockId = stockId;}
@@ -86,9 +83,7 @@ public class Stock {
 
     public void setCompanyName(String companyName) {this.companyName = companyName;}
 
-    public BigDecimal getStockValue() {
-        return stockValue;
-    }
+    public BigDecimal getStockValue() {return stockValue;}
 
     public void setStockValue(BigDecimal stockValue) {this.stockValue = stockValue;}
 
@@ -108,10 +103,8 @@ public class Stock {
 
     public void setDividendPerShare(BigDecimal dividendPerShare) {this.dividendPerShare = dividendPerShare;}
 
+
     // Helper Functions
-
-    // Adding and removing key fields
-
     public void addDividend(Dividend dividend) {
         if (dividend != null) {
             dividends.add(dividend);
@@ -155,7 +148,6 @@ public class Stock {
     }
 
     // Retrieving and setting information
-
     public List<Transaction> getTransactions() {
         return transactions;
     }
@@ -179,6 +171,7 @@ public class Stock {
     public void setPriceHistories(List<PriceHistory> priceHistories) {
         this.priceHistories = priceHistories;
     }
+
 
     // Helper functinos
     @PrePersist

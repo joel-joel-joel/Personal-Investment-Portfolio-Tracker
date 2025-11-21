@@ -11,7 +11,7 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApiResponse<T> {
 
-    // Define key fields
+    // Api response DTO (output)
     private boolean success;
     private String message;
     private T data;
@@ -21,7 +21,6 @@ public class ApiResponse<T> {
     private PaginationMetadata pagination;
 
     // Constructors
-
     public ApiResponse() {
         this.timestamp = LocalDateTime.now();
     }

@@ -15,7 +15,6 @@ public class Holding {
     // and cost basis (price paid for share)
 
     // Constructor
-
     public Holding(UUID holdingId, Account account, Stock stock, BigDecimal quantity, BigDecimal averageCostBasis,
                    BigDecimal totalCostBasis, BigDecimal unrealizedGain, BigDecimal realizedGain, LocalDateTime firstPurchaseDate) {
         this.holdingId = holdingId;
@@ -31,8 +30,8 @@ public class Holding {
 
     public Holding() {}
 
-    // Key fields
 
+    // Columns
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID holdingId;
@@ -59,6 +58,8 @@ public class Holding {
 
     private LocalDateTime updatedAt = LocalDateTime.now();
 
+
+    // Relationships
     @ManyToOne
     @JoinColumn(name = "account_id", nullable = false)
     private Account account;
@@ -72,8 +73,8 @@ public class Holding {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // Getters and Setters
 
+    // Getters and Setters
     public UUID getHoldingId() {
         return holdingId;
     }
@@ -158,8 +159,8 @@ public class Holding {
         this.updatedAt = updatedAt;
     }
 
-    // Helper Functions
 
+    // Helper Functions
     public BigDecimal getCurrentValue(BigDecimal currentPrice) {
         // EDGE CASE: Null checks
         if (currentPrice == null || quantity == null) {

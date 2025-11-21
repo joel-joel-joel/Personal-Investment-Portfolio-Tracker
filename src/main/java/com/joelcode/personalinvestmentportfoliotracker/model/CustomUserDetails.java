@@ -8,24 +8,25 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.List;
 
+// This class wraps the user entity for spring security to check and generate a jwt (takes the loaded username
+// from customeruserdetailsservice. Might want to modify these functions in the future?
 public class CustomUserDetails implements UserDetails {
 
-    // This class wraps the user entity for spring security to check and generate a jwt (takes the loaded username
-    // from customeruserdetailsservice
-    // Might want to modify these functions in the future?
-
+    // Define key fields
     private final User user;
 
+
+    // Constructor
     public CustomUserDetails(User user) {
         this.user = user;
     }
 
+
+    //getters
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(user.getRoles().name()));
     }
-
-
 
     public User getUser() {return user;}
 
@@ -35,6 +36,8 @@ public class CustomUserDetails implements UserDetails {
     @Override
     public String getPassword() {return user.getPassword();}
 
+
+    // Validation checks
     @Override
     public boolean isAccountNonExpired() {return true;}
 

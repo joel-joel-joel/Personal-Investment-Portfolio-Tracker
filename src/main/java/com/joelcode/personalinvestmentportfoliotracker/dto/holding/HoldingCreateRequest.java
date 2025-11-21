@@ -39,25 +39,15 @@ public class HoldingCreateRequest {
     public HoldingCreateRequest() {}
 
     // Getters and setters
-    public UUID getAccountId() {
-        return accountId;
-    }
+    public UUID getAccountId() {return accountId;}
 
-    public UUID getStockId() {
-        return stockId;
-    }
+    public UUID getStockId() {return stockId;}
 
-    public BigDecimal getQuantity() {
-        return quantity;
-    }
+    public BigDecimal getQuantity() {return quantity;}
 
-    public BigDecimal getAverageCostBasis() {
-        return averageCostBasis;
-    }
+    public BigDecimal getAverageCostBasis() {return averageCostBasis;}
 
-    public BigDecimal getTotalCostBasis() {
-        return totalCostBasis;
-    }
+    public BigDecimal getTotalCostBasis() {return totalCostBasis;}
 
     public void setAccountId(UUID accountId) {this.accountId = accountId;}
 

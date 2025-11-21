@@ -14,10 +14,10 @@ import java.util.UUID;
 @Table(name = "accounts")
 public class Account {
 
-    // This entity represents the investment account for the user, storing the account balance and portofolio.
+    // This entity represents the investment account for the user, storing the account balance and portfolio.
     // A user can have multiple accounts
 
-    // Constructor
+    // Constructors
 
     public Account(UUID accountId, String accountName, BigDecimal accountBalance, User user) {
         this.accountId = accountId;
@@ -28,6 +28,8 @@ public class Account {
 
     public Account() {}
 
+
+    // Columns
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID accountId;
@@ -43,6 +45,7 @@ public class Account {
     private LocalDateTime createdAt;
 
 
+    // Relationships
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
@@ -58,40 +61,23 @@ public class Account {
 
 
     // Getters and Setters
+    public UUID getAccountId() {return accountId;}
 
-    public UUID getAccountId() {
-        return accountId;
-    }
+    public void setAccountId(UUID accountId) {this.accountId = accountId;}
 
-    public void setAccountId(UUID accountId) {
-        this.accountId = accountId;
-    }
+    public String getAccountName() {return accountName;}
 
-    public String getAccountName() {
-        return accountName;
-    }
+    public void setAccountName(String accountName) {this.accountName = accountName;}
 
-    public void setAccountName(String accountName) {
-        this.accountName = accountName;
-    }
+    public BigDecimal getAccountBalance() {return accountBalance;}
 
-    public BigDecimal getAccountBalance() {
-        return accountBalance;
-    }
+    public void setAccountBalance(BigDecimal accountBalance) {this.accountBalance = accountBalance;}
 
-    public void setAccountBalance(BigDecimal accountBalance) {
-        this.accountBalance = accountBalance;
-    }
-
-    public User getUser() {
-        return user;
-    }
+    public User getUser() {return user;}
 
     public void setUser(User user) {this.user = user;}
 
-    public UUID getUserid(){
-        return this.user != null ? this.user.getUserId() : null;
-    }
+    public UUID getUserid(){return this.user != null ? this.user.getUserId() : null;}
 
     public void setUserId(UUID userId){
         if (this.user == null) {
@@ -100,25 +86,18 @@ public class Account {
         this.user.setUserId(userId);
     }
 
-    public List<Transaction> getTransactions() {
-        return transactions;
-    }
+    public List<Transaction> getTransactions() {return transactions;}
 
-    public void setTransactions(List<Transaction> transactions) {
-        this.transactions = transactions;
-    }
+    public void setTransactions(List<Transaction> transactions) {this.transactions = transactions;}
 
-    public List<Holding> getHoldings() {
-        return holdings;
-    }
+    public List<Holding> getHoldings() {return holdings;}
 
-    public void setHoldings(List<Holding> holdings) {
-        this.holdings = holdings;
-    }
+    public void setHoldings(List<Holding> holdings) {this.holdings = holdings;}
 
     public LocalDateTime getCreatedAt() {return createdAt;}
 
     public void setCreatedAt(LocalDateTime createdAt) {this.createdAt = createdAt;}
+
 
     // Helper Methods
     public void addTransaction(Transaction transaction) {

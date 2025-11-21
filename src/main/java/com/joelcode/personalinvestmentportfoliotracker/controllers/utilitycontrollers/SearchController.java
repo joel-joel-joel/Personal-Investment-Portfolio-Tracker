@@ -17,9 +17,7 @@ public class SearchController {
     @Autowired
     SearchService searchService;
 
-    /**
-     * Search across stocks, accounts, and holdings
-     */
+    // Search across stocks, accounts, and holdings
     @GetMapping
     public ResponseEntity<SearchDTO> search(
             @RequestParam("query") String query,

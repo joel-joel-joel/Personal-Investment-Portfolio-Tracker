@@ -8,7 +8,7 @@ import java.util.UUID;
 @Data
 public class PortfolioPerformanceDTO {
 
-    // Define key fields
+    // Portfolio performance response DTO (output)
     private UUID userId;
     private UUID accountId;
     private BigDecimal totalPortfolioValue;

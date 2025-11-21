@@ -28,10 +28,15 @@ public class LoginResponseDTO {
 
     // Getters
     public String getToken() {return token;}
+
     public String getTokenType() {return tokenType;}
+
     public String getUsername() {return username;}
+
     public String getFullName() {return fullName;}
+
     public String getEmail() {return email;}
+
     public List<User.Role> getRoles() {return roles;}
 
 }

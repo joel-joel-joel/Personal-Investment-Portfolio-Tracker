@@ -9,7 +9,7 @@ import org.springframework.boot.jdbc.DataSourceBuilder;
 import javax.sql.DataSource;
 
 // Disable this manual DataSource configuration by default to allow Spring Boot auto-configuration.
-// Activate only with the 'legacy' profile if explicitly needed.
+// Activate only with 'legacy' profile if explicitly needed.
 @Configuration
 @Profile("legacy")
 public class DataSourceConfig {

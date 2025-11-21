@@ -14,8 +14,7 @@ public class PortfolioSnapshot {
     // This entity is a snapshot of the state of a portfolio at a certain point in time. Storing performance metrics,
     // values, investments etc...
 
-    // Constructor
-
+    // Constructors
     public PortfolioSnapshot(UUID snapshotId, Account account, LocalDate snapshotDate, BigDecimal totalValue,
                              BigDecimal cashBalance, BigDecimal totalCostBasis, BigDecimal totalGain,
                              BigDecimal realizedGain, BigDecimal unrealizedGain,
@@ -38,8 +37,8 @@ public class PortfolioSnapshot {
 
     public PortfolioSnapshot() {}
 
-    // Key fields
 
+    // Columns
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID snapshotId;
@@ -82,6 +81,8 @@ public class PortfolioSnapshot {
 
     private LocalDateTime updatedAt = LocalDateTime.now();
 
+
+    // Relationships
     @ManyToOne
     @JoinColumn(name = "account_id", nullable = false)
     private Account account;
@@ -91,8 +92,8 @@ public class PortfolioSnapshot {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // Getters and Setters
 
+    // Getters and Setters
     public UUID getSnapshotId() {
         return snapshotId;
     }
@@ -197,8 +198,8 @@ public class PortfolioSnapshot {
 
     public void setRoiPercentage(BigDecimal roiPercentage) {this.roiPercentage = roiPercentage;}
 
-    // Helper Functions
 
+    // Helper Functions
     public BigDecimal getTotalGainPercent() {
         // EDGE CASE: Division by zero check
         if (totalCostBasis == null || totalCostBasis.compareTo(BigDecimal.ZERO) == 0) {

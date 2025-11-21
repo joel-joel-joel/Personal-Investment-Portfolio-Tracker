@@ -24,9 +24,7 @@ public class DashboardController {
     @Autowired
     PortfolioPerformanceService portfolioPerformanceService;
 
-    /**
-     * Get dashboard data for a specific account
-     */
+    // Get dashboard data for a specific account
     @GetMapping("/account/{accountId}")
     public ResponseEntity<DashboardDTO> getDashboardForAccount(@PathVariable UUID accountId) {
         PortfolioOverviewDTO overview = portfolioOverviewService.getPortfolioOverviewForAccount(accountId);
@@ -41,9 +39,8 @@ public class DashboardController {
         return ResponseEntity.ok(dashboard);
     }
 
-    /**
-     * Get dashboard data for a user (aggregates all accounts)
-     */
+    // Get dashboard data for a user (aggregates all accounts)
+
     @GetMapping("/user/{userId}")
     public ResponseEntity<DashboardDTO> getDashboardForUser(@PathVariable UUID userId) {
         PortfolioOverviewDTO overview = portfolioOverviewService.getPortfolioOverviewForUser(userId);

@@ -10,8 +10,7 @@ import java.util.UUID;
 @Data
 public class AccountSummaryDTO {
 
-    // Getters and setters
-    // Define key fields
+    // Account summary response DTO (output)
     private UUID userId;
     private UUID accountId;
     private String accountName;

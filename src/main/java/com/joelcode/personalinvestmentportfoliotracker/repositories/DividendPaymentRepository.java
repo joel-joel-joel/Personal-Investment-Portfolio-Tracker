@@ -26,8 +26,10 @@ public interface DividendPaymentRepository extends JpaRepository<DividendPayment
 
     Optional<DividendPayment> findByAccount_AccountIdAndDividend_DividendId(UUID accountId, UUID dividendId);
 
+
     // Check if payment exists
     boolean existsByAccountAndDividend(Account account, Dividend dividend);
+
 
     // Account specific queries
 
@@ -54,6 +56,7 @@ public interface DividendPaymentRepository extends JpaRepository<DividendPayment
     List<DividendPayment> findPaymentsByIdAccountAndStockId(
             @Param("accountId") UUID accountId,
             @Param("stockId") UUID stockId);
+
 
     // Aggregation queries
 
@@ -82,6 +85,7 @@ public interface DividendPaymentRepository extends JpaRepository<DividendPayment
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end);
 
+
     // Status queries
 
     // Find pending payments for account
@@ -95,6 +99,7 @@ public interface DividendPaymentRepository extends JpaRepository<DividendPayment
 
     // Find all pending payments across all accounts
     List<DividendPayment> findByStatus(DividendPayment.PaymentStatus status);
+
 
     // Reporting queries
 

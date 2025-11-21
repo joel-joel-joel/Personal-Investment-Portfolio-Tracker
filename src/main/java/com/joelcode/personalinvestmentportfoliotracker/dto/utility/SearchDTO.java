@@ -8,6 +8,7 @@ import java.util.List;
 
 public class SearchDTO {
 
+    // Search response DTO (output)
     private List<StockDTO> stocks;
     private List<AccountDTO> accounts;
     private List<HoldingDTO> holdings;

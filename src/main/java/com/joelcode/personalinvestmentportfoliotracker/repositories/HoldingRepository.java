@@ -25,6 +25,7 @@ public interface HoldingRepository extends JpaRepository<Holding, UUID> {
     @Query("SELECT h FROM Holding h WHERE h.account.accountId = :accountId")
     List<Holding> findAllByAccountId(@Param("accountId") UUID accountId);
 
+
     // Find by stock
     List<Holding> findByStock(Stock stock);
 
@@ -40,26 +41,34 @@ public interface HoldingRepository extends JpaRepository<Holding, UUID> {
 
     List<Holding> findByStock_CompanyNameContainingIgnoreCase(String name);
 
+
     // Find specific id
     Optional<Holding> findByHoldingId(UUID holdingId);
 
+
     // Existence checks
     boolean existsByAccountAndStock(Account account, Stock stock);
+
 
     // Filter by quantity
     List<Holding> findByQuantityGreaterThan(BigDecimal quantity);
 
     List<Holding> findByAccountAndQuantityGreaterThan(Account account, BigDecimal quantity);
 
+
     // Filter by date
     List<Holding> findByFirstPurchaseDateAfter(LocalDateTime firstPurchaseDate);
 
     List<Holding> findByFirstPurchaseDateBetween(LocalDateTime start, LocalDateTime end);
 
+
     // Custom queries for analytics
+
+    // Find total invested by account
     @Query("SELECT SUM(h.totalCostBasis) FROM Holding h WHERE h.account = :account")
     BigDecimal sumTotalCostBasisByAccount(@Param("account") Account account);
 
+    // Find the number holdings in an  account
     @Query("SELECT COUNT(h) FROM Holding h WHERE h.account = :account")
     Long countByAccount(@Param("account") Account account);
 
