@@ -3,8 +3,6 @@ package com.joelcode.personalinvestmentportfoliotracker.repositories;
 import com.joelcode.personalinvestmentportfoliotracker.entities.Account;
 import com.joelcode.personalinvestmentportfoliotracker.entities.Dividend;
 import com.joelcode.personalinvestmentportfoliotracker.entities.DividendPayment;
-import com.joelcode.personalinvestmentportfoliotracker.entities.DividendPayment.PaymentStatus;
-import com.joelcode.personalinvestmentportfoliotracker.entities.Stock;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -53,7 +51,7 @@ public interface DividendPaymentRepository extends JpaRepository<DividendPayment
             "WHERE dp.account.accountId = :accountId " +
             "AND dp.stock.stockId = :stockId " +
             "ORDER BY dp.paymentDate DESC")
-    List<DividendPayment> findPaymentsByAccountAndStock(
+    List<DividendPayment> findPaymentsByIdAccountAndStockId(
             @Param("accountId") UUID accountId,
             @Param("stockId") UUID stockId);
 

@@ -52,7 +52,7 @@ public class DividendPaymentDTO {
         this.dividendId = payment.getDividendId();
         this.dividendPerShare = payment.getDividend() != null ? payment.getDividend().getAmountPerShare() : null;
         this.shareQuantity = payment.getShareQuantity();
-        this.totalAmount = payment.getTotalAmount();
+        this.totalAmount = payment.getDividendTotalAmount();
         this.paymentDate = payment.getPaymentDate();
         this.recordedAt = payment.getRecordedAt();
         this.status = payment.getStatus();

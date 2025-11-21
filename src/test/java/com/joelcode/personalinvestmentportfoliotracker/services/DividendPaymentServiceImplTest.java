@@ -84,7 +84,7 @@ public class DividendPaymentServiceImplTest {
         testPayment.setStock(testStock);
         testPayment.setDividend(testDividend);
         testPayment.setShareQuantity(BigDecimal.valueOf(100));
-        testPayment.setTotalAmount(BigDecimal.valueOf(25));
+        testPayment.setTotalDividendAmount(BigDecimal.valueOf(25));
     }
 
     // Test payment creation

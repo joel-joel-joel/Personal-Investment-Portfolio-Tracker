@@ -137,7 +137,7 @@ public class DividendPaymentServiceImpl implements DividendPaymentService {
     public List<DividendPaymentDTO> getDividendPaymentsByAccountAndStock(UUID accountId, UUID stockId) {
         validationService.validateAccountExists(accountId);
 
-        List<DividendPayment> payments = paymentRepository.findPaymentsByAccountAndStock(accountId, stockId);
+        List<DividendPayment> payments = paymentRepository.findPaymentsByIdAccountAndStockId(accountId, stockId);
 
         return payments.stream()
                 .map(DividendPaymentMapper::toDTO)
@@ -146,7 +146,7 @@ public class DividendPaymentServiceImpl implements DividendPaymentService {
 
     @Override
     public List<DividendPaymentDTO> getDividendPaymentsForAccount(UUID accountId) {
-        List<DividendPayment> payments = paymentRepository.findPaymentsByAccountAndStock(accountId, null);
+        List<DividendPayment> payments = paymentRepository.findPaymentsByIdAccountAndStockId(accountId, null);
 
         // Map to DTOs
         return payments.stream()
@@ -156,7 +156,7 @@ public class DividendPaymentServiceImpl implements DividendPaymentService {
 
     @Override
     public List<DividendPaymentDTO> getDividendPaymentsForStock(UUID stockId) {
-        List<DividendPayment> payments = paymentRepository.findPaymentsByAccountAndStock(null, stockId);
+        List<DividendPayment> payments = paymentRepository.findPaymentsByIdAccountAndStockId(null, stockId);
 
         // Map to DTOs
         return payments.stream()

@@ -1,8 +1,6 @@
 package com.joelcode.personalinvestmentportfoliotracker.integration;
 
 import com.joelcode.personalinvestmentportfoliotracker.dto.dividend.DividendCreateRequest;
-import com.joelcode.personalinvestmentportfoliotracker.dto.dividend.DividendDTO;
-import com.joelcode.personalinvestmentportfoliotracker.dto.dividendpayment.DividendPaymentDTO;
 import com.joelcode.personalinvestmentportfoliotracker.entities.*;
 import com.joelcode.personalinvestmentportfoliotracker.repositories.*;
 import com.joelcode.personalinvestmentportfoliotracker.services.dividend.DividendServiceImpl;
@@ -12,15 +10,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -169,7 +164,7 @@ class DividendFlowTest {
         assertEquals(testAccount.getAccountId(), payment.getAccount().getAccountId());
         assertEquals(testStock.getStockId(), payment.getStock().getStockId());
         assertEquals(BigDecimal.valueOf(100), payment.getShareQuantity());
-        assertEquals(BigDecimal.valueOf(250.0), payment.getTotalAmount()); // 100 * 2.5
+        assertEquals(BigDecimal.valueOf(250.0), payment.getDividendTotalAmount()); // 100 * 2.5
     }
 
     @Test
@@ -219,7 +214,7 @@ class DividendFlowTest {
                 .findFirst()
                 .orElseThrow();
         assertEquals(BigDecimal.valueOf(100), payment1.getShareQuantity());
-        assertEquals(BigDecimal.valueOf(250.0), payment1.getTotalAmount());
+        assertEquals(BigDecimal.valueOf(250.0), payment1.getDividendTotalAmount());
 
         // Verify second account payment
         DividendPayment payment2 = payments.stream()
@@ -227,7 +222,7 @@ class DividendFlowTest {
                 .findFirst()
                 .orElseThrow();
         assertEquals(BigDecimal.valueOf(50), payment2.getShareQuantity());
-        assertEquals(BigDecimal.valueOf(125.0), payment2.getTotalAmount());
+        assertEquals(BigDecimal.valueOf(125.0), payment2.getDividendTotalAmount());
     }
 
     @Test
@@ -331,14 +326,14 @@ class DividendFlowTest {
         dividendPaymentService.processPaymentsForDividend(dividend2.getDividendId());
 
         // Act - Get payments for specific stock
-        List<DividendPayment> aaplePayments = dividendPaymentRepository.findPaymentsByAccountAndStock(
+        List<DividendPayment> aaplePayments = dividendPaymentRepository.findPaymentsByIdAccountAndStockId(
                 testAccount.getAccountId(),
                 testStock.getStockId()
         );
 
         // Assert
         assertEquals(1, aaplePayments.size());
-        assertEquals(BigDecimal.valueOf(250.0), aaplePayments.get(0).getTotalAmount());
+        assertEquals(BigDecimal.valueOf(250.0), aaplePayments.get(0).getDividendTotalAmount());
 
         // Verify total for both stocks
         BigDecimal totalAapl = dividendPaymentRepository.calculateTotalDividendsByAccountAndStock(

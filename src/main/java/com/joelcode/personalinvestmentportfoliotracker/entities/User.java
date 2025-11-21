@@ -38,10 +38,13 @@ public class User {
 
     @JsonIgnore
     @Column(nullable = false)
-    private String password;
+    private String password = UUID.randomUUID()
+            .toString()
+                    .replace("-", "")
+                    .substring(0, 12);;
 
     @Column(nullable = false)
-    private String fullName;
+    private String fullName = "Anonymous User";
 
     @Column(nullable = false, unique = true)
     private String username;
@@ -54,7 +57,7 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Role roles;
+    private Role roles = Role.ROLE_USER;
 
     @PreUpdate
     public void preUpdate() {

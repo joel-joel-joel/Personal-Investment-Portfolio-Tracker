@@ -12,7 +12,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -140,7 +139,7 @@ class DividendPaymentMapperTest {
 
         payment.setShareQuantity(BigDecimal.valueOf(100));
         payment.setPaymentDate(LocalDateTime.now());
-        payment.setTotalAmount(BigDecimal.valueOf(250.0));
+        payment.setTotalDividendAmount(BigDecimal.valueOf(250.0));
 
         // Act
         DividendPaymentDTO dto = DividendPaymentMapper.toDTO(payment);

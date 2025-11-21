@@ -1,6 +1,5 @@
 package com.joelcode.personalinvestmentportfoliotracker.integration;
 
-import com.joelcode.personalinvestmentportfoliotracker.dto.portfolio.PortfolioOverviewDTO;
 import com.joelcode.personalinvestmentportfoliotracker.entities.*;
 import com.joelcode.personalinvestmentportfoliotracker.repositories.*;
 import com.joelcode.personalinvestmentportfoliotracker.services.holding.HoldingCalculationServiceImpl;
@@ -85,9 +84,9 @@ class PortfolioValueFlowTest {
         aaplHolding = new Holding();
         aaplHolding.setAccount(testAccount);
         aaplHolding.setStock(aapl);
-        aaplHolding.setQuantity(100);
-        aaplHolding.setAverageCostBasis(140.0);
-        aaplHolding.setTotalCostBasis(14000.0);
+        aaplHolding.setQuantity(BigDecimal.valueOf(100));
+        aaplHolding.setAverageCostBasis(BigDecimal.valueOf(140.0));
+        aaplHolding.setTotalCostBasis(BigDecimal.valueOf(14000.0));
         aaplHolding.setRealizedGain(BigDecimal.valueOf(500.0));
         aaplHolding.setFirstPurchaseDate(LocalDateTime.now().minusMonths(1));
         entityManager.persistAndFlush(aaplHolding);
@@ -95,9 +94,9 @@ class PortfolioValueFlowTest {
         msftHolding = new Holding();
         msftHolding.setAccount(testAccount);
         msftHolding.setStock(msft);
-        msftHolding.setQuantity(50);
-        msftHolding.setAverageCostBasis(280.0);
-        msftHolding.setTotalCostBasis(14000.0);
+        msftHolding.setQuantity(BigDecimal.valueOf(50));
+        msftHolding.setAverageCostBasis(BigDecimal.valueOf(280.0));
+        msftHolding.setTotalCostBasis(BigDecimal.valueOf(14000.0));
         msftHolding.setRealizedGain(BigDecimal.valueOf(1000.0));
         msftHolding.setFirstPurchaseDate(LocalDateTime.now().minusMonths(2));
         entityManager.persistAndFlush(msftHolding);
@@ -223,9 +222,9 @@ class PortfolioValueFlowTest {
         Holding googlHolding = new Holding();
         googlHolding.setAccount(testAccount);
         googlHolding.setStock(googl);
-        googlHolding.setQuantity(10);
-        googlHolding.setAverageCostBasis(2700.0);
-        googlHolding.setTotalCostBasis(27000.0);
+        googlHolding.setQuantity(BigDecimal.valueOf(10));
+        googlHolding.setAverageCostBasis(BigDecimal.valueOf(2700.0));
+        googlHolding.setTotalCostBasis(BigDecimal.valueOf(27000.0));
         googlHolding.setRealizedGain(BigDecimal.ZERO);
         googlHolding.setFirstPurchaseDate(LocalDateTime.now());
         entityManager.persistAndFlush(googlHolding);
@@ -251,7 +250,7 @@ class PortfolioValueFlowTest {
         BigDecimal pricePerShare = BigDecimal.valueOf(160.0); // Sold at profit
 
         // Act - Update holding
-        aaplHolding.setQuantity(50);
+        aaplHolding.setQuantity(BigDecimal.valueOf(50));
         BigDecimal realizedGain = soldQuantity.multiply(pricePerShare.subtract(BigDecimal.valueOf(140.0))); // 1,000
         aaplHolding.setRealizedGain(aaplHolding.getRealizedGain().add(realizedGain)); // 500 + 1,000 = 1,500
         entityManager.persistAndFlush(aaplHolding);
@@ -265,7 +264,7 @@ class PortfolioValueFlowTest {
         BigDecimal newTotalValue = newHoldingsValue.add(newCashBalance); // 80,500
 
         // Assert
-        assertEquals(50, aaplHolding.getQuantity());
+        assertEquals(BigDecimal.valueOf(50), aaplHolding.getQuantity());
         assertEquals(BigDecimal.valueOf(1500.0), aaplHolding.getRealizedGain());
         assertEquals(BigDecimal.valueOf(80500.0), newTotalValue);
     }
@@ -277,7 +276,7 @@ class PortfolioValueFlowTest {
         BigDecimal totalProceeds = salePrice.multiply(BigDecimal.valueOf(50)); // 15,500
 
         // Act
-        msftHolding.setQuantity(0);
+        msftHolding.setQuantity(BigDecimal.ZERO);
         entityManager.persistAndFlush(msftHolding);
 
         BigDecimal aaplValue = BigDecimal.valueOf(150.0).multiply(BigDecimal.valueOf(100)); // 15,000
@@ -285,7 +284,7 @@ class PortfolioValueFlowTest {
         BigDecimal newTotalValue = aaplValue.add(newCashBalance); // 15,000 + 65,500
 
         // Assert
-        assertEquals(0, msftHolding.getQuantity());
+        assertEquals(BigDecimal.ZERO, msftHolding.getQuantity());
         assertEquals(BigDecimal.valueOf(65500.0), newCashBalance);
         assertEquals(BigDecimal.valueOf(80500.0), newTotalValue);
     }
@@ -297,7 +296,7 @@ class PortfolioValueFlowTest {
 
         Dividend dividend = new Dividend();
         dividend.setStock(stock);
-        dividend.setDividendPerShare(BigDecimal.valueOf(2.5));
+        dividend.setAmountPerShare(BigDecimal.valueOf(2.5));
         dividend.setPayDate(LocalDateTime.now());
         entityManager.persistAndFlush(dividend);
 
@@ -305,9 +304,9 @@ class PortfolioValueFlowTest {
         payment.setAccount(testAccount);
         payment.setStock(stock);
         payment.setDividend(dividend);
-        payment.setShareQuantity(100);
-        payment.setPaymentAmount(BigDecimal.valueOf(250.0)); // 100 * 2.5
-        payment.setPaymentDate(java.time.LocalDate.now());
+        payment.setShareQuantity(BigDecimal.valueOf(100));
+        payment.setTotalDividendAmount(BigDecimal.valueOf(250.0)); // 100 * 2.5
+        payment.setPaymentDate(LocalDateTime.now());
         payment.setStatus(DividendPayment.PaymentStatus.PAID);
         entityManager.persistAndFlush(payment);
 
@@ -373,8 +372,8 @@ class PortfolioValueFlowTest {
     @Test
     void testPortfolioValue_AllCashPosition() {
         // Arrange - Liquidate all holdings
-        aaplHolding.setQuantity(0);
-        msftHolding.setQuantity(0);
+        aaplHolding.setQuantity(BigDecimal.ZERO);
+        msftHolding.setQuantity(BigDecimal.ZERO);
         entityManager.persistAndFlush(aaplHolding);
         entityManager.persistAndFlush(msftHolding);
 

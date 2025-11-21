@@ -102,9 +102,9 @@ public class DividendPayment {
 
     public void setShareQuantity(BigDecimal shareQuantity) {this.shareQuantity = shareQuantity;}
 
-    public BigDecimal getTotalAmount() {return totalAmount;}
+    public BigDecimal getDividendTotalAmount() {return totalAmount;}
 
-    public void setTotalAmount(BigDecimal totalAmount) {this.totalAmount = totalAmount;}
+    public void setTotalDividendAmount(BigDecimal totalDividendAmount) {this.totalAmount = totalDividendAmount;}
 
     public LocalDateTime getPaymentDate() {return paymentDate;}
 

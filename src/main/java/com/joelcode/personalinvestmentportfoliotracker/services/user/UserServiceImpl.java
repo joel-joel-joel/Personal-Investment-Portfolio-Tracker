@@ -10,6 +10,7 @@ import com.joelcode.personalinvestmentportfoliotracker.repositories.UserReposito
 import com.joelcode.personalinvestmentportfoliotracker.services.mapping.AccountMapper;
 import com.joelcode.personalinvestmentportfoliotracker.services.mapping.UserMapper;
 import org.springframework.context.annotation.Profile;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,12 +24,14 @@ public class UserServiceImpl implements UserService{
     // Define key fields
     private final UserRepository userRepository;
     private final UserValidationService userValidationService;
+    private final PasswordEncoder passwordEncoder;
 
 
     // Constructor
-    public UserServiceImpl(UserRepository userRepository, UserValidationService userValidationService) {
+    public UserServiceImpl(UserRepository userRepository, UserValidationService userValidationService, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.userValidationService = userValidationService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     // Interface functions
