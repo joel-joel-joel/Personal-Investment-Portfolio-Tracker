@@ -48,7 +48,7 @@ export default function TabLayout() {
                 {tabs.map((tab) => (
                     <HapticTab
                         key={tab.name}
-                        onPress={() => router.push(`/(tabs)/${tab.name}`)}
+                        onPress={() => router.push(`/(tabs)/${tab.name}` as any)}
                         style={styles.tabButton}
                     >
                         <TabBarIcon
