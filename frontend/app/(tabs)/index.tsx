@@ -294,6 +294,6 @@ const styles = StyleSheet.create({
     stockChange: {
         fontSize: 12,
         fontWeight: "600",
-        marginTop: 3,
+        marginTop: 3.1,
     },
 });
