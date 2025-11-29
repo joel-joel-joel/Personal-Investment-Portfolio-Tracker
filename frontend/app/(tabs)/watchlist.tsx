@@ -1,9 +1,26 @@
-import React from 'react'
+import React from 'react';
+import { View, Text, StyleSheet, useColorScheme } from 'react-native';
+import { getThemeColors } from '../../src/constants/colors';
 
-function Watchlist() {
+export default function WatchlistScreen() {
+    const colorScheme = useColorScheme();
+    const Colors = getThemeColors(colorScheme);
+
     return (
-        <div>Watchlist</div>
-    )
+        <View style={[styles.container, { backgroundColor: Colors.background }]}>
+            <Text style={[styles.text, { color: Colors.text }]}>Watchlist</Text>
+        </View>
+    );
 }
 
-export default Watchlist
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    text: {
+        fontSize: 24,
+        fontWeight: '600',
+    },
+});

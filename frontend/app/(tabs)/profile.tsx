@@ -1,9 +1,26 @@
-import React from 'react'
+import React from 'react';
+import { View, Text, StyleSheet, useColorScheme } from 'react-native';
+import { getThemeColors } from '../../src/constants/colors';
 
-function Profile() {
+export default function ProfileScreen() {
+    const colorScheme = useColorScheme();
+    const Colors = getThemeColors(colorScheme);
+
     return (
-        <div>Profile</div>
-    )
+        <View style={[styles.container, { backgroundColor: Colors.background }]}>
+            <Text style={[styles.text, { color: Colors.text }]}>Profile</Text>
+        </View>
+    );
 }
 
-export default Profile
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    text: {
+        fontSize: 24,
+        fontWeight: '600',
+    },
+});

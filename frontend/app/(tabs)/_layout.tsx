@@ -1,166 +1,83 @@
-import { Tabs } from 'expo-router';
 import React from 'react';
-import {
-    useColorScheme,
-    Image,
-    Text,
-    View,
-    StyleSheet,
-    ViewStyle, TouchableOpacity, GestureResponderEvent, StyleProp,
-} from 'react-native';
+import { View, StyleSheet, useColorScheme } from 'react-native';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import { Colors } from '../../src/constants/colors';
-import { icons } from '../../src/constants/icons';
-import {BottomTabBarButtonProps} from "@react-navigation/bottom-tabs";
+import { HapticTab, TabBarIcon } from '../../src/components/ui/hapticTab';
 
-
-interface HapticTabProps {
-    children: React.ReactNode;
-    onPress?: () => void;
-    style?: ViewStyle | ViewStyle[];
-}
-
-export const HapticTab: React.FC<BottomTabBarButtonProps> = ({children, onPress, style,}) => {
-    return (
-        <TouchableOpacity
-            onPress={onPress as (event: GestureResponderEvent) => void}
-            style={style as StyleProp<ViewStyle>}
-            activeOpacity={0.7}
-        >
-            {children}
-        </TouchableOpacity>
-    );
-};
-
-// Tab Bar Icon
-interface TabBarIconProps {
-    focused: boolean;
-    icon: keyof typeof icons;
-    title: string;
-    color: string;
-}
-
-const TabBarIcon: React.FC<TabBarIconProps> = ({ focused, icon, title, color }) => {
-    if (focused) {
-        return (
-            <View style={[styles.activeBackground, { backgroundColor: color + '20' }]}>
-                <Image source={icons[icon]} style={[styles.icon, { tintColor: color }]} />
-                <Text style={[styles.activeTitle, { color }]}>{title}</Text>
-            </View>
-        );
-    } else {
-        return (
-            <View style={styles.inactiveContainer}>
-                <Image source={icons[icon]} style={[styles.icon, { tintColor: color }]} />
-            </View>
-        );
-    }
-};
-
-
-// Tab Layout
 export default function TabLayout() {
+    const router = useRouter();
+    const segments = useSegments();
     const colorScheme = useColorScheme();
     const themeColors = Colors[colorScheme ?? 'light'];
 
+    const tabs = [
+        { name: 'index', icon: 'home', title: 'Home' },
+        { name: 'portfolio', icon: 'portfolio', title: 'Portfolio' },
+        { name: 'search', icon: 'search', title: 'Search' },
+        { name: 'watchlist', icon: 'watchlist', title: 'Watchlist' },
+        { name: 'profile', icon: 'profile', title: 'Profile' },
+    ];
+
+    // Get current tab from segments
+    const currentTab = segments[1] || 'index';
+
     return (
-        <Tabs
-            screenOptions={{
-                headerShown: false,
-                tabBarActiveTintColor: themeColors.tint,
-                tabBarButton: (props) => <HapticTab {...props} />,
-            }}
-        >
-            <Tabs.Screen
-                name="index"
-                options={{
-                    title: 'Home',
-                    tabBarIcon: ({ focused }) => (
-                        <TabBarIcon focused={focused} icon="home" title="Home" color={themeColors.tint} />
-                    ),
+        <View style={{ flex: 1 }}>
+            <Stack
+                screenOptions={{
+                    headerShown: false,
                 }}
-            />
-            <Tabs.Screen
-                name="portfolio"
-                options={{
-                    title: 'Portfolio',
-                    tabBarIcon: ({ focused }) => (
+            >
+                <Stack.Screen name="index" />
+                <Stack.Screen name="portfolio" />
+                <Stack.Screen name="search" />
+                <Stack.Screen name="watchlist" />
+                <Stack.Screen name="profile" />
+            </Stack>
+
+            {/* Custom Tab Bar - No React Navigation indicator */}
+            <View
+                style={[
+                    styles.tabBar,
+                    {
+                        backgroundColor: themeColors.background,
+                        borderTopColor: themeColors.border,
+                    },
+                ]}
+            >
+                {tabs.map((tab) => (
+                    <HapticTab
+                        key={tab.name}
+                        onPress={() => router.push(`/(tabs)/${tab.name}`)}
+                        style={styles.tabButton}
+                    >
                         <TabBarIcon
-                            focused={focused}
-                            icon="portfolio"
-                            title="Portfolio"
+                            focused={currentTab === tab.name}
+                            icon={tab.icon as any}
+                            title={tab.title}
                             color={themeColors.tint}
+                            inactiveColor={themeColors.tabIconDefault}
                         />
-                    ),
-                }}
-            />
-            <Tabs.Screen
-                name="search"
-                options={{
-                    title: 'Search',
-                    tabBarIcon: ({ focused }) => (
-                        <TabBarIcon focused={focused} icon="search" title="Search" color={themeColors.tint} />
-                    ),
-                }}
-            />
-            <Tabs.Screen
-                name="watchlist"
-                options={{
-                    title: 'Watchlist',
-                    tabBarIcon: ({ focused }) => (
-                        <TabBarIcon
-                            focused={focused}
-                            icon="watchlist"
-                            title="Watchlist"
-                            color={themeColors.tint}
-                        />
-                    ),
-                }}
-            />
-            <Tabs.Screen
-                name="profile"
-                options={{
-                    title: 'Profile',
-                    tabBarIcon: ({ focused }) => (
-                        <TabBarIcon
-                            focused={focused}
-                            icon="profile"
-                            title="Profile"
-                            color={themeColors.tint}
-                        />
-                    ),
-                }}
-            />
-        </Tabs>
+                    </HapticTab>
+                ))}
+            </View>
+        </View>
     );
 }
 
-// Styles
 const styles = StyleSheet.create({
-    activeBackground: {
+    tabBar: {
         flexDirection: 'row',
+        borderTopWidth: 1,
+        height: 60,
+        justifyContent: 'space-around',
         alignItems: 'center',
-        justifyContent: 'center',
-        minWidth: 112,
-        minHeight: 56,
-        borderRadius: 28,
-        marginTop: 4,
-        paddingHorizontal: 12,
+        paddingHorizontal: 8,
     },
-    inactiveContainer: {
-        marginTop: 4,
+    tabButton: {
+        flex: 1,
+        justifyContent: 'center',
         alignItems: 'center',
-        justifyContent: 'center',
-        borderRadius: 28,
-        padding: 8,
-    },
-    icon: {
-        width: 24,
-        height: 24,
-        resizeMode: 'contain',
-    },
-    activeTitle: {
-        marginLeft: 8,
-        fontSize: 14,
-        fontWeight: '600',
+        height: '100%',
     },
 });
