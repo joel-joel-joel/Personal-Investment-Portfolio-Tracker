@@ -12,8 +12,7 @@ import {
     Dimensions,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { getThemeColors } from '../constants/colors';
-import {Colors} from "@/constants/theme";
+import { getThemeColors } from '../../constants/colors';
 
 interface NewsItem {
     id: number;
@@ -21,11 +20,40 @@ interface NewsItem {
     description: string;
     image: NodeRequire;
     content: string;
+    sector: string;
 }
 
 interface ExpandableNewsCardProps {
     news: NewsItem[];
 }
+
+// Sector color mapping
+const sectorColors = {
+    "Technology": { color: "#0369A1", bgLight: "#EFF6FF" },
+    "Semiconductors": { color: "#B45309", bgLight: "#FEF3C7" },
+    "FinTech": { color: "#15803D", bgLight: "#F0FDF4" },
+    "Consumer/Tech": { color: "#6D28D9", bgLight: "#F5F3FF" },
+    "Healthcare": { color: "#BE123C", bgLight: "#FFE4E6" },
+    "Markets": { color: "#7C3AED", bgLight: "#F3E8FF" },
+};
+
+const SectorBadge = ({ sector }: { sector: string }) => {
+    const sectorColor = sectorColors[sector as keyof typeof sectorColors] || sectorColors["Technology"];
+
+    return (
+        <View style={[styles.sectorBadge, { backgroundColor: sectorColor.bgLight }]}>
+            <MaterialCommunityIcons
+                name="tag"
+                size={12}
+                color={sectorColor.color}
+                style={{ marginRight: 4 }}
+            />
+            <Text style={[styles.sectorBadgeText, { color: sectorColor.color }]}>
+                {sector}
+            </Text>
+        </View>
+    );
+};
 
 export const ExpandableNewsCard: React.FC<ExpandableNewsCardProps> = ({ news }) => {
     const [activeNews, setActiveNews] = useState<NewsItem | null>(null);
@@ -51,51 +79,74 @@ export const ExpandableNewsCard: React.FC<ExpandableNewsCardProps> = ({ news }) 
 
     return (
         <View style={styles.container}>
-            {/* News List */}
             <View style={styles.newsListWrapper}>
-                <Text style={[styles.newsHeader, { color: Colors.text }]}>
-                    Market News
-                </Text>
+                <View style={[styles.header, { borderBottomColor: Colors.card }]}>
+                    <View>
+                        <Text style={[styles.newsHeader, { color: Colors.text }]}>
+                            Market News
+                        </Text>
+                        <Text style={[styles.subtitle, { color: Colors.text, opacity: 0.6 }]}>
+                            Based on your watchlist & holdings
+                        </Text>
+                    </View>
+                    <MaterialCommunityIcons
+                        name="newspaper-variant-multiple-outline"
+                        size={28}
+                        color={Colors.tint}
+                        style={{ opacity: 0.7 }}
+                    />
+                </View>
+                {/* Flat list of news with colored sector badges */}
+                {news.map((item) => {
+                    // Get sector colors, fallback to Technology if undefined
+                    const sectorTheme = sectorColors[item.sector as keyof typeof sectorColors] || sectorColors["Technology"];
 
-                {news.map((item) => (
-                    <TouchableOpacity
-                        key={item.id}
-                        onPress={() => openNewsDetail(item)}
-                        style={[
-                            styles.newsCard,
-                            {
-                                backgroundColor: Colors.card,
-                                borderColor: Colors.border,
-                            },
-                        ]}
-                        activeOpacity={0.7}
-                    >
-                        <Image
-                            source={item.image as any}
-                            style={styles.newsImage}
-                            resizeMode="cover"
-                        />
-                        <View style={styles.newsCardContent}>
-                            <Text
-                                style={[styles.newsTitle, { color: "#266EF1" }]}
-                                numberOfLines={2}
-                            >
-                                {item.title}
-                            </Text>
-                            <Text
-                                style={[styles.newsDescription, { color: Colors.text, opacity: 0.7 }]}
-                                numberOfLines={1}
-                            >
-                                {item.description}
-                            </Text>
-                        </View>
-                        <MaterialCommunityIcons
-                            name="chevron-right"
-                            size={20}
-                            color={Colors.tint}
-                        />
-                    </TouchableOpacity>
-                ))}
+                    return (
+                        <TouchableOpacity
+                            key={item.id}
+                            onPress={() => openNewsDetail(item)}
+                            style={[
+                                styles.newsCard,
+                                {
+                                    backgroundColor: sectorTheme.bgLight, // Card background based on sector
+                                    borderColor: sectorTheme.color, // Optional: border accent
+                                },
+                            ]}
+                            activeOpacity={0.7}
+                        >
+                            <Image
+                                source={item.image as any}
+                                style={styles.newsImage}
+                                resizeMode="cover"
+                            />
+                            <View style={styles.newsCardContent}>
+                                <View style={styles.newsCardHeader}>
+                                    <Text
+                                        style={[styles.newsTitle, { color: "black" }]} // Title uses sector color
+                                        numberOfLines={2}
+                                    >
+                                        {item.title}
+                                    </Text>
+                                </View>
+
+                                {/* Sector Badge (color-coded) */}
+                                <SectorBadge sector={item.sector} />
+
+                                <Text
+                                    style={[styles.newsDescription, { color: Colors.text, opacity: 0.7 }]}
+                                    numberOfLines={1}
+                                >
+                                    {item.description}
+                                </Text>
+                            </View>
+                            <MaterialCommunityIcons
+                                name="chevron-right"
+                                size={20}
+                                color={sectorTheme.color} // chevron matches sector
+                            />
+                        </TouchableOpacity>
+                    );
+                })}
             </View>
 
             {/* Expanded Detail Modal */}
@@ -140,9 +191,11 @@ export const ExpandableNewsCard: React.FC<ExpandableNewsCardProps> = ({ news }) 
                         <ScrollView style={styles.expandedContent}>
                             {activeNews && (
                                 <>
-                                    <Text style={[styles.expandedTitle, { color: Colors.text }]}>
+                                    <Text style={[styles.expandedTitle, { color: "#266EF1" }]}>
                                         {activeNews.title}
                                     </Text>
+
+                                    <SectorBadge sector={activeNews.sector} />
 
                                     <Text
                                         style={[
@@ -181,14 +234,30 @@ const styles = StyleSheet.create({
         width: '100%',
     },
     newsListWrapper: {
-        marginTop: 20,
+        marginTop: 30,
     },
     newsHeader: {
-        fontSize: 16,
+        fontSize: 20,
         fontWeight: '700',
         marginBottom: 12,
-        marginLeft: 22,
+        marginLeft: -5,
         fontStyle: "italic",
+    },
+    subtitle: {
+        fontSize: 12,
+        marginTop: -10,
+        marginRight: -8,
+        marginLeft: -5,
+    },
+    sectorGroupHeader: {
+        fontSize: 12,
+        fontWeight: '700',
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
+        marginLeft: 22,
+        marginTop: 16,
+        marginBottom: 8,
+        opacity: 0.8,
     },
     newsCard: {
         flexDirection: 'row',
@@ -198,6 +267,17 @@ const styles = StyleSheet.create({
         marginBottom: 12,
         alignItems: 'center',
         gap: 12,
+        width: '100%',          // wider card
+        alignSelf: 'center',   // center horizontally
+    },
+    header: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "flex-start",
+        paddingHorizontal: 24,
+        paddingBottom: 12,
+        borderBottomWidth: 1,
+        marginBottom: 16,
     },
     newsImage: {
         width: 60,
@@ -206,11 +286,27 @@ const styles = StyleSheet.create({
     },
     newsCardContent: {
         flex: 1,
+        gap: 6,
+    },
+    newsCardHeader: {
+        marginBottom: 2,
     },
     newsTitle: {
         fontSize: 14,
         fontWeight: '600',
         marginBottom: 4,
+    },
+    sectorBadge: {
+        flexDirection: 'row',
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 6,
+        alignItems: 'center',
+        alignSelf: 'flex-start',
+    },
+    sectorBadgeText: {
+        fontSize: 10,
+        fontWeight: '600',
     },
     newsDescription: {
         fontSize: 12,
@@ -244,10 +340,18 @@ const styles = StyleSheet.create({
         padding: 16,
         maxHeight: 300,
     },
+    expandedHeaderRow: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        marginBottom: 8,
+    },
     expandedTitle: {
         fontSize: 18,
         fontWeight: '800',
         marginBottom: 8,
+    },
+    expandedBadgeRow: {
+        marginBottom: 12,
     },
     expandedDescription: {
         fontSize: 14,

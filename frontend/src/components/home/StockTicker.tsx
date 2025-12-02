@@ -1,8 +1,6 @@
-// src/components/StockTicker.tsx
 import React from 'react';
 import { View, Text, StyleSheet, Animated, Dimensions, useColorScheme } from 'react-native';
-import { getThemeColors } from '../constants/colors';
-import { Colors } from '../../src/constants/colors';
+import { getThemeColors } from '../../constants/colors';
 
 
 interface TickerStock {
