@@ -1,13 +1,16 @@
 import React from "react";
 import {View, ScrollView, useColorScheme, StyleSheet} from "react-native";
-import { getThemeColors } from "../../src/constants/colors";
-import { HeaderSection } from "../../src/components/home/HeaderSection";
-import { Dashboard } from "../../src/components/home/Dashboard";
-import { WatchlistHighlights } from "../../src/components/home/WatchlistHighlights";
-import { TopMovers } from "../../src/components/home/TopMovers";
-import { ExpandableNewsCard } from '../../src/components/home/ExpandableNewsCard';
-import { SuggestedForYou } from '../../src/components/home/SuggestedForYou';
-import {StockTicker} from "../..//src/components/home/StockTicker";
+import { getThemeColors } from "@/src/constants/colors";
+import { HeaderSection } from "@/src/components/home/HeaderSection";
+import { Dashboard } from "@/src/components/home/Dashboard";
+import { WatchlistHighlights } from "@/src/components/home/WatchlistHighlights";
+import { TopMovers } from "@/src/components/home/TopMovers";
+import { ExpandableNewsCard } from '@/src/components/home/ExpandableNewsCard';
+import { SuggestedForYou } from '@/src/components/home/SuggestedForYou';
+import {StockTicker} from "@/src/components/home/StockTicker";
+import { EarningsCalendar } from "@/src/components/home/EarningsCalender";
+import {QuickActionsRow} from "@/src/components/home/QuickActions";
+
 
 export default function HomeScreen() {
     const colorScheme = useColorScheme();
@@ -53,11 +56,14 @@ export default function HomeScreen() {
             <ScrollView showsVerticalScrollIndicator={false}>
                 <HeaderSection />
                 <Dashboard />
+                <QuickActionsRow />
                 <StockTicker stocks={watchlistStocks} />
                 <WatchlistHighlights />
                 <TopMovers />
+                <EarningsCalendar />
                 <ExpandableNewsCard news={newsItems} />
                 <SuggestedForYou />
+
             </ScrollView>
         </View>
     );

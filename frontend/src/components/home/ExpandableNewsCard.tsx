@@ -197,15 +197,6 @@ export const ExpandableNewsCard: React.FC<ExpandableNewsCardProps> = ({ news }) 
 
                                     <SectorBadge sector={activeNews.sector} />
 
-                                    <Text
-                                        style={[
-                                            styles.expandedDescription,
-                                            { color: Colors.text, opacity: 0.7 },
-                                        ]}
-                                    >
-                                        {activeNews.description}
-                                    </Text>
-
                                     <View style={styles.contentDivider} />
 
                                     <Text style={[styles.expandedContentText, { color: Colors.text }]}>
