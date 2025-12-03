@@ -7,14 +7,15 @@ import { useColorScheme } from "react-native";
 const { width } = Dimensions.get("window");
 
 const sectorColors = {
-    Technology: { cardColor: "#E3F2FD", textColor: "#1565C0" },
-    Semiconductors: { cardColor: "#FFF3E0", textColor: "#EF6C00" },
-    FinTech: { cardColor: "#FCE4EC", textColor: "#C2185B" },
-    "Consumer/Tech": { cardColor: "#E8F5E9", textColor: "#2E7D32" },
-
-    // fallback
-    Default: { cardColor: "#ECEFF1", textColor: "#37474F" },
+    "Technology": { textColor: "#0369A1", cardColor: "#EFF6FF" },
+    "Semiconductors": { textColor: "#EF6C00", cardColor: "#FFF3E0" },
+    "FinTech": { textColor: "#15803D", cardColor: "#F0FDF4" },
+    "Consumer/Tech": { textColor: "#6D28D9", cardColor: "#F5F3FF" },
+    "Healthcare": { textColor: "#BE123C", cardColor: "#FFE4E6" },
+    "Markets": { textColor: "#7C3AED", cardColor: "#F3E8FF" },
 };
+
+
 
 
 // Component for individual suggestion card

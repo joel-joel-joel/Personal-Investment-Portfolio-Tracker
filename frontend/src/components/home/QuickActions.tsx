@@ -93,7 +93,7 @@ const QuickActionButton = ({
                 {/* LEFT ICON */}
                 <View style={styles.leftIconWrapper}>
                     <MaterialCommunityIcons
-                        name={action.icon}
+                        name={action.icon as any}
                         size={16}
                         color={colors.tint}
                     />
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
         gap: 10,
     },
     actionButton: {
-        width: 140,
+        width: 150,
         height: 44,
         flexDirection: "row",
         alignItems: "center",
@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
     },
 
     rightSpacer: {
-        width: 20,      // same width as the icon wrapper to keep text centered
+        width: 5,      // same width as the icon wrapper to keep text centered
     },
 
     actionLabel: {
