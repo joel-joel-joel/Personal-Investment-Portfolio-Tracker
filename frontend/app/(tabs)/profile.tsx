@@ -1,26 +1,20 @@
-import React from 'react';
-import { View, Text, StyleSheet, useColorScheme } from 'react-native';
-import { getThemeColors } from '../../src/constants/colors';
+import {View, Text, StyleSheet, useColorScheme, ScrollView} from 'react-native';
+import { getThemeColors } from '@/src/constants/colors';
+import { HeaderSection } from '@/src/components/home/HeaderSection';
+import ProfileScreenComponent from '@/src/components/profile/ProfileScreen';
 
-export default function ProfileScreen() {
+
+
+export default function WatchList() {
     const colorScheme = useColorScheme();
     const Colors = getThemeColors(colorScheme);
 
     return (
-        <View style={[styles.container, { backgroundColor: Colors.background }]}>
-            <Text style={[styles.text, { color: Colors.text }]}>Profile</Text>
+        <View style={{ flex: 1, backgroundColor: Colors.background, padding: 24 }}>
+            <ScrollView showsVerticalScrollIndicator={false}>
+                <HeaderSection />
+                <ProfileScreenComponent/>
+            </ScrollView>
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    text: {
-        fontSize: 24,
-        fontWeight: '600',
-    },
-});

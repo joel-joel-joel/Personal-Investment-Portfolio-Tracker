@@ -16,12 +16,6 @@ export const HeaderSection = () => {
                     style={[styles.icon, { tintColor: Colors.tint }]}
                 />
             </View>
-            <MaterialCommunityIcons
-                name="dots-vertical"
-                size={28}
-                color={Colors.tint}
-                style={styles.rightIcon}
-            />
         </View>
     );
 };
@@ -48,4 +42,5 @@ const styles = StyleSheet.create({
         right: 0,
         marginTop: 5,
     },
+
 });

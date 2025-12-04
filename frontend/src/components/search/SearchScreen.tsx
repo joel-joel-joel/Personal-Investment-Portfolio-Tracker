@@ -296,6 +296,7 @@ export default function SearchScreen() {
         });
     };
 
+    // @ts-ignore
     return (
         <View style={[styles.container, { backgroundColor: Colors.background }]}>
             {/* Header */}
@@ -521,6 +522,7 @@ export default function SearchScreen() {
                     </Text>
                     <TouchableOpacity
                         onPress={handleClearSearch}
+                        //@ts-ignore
                         style={[styles.clearButton, { marginTop: 16 }]}
                     >
                         <Text style={{ color: Colors.tint, fontWeight: '700' }}>Clear search</Text>
