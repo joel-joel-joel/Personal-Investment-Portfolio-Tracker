@@ -13,11 +13,11 @@ import java.util.UUID;
 @Repository
 public interface ActivityRepository extends JpaRepository<Activity, UUID> {
 
-    List<Activity> findByUserId(UUID userId);
+    List<Activity> findByUser_UserId(UUID userId);
 
-    Page<Activity> findByUserIdOrderByCreatedAtDesc(UUID userId, Pageable pageable);
+    Page<Activity> findByUser_UserIdOrderByCreatedAtDesc(UUID userId, Pageable pageable);
 
-    Page<Activity> findByUserIdAndTypeOrderByCreatedAtDesc(UUID userId, String type, Pageable pageable);
+    Page<Activity> findByUser_UserIdAndTypeOrderByCreatedAtDesc(UUID userId, String type, Pageable pageable);
 
-    List<Activity> findByUserIdAndCreatedAtBetween(UUID userId, LocalDateTime startDate, LocalDateTime endDate);
+    List<Activity> findByUser_UserIdAndCreatedAtBetween(UUID userId, LocalDateTime startDate, LocalDateTime endDate);
 }

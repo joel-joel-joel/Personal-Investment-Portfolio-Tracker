@@ -13,7 +13,7 @@ import java.util.UUID;
 @Repository
 public interface EarningsRepository extends JpaRepository<Earnings, UUID> {
 
-    List<Earnings> findByStockId(UUID stockId);
+    List<Earnings> findByStock_StockId(UUID stockId);
 
     @Query("SELECT e FROM Earnings e WHERE e.earningsDate BETWEEN :startDate AND :endDate ORDER BY e.earningsDate ASC")
     List<Earnings> findUpcomingEarnings(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);

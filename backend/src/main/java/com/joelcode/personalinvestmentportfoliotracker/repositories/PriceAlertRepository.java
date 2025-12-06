@@ -10,11 +10,11 @@ import java.util.UUID;
 @Repository
 public interface PriceAlertRepository extends JpaRepository<PriceAlert, UUID> {
 
-    List<PriceAlert> findByUserId(UUID userId);
+    List<PriceAlert> findByUser_UserId(UUID userId);
 
-    List<PriceAlert> findByUserIdAndIsActive(UUID userId, Boolean isActive);
+    List<PriceAlert> findByUser_UserIdAndIsActive(UUID userId, Boolean isActive);
 
-    List<PriceAlert> findByStockId(UUID stockId);
+    List<PriceAlert> findByStock_StockId(UUID stockId);
 
-    void deleteByUserIdAndAlertId(UUID userId, UUID alertId);
+    void deleteByUser_UserIdAndAlertId(UUID userUserId, UUID alertId);
 }

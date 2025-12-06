@@ -42,9 +42,9 @@ public class PriceAlertController {
 
         List<PriceAlert> alerts;
         if (active != null) {
-            alerts = priceAlertRepository.findByUserIdAndIsActive(user.getUserId(), active);
+            alerts = priceAlertRepository.findByUser_UserIdAndIsActive(user.getUserId(), active);
         } else {
-            alerts = priceAlertRepository.findByUserId(user.getUserId());
+            alerts = priceAlertRepository.findByUser_UserId(user.getUserId());
         }
 
         List<PriceAlertDTO> alertDTOs = alerts.stream()

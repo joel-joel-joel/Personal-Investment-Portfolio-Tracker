@@ -49,7 +49,7 @@ public class EarningsController {
     // GET /api/earnings/by-stock/{stockId} - Get earnings for a specific stock
     @GetMapping("/by-stock/{stockId}")
     public ResponseEntity<List<EarningsDTO>> getEarningsByStock(@PathVariable UUID stockId) {
-        List<Earnings> earnings = earningsRepository.findByStockId(stockId);
+        List<Earnings> earnings = earningsRepository.findByStock_StockId(stockId);
 
         List<EarningsDTO> earningsDTOs = earnings.stream()
                 .map(e -> new EarningsDTO(

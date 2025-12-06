@@ -13,6 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -38,8 +39,8 @@ class UserControllerTest {
     void testGetAllUsers_Success() {
         // Setup an array of users
         List<UserDTO> users = new ArrayList<>();
-        users.add(new UserDTO(UUID.randomUUID(), "john_doe", "john@example.com"));
-        users.add(new UserDTO(UUID.randomUUID(), "jane_doe", "jane@example.com"));
+        users.add(new UserDTO(UUID.randomUUID(), "john_doe", "john@example.com", LocalDateTime.now()));
+        users.add(new UserDTO(UUID.randomUUID(), "jane_doe", "jane@example.com", LocalDateTime.now()));
 
         // When service calls method, return the test array
         when(userService.getAllUsers()).thenReturn(users);
@@ -72,7 +73,7 @@ class UserControllerTest {
     void testGetUserById_Success() {
         // Initialize setup for testing
         UUID userId = UUID.randomUUID();
-        UserDTO user = new UserDTO(userId, "john_doe", "john@example.com");
+        UserDTO user = new UserDTO(userId, "john_doe", "john@example.com", LocalDateTime.now());
         when(userService.getUserById(userId)).thenReturn(user);
 
         // Run method
@@ -105,7 +106,7 @@ class UserControllerTest {
         // Initialize setup for testing
         UUID userId = UUID.randomUUID();
         UserUpdateRequest request = new UserUpdateRequest( "john_updated@example.com", "john_doe_updated","12345");
-        UserDTO updated = new UserDTO(userId, "john_doe_updated", "john_updated@example.com");
+        UserDTO updated = new UserDTO(userId, "john_doe_updated", "john_updated@example.com", LocalDateTime.now());
         when(userService.updateUser(userId, request)).thenReturn(updated);
 
         // Run method

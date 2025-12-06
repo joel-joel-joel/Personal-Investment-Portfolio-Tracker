@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 
 import javax.crypto.SecretKey;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.UUID;
 
@@ -43,6 +44,10 @@ public class JwtTokenProvider {
                 .setExpiration(expiryDate)
                 .signWith(key)
                 .compact();
+    }
+
+    public LocalDateTime getExpirationDate(String token) {
+        return LocalDateTime.ofInstant(getClaims(token).getExpiration().toInstant(), java.time.ZoneId.systemDefault());
     }
 
     public Claims getClaims(String token) {

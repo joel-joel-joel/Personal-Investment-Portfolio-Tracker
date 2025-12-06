@@ -18,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -45,7 +46,7 @@ class AccountControllerTest {
     void testGetAllAccounts_Success() {
         // Setup account list and user
         List<AccountDTO> accounts = new ArrayList<>();
-        UserDTO user = new UserDTO(UUID.randomUUID(), "testuser", "<EMAIL>");
+        UserDTO user = new UserDTO(UUID.randomUUID(), "testuser", "<EMAIL>", LocalDateTime.now());
         accounts.add(new AccountDTO( "Checking", UUID.randomUUID(), user, BigDecimal.valueOf(5000)));
         accounts.add(new AccountDTO( "Savings", UUID.randomUUID(), user, BigDecimal.valueOf(10000)));
 
@@ -81,7 +82,7 @@ class AccountControllerTest {
     void testGetAccountById_Success() {
         // Setup account and user
         UUID accountId = UUID.randomUUID();
-        UserDTO user = new UserDTO(UUID.randomUUID(), "testuser", "<EMAIL>");
+        UserDTO user = new UserDTO(UUID.randomUUID(), "testuser", "<EMAIL>", LocalDateTime.now());
         AccountDTO account = new AccountDTO( "Checking", accountId, user, BigDecimal.valueOf(5000));
 
         // Map method return value to setup
@@ -116,7 +117,7 @@ class AccountControllerTest {
     void testCreateAccount_Success() {
         // Setup create request and expected account
         UUID accountId = UUID.randomUUID();
-        UserDTO user = new UserDTO(UUID.randomUUID(), "testuser", "<EMAIL>");
+        UserDTO user = new UserDTO(UUID.randomUUID(), "testuser", "<EMAIL>", LocalDateTime.now());
         AccountCreateRequest request = new AccountCreateRequest("Checking",UUID.randomUUID());
         AccountDTO created = new AccountDTO( "Checking", accountId, user, BigDecimal.valueOf(5000));
 
@@ -137,7 +138,7 @@ class AccountControllerTest {
     void testUpdateAccount_Success() {
         // Setup account update request and expected updated account
         UUID accountId = UUID.randomUUID();
-        UserDTO user = new UserDTO(UUID.randomUUID(), "testuser", "<EMAIL>");
+        UserDTO user = new UserDTO(UUID.randomUUID(), "testuser", "<EMAIL>", LocalDateTime.now());
         AccountUpdateRequest request = new AccountUpdateRequest("Updated");
         AccountDTO updated = new AccountDTO( "Updated", UUID.randomUUID(), user, BigDecimal.valueOf(5000));
 
@@ -158,7 +159,7 @@ class AccountControllerTest {
     void testUpdateAccount_NotFound() {
         // Setup update request with null return
         UUID accountId = UUID.randomUUID();
-        UserDTO user = new UserDTO(UUID.randomUUID(), "testuser", "<EMAIL>");
+        UserDTO user = new UserDTO(UUID.randomUUID(), "testuser", "<EMAIL>", LocalDateTime.now());
         AccountUpdateRequest request = new AccountUpdateRequest("Updated");
         when(accountService.updateAccount(accountId, request)).thenReturn(null);
 

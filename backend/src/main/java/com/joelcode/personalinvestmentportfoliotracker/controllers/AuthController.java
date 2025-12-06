@@ -91,28 +91,50 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    // Register a new user - POST /api/auth/register
     @PostMapping("/register")
-    public ResponseEntity<?> register(@Valid @RequestBody RegistrationRequest request) {
+    public ResponseEntity<AuthResponseDTO> register(@Valid @RequestBody RegistrationRequest request) {
 
-        // Check whether username is available
-        if (userRepository.existsByUsername(request.getUsername().describeConstable().orElseThrow(() -> new RuntimeException("Username not found")))) {
-            return ResponseEntity.badRequest().body("Username already exists");
+        // Check if username already exists
+        if (userRepository.existsByUsername(request.getUsername())) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(null); // or throw a custom exception if you prefer
         }
 
-        // Create and populate user
+        // Check if email already exists
+        if (userRepository.existsByEmail(request.getEmail())) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(null); // or throw a custom exception
+        }
+
+        // Create new user
         User user = new User();
         user.setUsername(request.getUsername());
         user.setEmail(request.getEmail());
         user.setFullName(request.getFullName());
-
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRoles(User.Role.ROLE_USER);
 
         userRepository.save(user);
 
-        return ResponseEntity.ok("User registered successfully");
+        // Generate JWT token
+        String token = jwtTokenProvider.generateToken(user);
+
+        // Calculate token expiration time
+        LocalDateTime expiresAt = jwtTokenProvider.getExpirationDate(token); // implement this in your jwtService
+
+        // Build response DTO
+        AuthResponseDTO responseDTO = new AuthResponseDTO(
+                token,
+                user.getUserId(),
+                user.getEmail(),
+                expiresAt
+        );
+
+        return ResponseEntity.ok(responseDTO);
     }
+
 
     // GET /api/auth/me - Get current user profile
     @GetMapping("/me")

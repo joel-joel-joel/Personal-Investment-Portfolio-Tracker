@@ -395,7 +395,6 @@ import com.joelcode.personalinvestmentportfoliotracker.entities.Watchlist;
 import com.joelcode.personalinvestmentportfoliotracker.repositories.StockRepository;
 import com.joelcode.personalinvestmentportfoliotracker.repositories.WatchlistRepository;
 import com.joelcode.personalinvestmentportfoliotracker.services.finnhub.FinnhubApiClient;
-import jakarta.validation.constraints.NotNull;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -419,7 +418,7 @@ public class WatchlistController {
     private final FinnhubApiClient finnhubApiClient;
 
     public WatchlistController(WatchlistRepository watchlistRepository, StockRepository stockRepository,
-                             FinnhubApiClient finnhubApiClient) {
+                               FinnhubApiClient finnhubApiClient) {
         this.watchlistRepository = watchlistRepository;
         this.stockRepository = stockRepository;
         this.finnhubApiClient = finnhubApiClient;
@@ -431,7 +430,7 @@ public class WatchlistController {
     public ResponseEntity<List<WatchlistItemDTO>> getWatchlist(Authentication authentication) {
         User user = (User) authentication.getPrincipal();
 
-        List<Watchlist> watchlist = watchlistRepository.findByUserId(user.getUserId());
+        List<Watchlist> watchlist = watchlistRepository.findByUser_UserId(user.getUserId());
         List<WatchlistItemDTO> items = watchlist.stream()
                 .map(w -> {
                     Stock stock = w.getStock();
@@ -439,8 +438,8 @@ public class WatchlistController {
                     BigDecimal previousPrice = stock.getStockValue();
                     BigDecimal change = currentPrice != null ? currentPrice.subtract(previousPrice) : BigDecimal.ZERO;
                     BigDecimal changePercent = previousPrice.compareTo(BigDecimal.ZERO) > 0
-                        ? change.divide(previousPrice, 4, java.math.RoundingMode.HALF_UP).multiply(new BigDecimal(100))
-                        : BigDecimal.ZERO;
+                            ? change.divide(previousPrice, 4, java.math.RoundingMode.HALF_UP).multiply(new BigDecimal(100))
+                            : BigDecimal.ZERO;
 
                     return new WatchlistItemDTO(
                             w.getWatchlistId(),
@@ -469,7 +468,7 @@ public class WatchlistController {
         Stock stock = stockRepository.findById(stockId)
                 .orElseThrow(() -> new RuntimeException("Stock not found"));
 
-        if (watchlistRepository.existsByUserIdAndStockId(user.getUserId(), stockId)) {
+        if (watchlistRepository.existsByUser_UserIdAndStock_StockId(user.getUserId(), stockId)) {
             return ResponseEntity.badRequest().body("Stock already in watchlist");
         }
 
@@ -480,8 +479,8 @@ public class WatchlistController {
         BigDecimal previousPrice = stock.getStockValue();
         BigDecimal change = currentPrice != null ? currentPrice.subtract(previousPrice) : BigDecimal.ZERO;
         BigDecimal changePercent = previousPrice.compareTo(BigDecimal.ZERO) > 0
-            ? change.divide(previousPrice, 4, java.math.RoundingMode.HALF_UP).multiply(new BigDecimal(100))
-            : BigDecimal.ZERO;
+                ? change.divide(previousPrice, 4, java.math.RoundingMode.HALF_UP).multiply(new BigDecimal(100))
+                : BigDecimal.ZERO;
 
         WatchlistItemDTO dto = new WatchlistItemDTO(
                 watchlist.getWatchlistId(),
@@ -504,11 +503,11 @@ public class WatchlistController {
     public ResponseEntity<Void> removeFromWatchlist(@PathVariable UUID stockId, Authentication authentication) {
         User user = (User) authentication.getPrincipal();
 
-        if (!watchlistRepository.existsByUserIdAndStockId(user.getUserId(), stockId)) {
+        if (!watchlistRepository.existsByUser_UserIdAndStock_StockId(user.getUserId(), stockId)) {
             return ResponseEntity.notFound().build();
         }
 
-        watchlistRepository.deleteByUserIdAndStockId(user.getUserId(), stockId);
+        watchlistRepository.deleteByUser_UserIdAndStock_StockId(user.getUserId(), stockId);
         return ResponseEntity.noContent().build();
     }
 
@@ -517,7 +516,7 @@ public class WatchlistController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Map<String, Boolean>> isInWatchlist(@PathVariable UUID stockId, Authentication authentication) {
         User user = (User) authentication.getPrincipal();
-        boolean inWatchlist = watchlistRepository.existsByUserIdAndStockId(user.getUserId(), stockId);
+        boolean inWatchlist = watchlistRepository.existsByUser_UserIdAndStock_StockId(user.getUserId(), stockId);
         return ResponseEntity.ok(Map.of("inWatchlist", inWatchlist));
     }
 }
