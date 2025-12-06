@@ -2,6 +2,8 @@
  * Base API Configuration
  * Provides the foundation for all API service calls
  */
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 // Base URL for the backend API
 export const API_BASE_URL = 'http://localhost:8080';
@@ -11,10 +13,7 @@ export const API_BASE_URL = 'http://localhost:8080';
  * TODO: Implement actual token storage (AsyncStorage for React Native)
  */
 const getAuthToken = async (): Promise<string | null> => {
-  // Placeholder - implement with AsyncStorage
-  // import AsyncStorage from '@react-native-async-storage/async-storage';
-  // return await AsyncStorage.getItem('jwt_token');
-  return null;
+    return await AsyncStorage.getItem('jwt_token');
 };
 
 /**
@@ -23,8 +22,7 @@ const getAuthToken = async (): Promise<string | null> => {
  */
 export const setAuthToken = async (token: string): Promise<void> => {
   // Placeholder - implement with AsyncStorage
-  // import AsyncStorage from '@react-native-async-storage/async-storage';
-  // await AsyncStorage.setItem('jwt_token', token);
+    await AsyncStorage.setItem('jwt_token', token);
 };
 
 /**
@@ -32,9 +30,7 @@ export const setAuthToken = async (token: string): Promise<void> => {
  * TODO: Implement actual token storage
  */
 export const removeAuthToken = async (): Promise<void> => {
-  // Placeholder - implement with AsyncStorage
-  // import AsyncStorage from '@react-native-async-storage/async-storage';
-  // await AsyncStorage.removeItem('jwt_token');
+     await AsyncStorage.removeItem('jwt_token');
 };
 
 /**
