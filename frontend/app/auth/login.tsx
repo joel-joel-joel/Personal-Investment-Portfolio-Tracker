@@ -43,73 +43,62 @@ export default function LoginScreen() {
     return password.length >= 6;
   };
 
-  const handleSubmit = async () => {
-    // Validation
-    if (!email || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
-      return;
-    }
+    const handleSubmit = async () => {
+        // Basic validation
+        if (!email || !password || (!isLogin && (!firstName || !lastName))) {
+            Alert.alert('Error', 'Please fill in all required fields');
+            return;
+        }
 
-    if (!validateEmail(email)) {
-      Alert.alert('Error', 'Please enter a valid email address');
-      return;
-    }
+        // Email format validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            Alert.alert('Error', 'Please enter a valid email address');
+            return;
+        }
 
-    if (!validatePassword(password)) {
-      Alert.alert('Error', 'Password must be at least 6 characters long');
-      return;
-    }
+        // Password length validation (match backend)
+        if (password.length < 8) {
+            Alert.alert('Error', 'Password must be at least 8 characters long');
+            return;
+        }
 
-    if (!isLogin) {
-      if (password !== confirmPassword) {
-        Alert.alert('Error', 'Passwords do not match');
-        return;
-      }
-      if (!firstName) {
-        Alert.alert('Error', 'Please enter your first name');
-        return;
-      }
-    }
+        // Confirm password for registration
+        if (!isLogin && password !== confirmPassword) {
+            Alert.alert('Error', 'Passwords do not match');
+            return;
+        }
 
-    setLoading(true);
+        setLoading(true);
 
-    try {
-      if (isLogin) {
-        // Login
-        const response = await apiLogin({ email, password });
+        try {
+            if (isLogin) {
+                // Login
+                const response = await apiLogin({ email, password });
+                await login(response.token); // updates context & SecureStore
+            } else {
+                // Register
+                const fullName = `${firstName} ${lastName}`.trim();
+                const username = email.split('@')[0]; // simple username generation
 
-        // Call context login with token - this will:
-        // 1. Store token in SecureStore
-        // 2. Fetch user data
-        // 3. Update auth state
-        await login(response.token);
+                const response = await apiRegister({
+                    email,
+                    username,
+                    password,
+                    fullName,
+                });
 
-        // Navigation will happen automatically via App.tsx conditional rendering
-      } else {
-        // Register
-        const response = await apiRegister({
-          email,
-          password,
-          firstName,
-          lastName,
-        });
+                await login(response.token); // auto-login after registration
+            }
+        } catch (error: any) {
+            Alert.alert('Error', error.message || 'An error occurred. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    };
 
-        // Call context login with token
-        await login(response.token);
 
-        // Navigation will happen automatically via App.tsx conditional rendering
-      }
-    } catch (error: any) {
-      Alert.alert(
-        'Error',
-        error.message || 'An error occurred. Please try again.'
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const toggleMode = () => {
+    const toggleMode = () => {
     setIsLogin(!isLogin);
     // Clear form
     setEmail('');

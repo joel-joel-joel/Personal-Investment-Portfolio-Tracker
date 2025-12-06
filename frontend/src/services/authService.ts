@@ -19,11 +19,12 @@ export interface LoginRequest {
 }
 
 export interface RegisterRequest {
-  email: string;
-  password: string;
-  firstName?: string;
-  lastName?: string;
+    email: string;
+    username: string;
+    password: string;
+    fullName: string;
 }
+
 
 export interface AuthResponse {
   token: string;           // JWT token
@@ -86,23 +87,37 @@ export const login = async (
  * @returns Authentication response with JWT token
  */
 export const register = async (
-  userData: RegisterRequest
+    userData: {
+        email: string;
+        password: string;
+        firstName: string;
+        lastName: string;
+    }
 ): Promise<AuthResponse> => {
-  try {
-    const response = await apiFetch<AuthResponse>('/api/auth/register', {
-      method: 'POST',
-      requireAuth: false,
-      body: JSON.stringify(userData),
-    });
+    // Convert frontend fields into backend RegistrationRequest shape
+    const payload = {
+        email: userData.email,
+        password: userData.password,
+        username: userData.email.split('@')[0], // generate a username from email
+        fullName: `${userData.firstName} ${userData.lastName}`.trim(),
+    };
 
-    // Store the JWT token
-    await setAuthToken(response.token);
+    try {
+        const response = await apiFetch<AuthResponse>('/api/auth/register', {
+            method: 'POST',
+            requireAuth: false,
+            body: JSON.stringify(payload),
+        });
 
-    return response;
-  } catch (error) {
-    throw new Error('Registration failed: Email may already be in use');
-  }
+        // Store the JWT token
+        await setAuthToken(response.token);
+
+        return response;
+    } catch (error) {
+        throw new Error('Registration failed: Email may already be in use');
+    }
 };
+
 
 /**
  * Logout user and clear JWT token
