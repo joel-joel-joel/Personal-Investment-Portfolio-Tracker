@@ -8,6 +8,8 @@ import com.joelcode.personalinvestmentportfoliotracker.dto.holding.HoldingDTO;
 import com.joelcode.personalinvestmentportfoliotracker.dto.transaction.TransactionDTO;
 import com.joelcode.personalinvestmentportfoliotracker.entities.Account;
 import com.joelcode.personalinvestmentportfoliotracker.entities.Transaction;
+import com.joelcode.personalinvestmentportfoliotracker.entities.User;
+import com.joelcode.personalinvestmentportfoliotracker.model.CustomUserDetails;
 import com.joelcode.personalinvestmentportfoliotracker.repositories.AccountRepository;
 import com.joelcode.personalinvestmentportfoliotracker.services.mapping.AccountMapper;
 import com.joelcode.personalinvestmentportfoliotracker.services.mapping.HoldingMapper;
@@ -16,6 +18,7 @@ import com.joelcode.personalinvestmentportfoliotracker.services.pricehistory.Pri
 import com.joelcode.personalinvestmentportfoliotracker.services.pricehistory.PriceHistoryServiceImpl;
 import org.springframework.context.annotation.Profile;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -56,29 +59,39 @@ public class AccountServiceImpl implements AccountService {
     // Create a new account and show essential information
     @Override
     public AccountDTO createAccount(AccountCreateRequest request) {
-        accountValidationService.validateAccountExistsByName(request.getAccountName());
 
-        // Map accuont creation request to entity
+        // 1. Check account name not duplicated
+        accountValidationService.validateAccountDoesNotExistByName(request.getAccountName());
+
+        // 2. Get currently logged-in user
+        CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getPrincipal();
+        User user = userDetails.getUser();
+
+        // 3. Map request to entity
         Account account = AccountMapper.toEntity(request);
 
-        // Save account to db
+        // 4. Associate user
+        account.setUser(user);
+
+        // 5. Save to DB
         account = accountRepository.save(account);
 
+        // 6. Optional: send WebSocket update
         WebSocketController.PortfolioUpdateMessage updateMessage = new WebSocketController.PortfolioUpdateMessage(
                 account.getAccountId(),
-                BigDecimal.ZERO, // New account is created with a balance of zero
-                BigDecimal.ZERO, // Zero change as it is a creation
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
                 LocalDateTime.now()
         );
+        messagingTemplate.convertAndSend("/topic/portfolio/" + account.getAccountId(), updateMessage);
 
-        messagingTemplate.convertAndSend(
-                "/topic/portfolio/" + account.getAccountId(),
-                updateMessage
-        );
-
-        // Map entity back to dto
+        // 7. Return DTO
         return AccountMapper.toDTO(account);
     }
+
 
     // Find account by ID
     @Override

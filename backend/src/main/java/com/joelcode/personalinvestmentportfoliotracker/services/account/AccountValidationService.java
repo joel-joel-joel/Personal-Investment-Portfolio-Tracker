@@ -24,9 +24,10 @@ public class AccountValidationService {
     // Validation functions
 
     // Check account exists
-    public Account validateAccountExistsByName(String accountName){
-        return accountRepository.findByAccountName(accountName)
-                .orElseThrow(() -> new IllegalArgumentException("Account not found"));
+    public void validateAccountDoesNotExistByName(String accountName){
+        if(accountRepository.existsByAccountName(accountName)) {
+            throw new IllegalArgumentException("Account already exists");
+        }
     }
 
     // Check account exists
