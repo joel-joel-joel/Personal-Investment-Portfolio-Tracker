@@ -7,12 +7,13 @@ import com.joelcode.personalinvestmentportfoliotracker.entities.PriceHistory;
 import com.joelcode.personalinvestmentportfoliotracker.entities.Stock;
 import com.joelcode.personalinvestmentportfoliotracker.repositories.PriceHistoryRepository;
 import com.joelcode.personalinvestmentportfoliotracker.repositories.StockRepository;
+import com.joelcode.personalinvestmentportfoliotracker.services.finnhub.FinnhubApiClient;
 import com.joelcode.personalinvestmentportfoliotracker.services.mapping.StockMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -25,13 +26,15 @@ public class StockServiceImpl implements StockService {
     private final StockRepository stockRepository;
     private final StockValidationService stockValidationService;
     private final PriceHistoryRepository priceHistoryRepository;
+    private final FinnhubApiClient finnhubApiClient;
 
 
     // Constructor
-    public StockServiceImpl(StockRepository stockRepository, StockValidationService stockValidationService, PriceHistoryRepository priceHistoryRepository) {
+    public StockServiceImpl(StockRepository stockRepository, StockValidationService stockValidationService, PriceHistoryRepository priceHistoryRepository, FinnhubApiClient finnhubApiClient) {
         this.stockRepository = stockRepository;
         this.stockValidationService = stockValidationService;
         this.priceHistoryRepository = priceHistoryRepository;
+        this.finnhubApiClient = finnhubApiClient;
     }
 
 
@@ -105,7 +108,24 @@ public class StockServiceImpl implements StockService {
         Stock stock = stockRepository.findByStockId(stockId)
                 .orElseThrow(() -> new IllegalArgumentException("Stock with ID " + stockId + " does not exist."));
 
-        // Try to fetch latest price history record
+        try {
+            // Fetch real-time price from FinnHub
+            BigDecimal realtimePrice = finnhubApiClient.getCurrentPrice(stock.getStockCode());
+            if (realtimePrice != null && realtimePrice.compareTo(BigDecimal.ZERO) > 0) {
+                // Update stock value with real-time price
+                stock.setStockValue(realtimePrice);
+                stockRepository.save(stock);
+
+                // Optionally save to price history for tracking
+                savePriceHistory(stock, realtimePrice);
+
+                return realtimePrice;
+            }
+        } catch (Exception e) {
+            // Silently fall back to database if FinnHub call fails
+        }
+
+        // Fallback: Try to fetch latest price history record
         Optional<PriceHistory> latestPrice = priceHistoryRepository
                 .findTopByStockOrderByCloseDateDesc(stock);
 
@@ -113,6 +133,19 @@ public class StockServiceImpl implements StockService {
         return latestPrice
                 .map(PriceHistory::getClosePrice)
                 .orElse(stock.getStockValue());
+    }
+
+    // Helper method to save price history
+    private void savePriceHistory(Stock stock, BigDecimal price) {
+        try {
+            PriceHistory priceHistory = new PriceHistory();
+            priceHistory.setStock(stock);
+            priceHistory.setClosePrice(price);
+            priceHistory.setCloseDate(LocalDateTime.now());
+            priceHistoryRepository.save(priceHistory);
+        } catch (Exception e) {
+            // Silently ignore if price history save fails
+        }
     }
 
 

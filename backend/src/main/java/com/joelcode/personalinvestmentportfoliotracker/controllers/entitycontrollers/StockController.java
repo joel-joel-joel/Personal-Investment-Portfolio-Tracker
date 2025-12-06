@@ -1,8 +1,11 @@
 package com.joelcode.personalinvestmentportfoliotracker.controllers.entitycontrollers;
 
+import com.joelcode.personalinvestmentportfoliotracker.dto.finnhub.FinnhubCompanyProfileDTO;
+import com.joelcode.personalinvestmentportfoliotracker.dto.finnhub.FinnhubQuoteDTO;
 import com.joelcode.personalinvestmentportfoliotracker.dto.stock.StockCreateRequest;
 import com.joelcode.personalinvestmentportfoliotracker.dto.stock.StockDTO;
 import com.joelcode.personalinvestmentportfoliotracker.dto.stock.StockUpdateRequest;
+import com.joelcode.personalinvestmentportfoliotracker.services.finnhub.FinnhubApiClient;
 import com.joelcode.personalinvestmentportfoliotracker.services.stock.StockService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +24,9 @@ public class StockController {
 
     @Autowired
     public StockService stockService;
+
+    @Autowired
+    public FinnhubApiClient finnhubApiClient;
 
     // Get all stocks
     @GetMapping
@@ -71,5 +77,27 @@ public class StockController {
     @GetMapping("/{id}/price")
     public ResponseEntity<?> getCurrentPrice(@PathVariable UUID id) {
         return ResponseEntity.ok(stockService.getCurrentPrice(id));
+    }
+
+    // Get real-time quote from FinnHub by symbol
+    @GetMapping("/finnhub/quote/{symbol}")
+    public ResponseEntity<?> getFinnhubQuote(@PathVariable String symbol) {
+        try {
+            FinnhubQuoteDTO quote = finnhubApiClient.getQuote(symbol);
+            return ResponseEntity.ok(quote);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error fetching quote for symbol: " + symbol);
+        }
+    }
+
+    // Get company profile from FinnHub by symbol
+    @GetMapping("/finnhub/profile/{symbol}")
+    public ResponseEntity<?> getFinnhubCompanyProfile(@PathVariable String symbol) {
+        try {
+            FinnhubCompanyProfileDTO profile = finnhubApiClient.getCompanyProfile(symbol);
+            return ResponseEntity.ok(profile);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error fetching profile for symbol: " + symbol);
+        }
     }
 }
