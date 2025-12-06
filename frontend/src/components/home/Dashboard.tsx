@@ -171,7 +171,7 @@ export const Dashboard = () => {
 
 const styles = StyleSheet.create({
     wrapper: {
-        marginTop: -35,
+        marginTop: -20,
         justifyContent: "center",
         alignItems: "center",
     },

@@ -14,7 +14,8 @@ import WatchlistScreen from './(tabs)/watchlist';
 import ProfileScreen from './(tabs)/profile';
 
 // Modal/Stack Imports
-import Settings from './(tabs)/settings';
+import SettingsScreen from '../src/components/settings/SettingsScreen';
+import StockTickerPage from './stock/[ticker]';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -23,7 +24,37 @@ const Tab = createBottomTabNavigator();
 export type RootStackParamList = {
     MainTabs: undefined;
     Settings: undefined;
+    StockTicker: {
+        stock: {
+            symbol: string;
+            name: string;
+            price: number;
+            change: number;
+            changePercent: number;
+            sector: string;
+            marketCap: string;
+            peRatio: string;
+            dividend: string;
+            dayHigh: number;
+            dayLow: number;
+            yearHigh: number;
+            yearLow: number;
+            description: string;
+            employees: string;
+            founded: string;
+            website: string;
+            nextEarningsDate: string;
+            nextDividendDate: string;
+            earningsPerShare: string;
+        }
+    };
 };
+
+declare global {
+    namespace ReactNavigation {
+        interface RootParamList extends RootStackParamList {}
+    }
+}
 
 // Tab Navigator
 function TabNavigator() {
@@ -135,12 +166,29 @@ function RootStack() {
             }}
         >
             {/* Main Tab Navigator */}
-            <Stack.Group>
+            <Stack.Group
+                screenOptions={{
+                    headerShown: false,
+                }}
+            >
                 <Stack.Screen
                     name="MainTabs"
                     component={TabNavigator}
+                />
+            </Stack.Group>
+
+            {/* Stock Ticker - Can be accessed from anywhere */}
+            <Stack.Group
+                screenOptions={{
+                    presentation: 'card',
+                }}
+            >
+                <Stack.Screen
+                    name="StockTicker"
+                    component={StockTickerPage}
                     options={{
-                        headerShown: false,
+                        title: 'Stock Details',
+                        headerShown: true,
                     }}
                 />
             </Stack.Group>
@@ -153,10 +201,9 @@ function RootStack() {
             >
                 <Stack.Screen
                     name="Settings"
-                    component={Settings}
+                    component={SettingsScreen}
                     options={{
                         title: 'Settings',
-                        headerBackVisible: false,
                     }}
                 />
             </Stack.Group>

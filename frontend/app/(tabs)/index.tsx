@@ -6,7 +6,7 @@ import { Dashboard } from "@/src/components/home/Dashboard";
 import { WatchlistHighlights } from "@/src/components/home/WatchlistHighlights";
 import { TopMovers } from "@/src/components/home/TopMovers";
 import { ExpandableNewsCard } from '@/src/components/home/ExpandableNewsCard';
-import { SuggestedForYou } from '@/src/components/home/SuggestedForYou';
+import SuggestedForYou from '@/src/components/home/SuggestedForYou';
 import {StockTicker} from "@/src/components/home/StockTicker";
 import { EarningsCalendar } from "@/src/components/home/EarningsCalender";
 import {QuickActionsRow} from "@/src/components/home/QuickActions";
