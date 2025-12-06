@@ -1,6 +1,6 @@
 /**
  * API Response Type Definitions
- * Based on backend API documentation
+ * Based on actual backend DTOs
  */
 
 // ============================================================================
@@ -74,6 +74,185 @@ export interface NewsArticleDTO {
 }
 
 // ============================================================================
+// Account Types (Backend uses Account instead of Portfolio)
+// ============================================================================
+
+export interface UserDTO {
+  userId: string;            // UUID
+  email: string;
+  firstName?: string;
+  lastName?: string;
+}
+
+export interface AccountDTO {
+  accountId: string;         // UUID
+  accountName: string;
+  user: UserDTO;
+  cashBalance: number;       // BigDecimal
+}
+
+export interface CreateAccountRequest {
+  accountName: string;
+  cashBalance?: number;
+}
+
+export interface UpdateAccountRequest {
+  accountName: string;
+  cashBalance?: number;
+}
+
+// ============================================================================
+// Holding Types
+// ============================================================================
+
+export interface HoldingDTO {
+  holdingId: string;              // UUID
+  accountId: string;              // UUID
+  stockId: string;                // UUID
+  stockSymbol: string;            // e.g., "AAPL"
+  quantity: number;               // BigDecimal
+  averageCostBasis: number;       // BigDecimal
+  totalCostBasis: number;         // BigDecimal
+  realizedGain: number;           // BigDecimal
+  firstPurchaseDate: string;      // ISO 8601 timestamp
+  currentPrice: number;           // BigDecimal
+  currentValue: number;           // BigDecimal
+  unrealizedGain: number;         // BigDecimal
+  unrealizedGainPercent: number;  // BigDecimal
+}
+
+export interface CreateHoldingRequest {
+  accountId: string;
+  stockId: string;
+  quantity: number;
+  averageCostBasis: number;
+}
+
+export interface UpdateHoldingRequest {
+  quantity: number;
+  averageCostBasis: number;
+}
+
+// ============================================================================
+// Transaction Types
+// ============================================================================
+
+export type TransactionType = 'BUY' | 'SELL';
+
+export interface TransactionDTO {
+  transactionId: string;     // UUID
+  stockId: string;           // UUID
+  accountId: string;         // UUID
+  shareQuantity: number;     // BigDecimal
+  pricePerShare: number;     // BigDecimal
+  transactionType: TransactionType;
+}
+
+export interface CreateTransactionRequest {
+  stockId: string;           // UUID
+  accountId: string;         // UUID
+  shareQuantity: number;
+  pricePerShare: number;
+  transactionType: TransactionType;
+}
+
+// ============================================================================
+// Portfolio/Dashboard Types
+// ============================================================================
+
+export interface PortfolioOverviewDTO {
+  userId: string;                 // UUID
+  accountId: string;              // UUID (null for user-level aggregation)
+  totalPortfolioValue: number;    // BigDecimal
+  totalCostBasis: number;         // BigDecimal
+  totalUnrealizedGain: number;    // BigDecimal
+  totalRealizedGain: number;      // BigDecimal
+  totalDividends: number;         // BigDecimal
+  cashBalance: number;            // BigDecimal
+  holdings: HoldingDTO[];
+}
+
+export interface PortfolioPerformanceDTO {
+  userId: string;                 // UUID
+  accountId: string | null;       // UUID (null for user-level)
+  totalPortfolioValue: number;    // BigDecimal
+  totalCostBasis: number;         // BigDecimal
+  totalRealizedGain: number;      // BigDecimal
+  totalUnrealizedGain: number;    // BigDecimal
+  totalDividends: number;         // BigDecimal
+  cashBalance: number;            // BigDecimal
+  roiPercentage: number;          // BigDecimal
+  dailyGain: number;              // BigDecimal
+  monthlyGain: number;            // BigDecimal
+}
+
+export interface AllocationBreakdownDTO {
+  stockCode: string;
+  percentage: number;             // BigDecimal
+  currentValue: number;           // BigDecimal
+}
+
+export interface DashboardDTO {
+  portfolioOverview: PortfolioOverviewDTO;
+  portfolioPerformance: PortfolioPerformanceDTO;
+  allocations: AllocationBreakdownDTO[];
+  recentTransactions: TransactionDTO[];
+}
+
+// ============================================================================
+// Watchlist Types
+// ============================================================================
+
+export interface WatchlistDTO {
+  watchlistId: string;       // UUID
+  userId: string;            // UUID
+  stockId: string;           // UUID
+  stockSymbol: string;
+  addedAt: string;           // ISO 8601 timestamp
+}
+
+export interface AddToWatchlistRequest {
+  stockId: string;           // UUID
+}
+
+// ============================================================================
+// Price Alert Types
+// ============================================================================
+
+export type AlertType = 'ABOVE' | 'BELOW';
+
+export interface PriceAlertDTO {
+  alertId: string;           // UUID
+  userId: string;            // UUID
+  stockId: string;           // UUID
+  stockSymbol: string;
+  alertType: AlertType;
+  targetPrice: number;       // BigDecimal
+  isActive: boolean;
+  createdAt: string;         // ISO 8601 timestamp
+  triggeredAt?: string;      // ISO 8601 timestamp (optional)
+}
+
+export interface CreatePriceAlertRequest {
+  stockId: string;
+  alertType: AlertType;
+  targetPrice: number;
+}
+
+// ============================================================================
+// Earnings Types
+// ============================================================================
+
+export interface EarningsDTO {
+  earningsId: string;        // UUID
+  stockId: string;           // UUID
+  stockSymbol: string;
+  earningsDate: string;      // ISO 8601 date
+  estimatedEps?: number;     // BigDecimal (optional)
+  actualEps?: number;        // BigDecimal (optional)
+}
+
+// ============================================================================
 // Error Types
 // ============================================================================
 
@@ -84,14 +263,59 @@ export interface APIErrorResponse {
 }
 
 // ============================================================================
-// Request Parameter Types
+// Generic API Response Wrapper
 // ============================================================================
 
-export interface NewsQueryParams {
-  limit?: number;            // Maximum number of articles (default: 50)
+export interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
+  timestamp: string;
+  statusCode: number;
+  errors?: string[];
+  pagination?: PaginationMetadata;
 }
 
-export interface NewsBySectorsParams {
-  sectors: FrontendSector[]; // Array of sectors to fetch news for
-  limit?: number;            // Maximum number of articles (default: 50)
+export interface PaginationMetadata {
+  page: number;
+  pageSize: number;
+  totalElements: number;
+  totalPages: number;
+}
+
+// ============================================================================
+// Authentication Types
+// ============================================================================
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface RegisterRequest {
+  email: string;
+  password: string;
+  firstName?: string;
+  lastName?: string;
+}
+
+export interface AuthResponse {
+  token: string;             // JWT token
+  userId: string;            // UUID
+  email: string;
+  expiresAt?: string;        // ISO 8601 timestamp
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  token: string;
+  newPassword: string;
 }

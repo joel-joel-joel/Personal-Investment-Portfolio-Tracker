@@ -1,177 +1,81 @@
 /**
  * Dashboard Service
- * Handles dashboard-specific data aggregation and analytics
- *
- * NOTE: This is a placeholder implementation.
- * Your backend does not currently expose dashboard/analytics endpoints.
- * See "Missing Endpoints" section for required backend implementations.
+ * Handles dashboard, analytics, price alerts, and earnings data
+ * Updated to match actual backend endpoints
  */
 
 import { apiFetch } from './api';
-import { PortfolioHolding } from './portfolioService';
+import type {
+  DashboardDTO,
+  PortfolioOverviewDTO,
+  PortfolioPerformanceDTO,
+  AllocationBreakdownDTO,
+  PriceAlertDTO,
+  CreatePriceAlertRequest,
+  EarningsDTO,
+} from '../types/api';
 
 // ============================================================================
-// Type Definitions
-// ============================================================================
-
-export interface DashboardSummary {
-  totalValue: number;
-  totalGain: number;
-  totalGainPercent: number;
-  dayChange: number;
-  dayChangePercent: number;
-  topGainers: PortfolioHolding[];
-  topLosers: PortfolioHolding[];
-  sectorAllocation: SectorAllocation[];
-  recentActivity: RecentActivity[];
-}
-
-export interface SectorAllocation {
-  sector: string;
-  value: number;
-  percentage: number;
-  change: number;
-  changePercent: number;
-}
-
-export interface RecentActivity {
-  activityId: string;
-  type: 'BUY' | 'SELL' | 'DIVIDEND' | 'PRICE_ALERT';
-  stockCode: string;
-  companyName: string;
-  description: string;
-  timestamp: string;
-  amount?: number;
-}
-
-export interface PerformanceData {
-  date: string;
-  portfolioValue: number;
-  gain: number;
-  gainPercent: number;
-}
-
-export interface EarningsData {
-  stockCode: string;
-  companyName: string;
-  earningsDate: string;
-  estimatedEPS: number;
-  actualEPS?: number;
-  reportTime: 'BMO' | 'AMC'; // Before Market Open / After Market Close
-}
-
-// ============================================================================
-// Dashboard Data Endpoints (NOT IMPLEMENTED IN BACKEND YET)
+// Dashboard Data (User & Account Level)
 // ============================================================================
 
 /**
- * Get dashboard summary with key metrics
- *
- * BACKEND ENDPOINT MISSING:
- * GET /api/dashboard/summary
- * Headers: Authorization: Bearer <token>
- * Response: DashboardSummary
+ * Get complete dashboard data for user (aggregated across all accounts)
+ * Includes overview, performance, allocations, and recent transactions
+ * @param userId - UUID of the user
+ * @returns Complete dashboard data
  */
-export const getDashboardSummary = async (): Promise<DashboardSummary> => {
-  return apiFetch<DashboardSummary>('/api/dashboard/summary', {
+export const getUserDashboard = async (
+  userId: string
+): Promise<DashboardDTO> => {
+  return apiFetch<DashboardDTO>(`/dashboard/user/${userId}`, {
     method: 'GET',
     requireAuth: true,
   });
 };
 
 /**
- * Get sector allocation breakdown
- *
- * BACKEND ENDPOINT MISSING:
- * GET /api/dashboard/sectors
- * Headers: Authorization: Bearer <token>
- * Response: Array of SectorAllocation
+ * Get complete dashboard data for a specific account
+ * @param accountId - UUID of the account
+ * @returns Complete dashboard data for the account
  */
-export const getSectorAllocation = async (): Promise<SectorAllocation[]> => {
-  return apiFetch<SectorAllocation[]>('/api/dashboard/sectors', {
-    method: 'GET',
-    requireAuth: true,
-  });
-};
-
-/**
- * Get recent portfolio activity
- *
- * BACKEND ENDPOINT MISSING:
- * GET /api/dashboard/activity
- * Headers: Authorization: Bearer <token>
- * Query Params: limit?
- * Response: Array of RecentActivity
- */
-export const getRecentActivity = async (
-  limit: number = 10
-): Promise<RecentActivity[]> => {
-  return apiFetch<RecentActivity[]>(`/api/dashboard/activity?limit=${limit}`, {
+export const getAccountDashboard = async (
+  accountId: string
+): Promise<DashboardDTO> => {
+  return apiFetch<DashboardDTO>(`/dashboard/account/${accountId}`, {
     method: 'GET',
     requireAuth: true,
   });
 };
 
 // ============================================================================
-// Performance & Analytics (NOT IMPLEMENTED IN BACKEND YET)
+// Portfolio Overview (Detailed)
 // ============================================================================
 
 /**
- * Get portfolio performance over time
- *
- * BACKEND ENDPOINT MISSING:
- * GET /api/dashboard/performance
- * Headers: Authorization: Bearer <token>
- * Query Params: period? (1D, 1W, 1M, 3M, 1Y, ALL)
- * Response: Array of PerformanceData
+ * Get detailed portfolio overview for user
+ * @param userId - UUID of the user
+ * @returns Portfolio overview with holdings
  */
-export const getPortfolioPerformance = async (
-  period: '1D' | '1W' | '1M' | '3M' | '1Y' | 'ALL' = '1M'
-): Promise<PerformanceData[]> => {
-  return apiFetch<PerformanceData[]>(
-    `/api/dashboard/performance?period=${period}`,
-    {
-      method: 'GET',
-      requireAuth: true,
-    }
-  );
+export const getUserPortfolioOverview = async (
+  userId: string
+): Promise<PortfolioOverviewDTO> => {
+  return apiFetch<PortfolioOverviewDTO>(`/portfolio/overview/user/${userId}`, {
+    method: 'GET',
+    requireAuth: true,
+  });
 };
 
 /**
- * Get top gainers in portfolio
- *
- * BACKEND ENDPOINT MISSING:
- * GET /api/dashboard/top-gainers
- * Headers: Authorization: Bearer <token>
- * Query Params: limit?
- * Response: Array of PortfolioHolding
+ * Get detailed portfolio overview for account
+ * @param accountId - UUID of the account
+ * @returns Portfolio overview for the account
  */
-export const getTopGainers = async (
-  limit: number = 5
-): Promise<PortfolioHolding[]> => {
-  return apiFetch<PortfolioHolding[]>(
-    `/api/dashboard/top-gainers?limit=${limit}`,
-    {
-      method: 'GET',
-      requireAuth: true,
-    }
-  );
-};
-
-/**
- * Get top losers in portfolio
- *
- * BACKEND ENDPOINT MISSING:
- * GET /api/dashboard/top-losers
- * Headers: Authorization: Bearer <token>
- * Query Params: limit?
- * Response: Array of PortfolioHolding
- */
-export const getTopLosers = async (
-  limit: number = 5
-): Promise<PortfolioHolding[]> => {
-  return apiFetch<PortfolioHolding[]>(
-    `/api/dashboard/top-losers?limit=${limit}`,
+export const getAccountPortfolioOverview = async (
+  accountId: string
+): Promise<PortfolioOverviewDTO> => {
+  return apiFetch<PortfolioOverviewDTO>(
+    `/portfolio/overview/account/${accountId}`,
     {
       method: 'GET',
       requireAuth: true,
@@ -180,81 +84,92 @@ export const getTopLosers = async (
 };
 
 // ============================================================================
-// Earnings Calendar (NOT IMPLEMENTED IN BACKEND YET)
+// Portfolio Performance
 // ============================================================================
 
 /**
- * Get upcoming earnings for portfolio stocks
- *
- * BACKEND ENDPOINT MISSING:
- * GET /api/dashboard/earnings
- * Headers: Authorization: Bearer <token>
- * Query Params: days? (number of days ahead to look)
- * Response: Array of EarningsData
+ * Get performance metrics for user (all accounts aggregated)
+ * @param userId - UUID of the user
+ * @returns Performance metrics
  */
-export const getUpcomingEarnings = async (
-  days: number = 7
-): Promise<EarningsData[]> => {
-  return apiFetch<EarningsData[]>(`/api/dashboard/earnings?days=${days}`, {
+export const getUserPerformance = async (
+  userId: string
+): Promise<PortfolioPerformanceDTO> => {
+  return apiFetch<PortfolioPerformanceDTO>(
+    `/portfolio/performance/user/${userId}`,
+    {
+      method: 'GET',
+      requireAuth: true,
+    }
+  );
+};
+
+/**
+ * Get performance metrics for specific account
+ * @param accountId - UUID of the account
+ * @returns Performance metrics for the account
+ */
+export const getAccountPerformance = async (
+  accountId: string
+): Promise<PortfolioPerformanceDTO> => {
+  return apiFetch<PortfolioPerformanceDTO>(
+    `/portfolio/performance/account/${accountId}`,
+    {
+      method: 'GET',
+      requireAuth: true,
+    }
+  );
+};
+
+// ============================================================================
+// Allocation Breakdown
+// ============================================================================
+
+/**
+ * Get allocation breakdown for user (all accounts)
+ * @param userId - UUID of the user
+ * @returns Allocation breakdown by stock
+ */
+export const getUserAllocation = async (
+  userId: string
+): Promise<AllocationBreakdownDTO[]> => {
+  return apiFetch<AllocationBreakdownDTO[]>(`/allocation/user/${userId}`, {
     method: 'GET',
     requireAuth: true,
   });
 };
 
 /**
- * Get earnings for all stocks (not just portfolio)
- *
- * BACKEND ENDPOINT MISSING:
- * GET /api/dashboard/earnings/all
- * Query Params: days?, sector?
- * Response: Array of EarningsData
+ * Get allocation breakdown for specific account
+ * @param accountId - UUID of the account
+ * @returns Allocation breakdown for the account
  */
-export const getAllUpcomingEarnings = async (params?: {
-  days?: number;
-  sector?: string;
-}): Promise<EarningsData[]> => {
-  const queryParams = new URLSearchParams();
-
-  if (params?.days) queryParams.append('days', String(params.days));
-  if (params?.sector) queryParams.append('sector', params.sector);
-
-  const queryString = queryParams.toString();
-  const endpoint = queryString
-    ? `/api/dashboard/earnings/all?${queryString}`
-    : '/api/dashboard/earnings/all';
-
-  return apiFetch<EarningsData[]>(endpoint, {
-    method: 'GET',
-    requireAuth: false,
-  });
+export const getAccountAllocation = async (
+  accountId: string
+): Promise<AllocationBreakdownDTO[]> => {
+  return apiFetch<AllocationBreakdownDTO[]>(
+    `/allocation/account/${accountId}`,
+    {
+      method: 'GET',
+      requireAuth: true,
+    }
+  );
 };
 
 // ============================================================================
-// Alerts & Notifications (NOT IMPLEMENTED IN BACKEND YET)
+// Price Alerts
 // ============================================================================
 
-export interface PriceAlert {
-  alertId: string;
-  stockId: string;
-  stockCode: string;
-  type: 'ABOVE' | 'BELOW';
-  targetPrice: number;
-  currentPrice: number;
-  isActive: boolean;
-  createdAt: string;
-  triggeredAt?: string;
-}
-
 /**
- * Get user's price alerts
- *
- * BACKEND ENDPOINT MISSING:
- * GET /api/alerts
- * Headers: Authorization: Bearer <token>
- * Response: Array of PriceAlert
+ * Get all price alerts for the authenticated user
+ * @param activeOnly - Optional filter to get only active alerts
+ * @returns Array of price alerts
  */
-export const getPriceAlerts = async (): Promise<PriceAlert[]> => {
-  return apiFetch<PriceAlert[]>('/api/alerts', {
+export const getPriceAlerts = async (
+  activeOnly?: boolean
+): Promise<PriceAlertDTO[]> => {
+  const queryParam = activeOnly !== undefined ? `?active=${activeOnly}` : '';
+  return apiFetch<PriceAlertDTO[]>(`/api/price-alerts${queryParam}`, {
     method: 'GET',
     requireAuth: true,
   });
@@ -262,89 +177,237 @@ export const getPriceAlerts = async (): Promise<PriceAlert[]> => {
 
 /**
  * Create a new price alert
- *
- * BACKEND ENDPOINT MISSING:
- * POST /api/alerts
- * Headers: Authorization: Bearer <token>
- * Body: { stockId: string, type: 'ABOVE' | 'BELOW', targetPrice: number }
- * Response: PriceAlert
+ * @param alert - Price alert creation data
+ * @returns Created price alert
  */
 export const createPriceAlert = async (
-  stockId: string,
-  type: 'ABOVE' | 'BELOW',
-  targetPrice: number
-): Promise<PriceAlert> => {
-  return apiFetch<PriceAlert>('/api/alerts', {
+  alert: CreatePriceAlertRequest
+): Promise<PriceAlertDTO> => {
+  return apiFetch<PriceAlertDTO>('/api/price-alerts', {
     method: 'POST',
     requireAuth: true,
-    body: JSON.stringify({ stockId, type, targetPrice }),
+    body: JSON.stringify(alert),
   });
 };
 
 /**
  * Delete a price alert
- *
- * BACKEND ENDPOINT MISSING:
- * DELETE /api/alerts/{alertId}
- * Headers: Authorization: Bearer <token>
- * Response: void (204 No Content)
+ * @param alertId - UUID of the alert
+ * @returns void (204 No Content)
  */
 export const deletePriceAlert = async (alertId: string): Promise<void> => {
-  return apiFetch<void>(`/api/alerts/${alertId}`, {
+  return apiFetch<void>(`/api/price-alerts/${alertId}`, {
     method: 'DELETE',
     requireAuth: true,
   });
 };
 
 // ============================================================================
+// Earnings Calendar
+// ============================================================================
+
+/**
+ * Get upcoming earnings for all stocks
+ * Backend returns earnings for next 90 days
+ * @returns Array of upcoming earnings
+ */
+export const getUpcomingEarnings = async (): Promise<EarningsDTO[]> => {
+  return apiFetch<EarningsDTO[]>('/api/earnings/upcoming', {
+    method: 'GET',
+    requireAuth: false, // Public endpoint
+  });
+};
+
+/**
+ * Get earnings for a specific stock
+ * @param stockId - UUID of the stock
+ * @returns Array of earnings for the stock
+ */
+export const getStockEarnings = async (
+  stockId: string
+): Promise<EarningsDTO[]> => {
+  return apiFetch<EarningsDTO[]>(`/api/earnings/by-stock/${stockId}`, {
+    method: 'GET',
+    requireAuth: false, // Public endpoint
+  });
+};
+
+// ============================================================================
+// Backward Compatibility Aliases
+// ============================================================================
+
+/**
+ * Get dashboard summary (alias for getUserDashboard)
+ * For backward compatibility with original service design
+ * @param userId - UUID of the user
+ * @returns Complete dashboard data
+ */
+export const getDashboardSummary = getUserDashboard;
+
+/**
+ * Get sector allocation (alias for getUserAllocation)
+ * For backward compatibility
+ * @param userId - UUID of the user
+ * @returns Allocation breakdown
+ */
+export const getSectorAllocation = getUserAllocation;
+
+/**
+ * Get portfolio performance (alias for getUserPerformance)
+ * For backward compatibility
+ * @param userId - UUID of the user
+ * @returns Performance metrics
+ */
+export const getPortfolioPerformance = getUserPerformance;
+
+// ============================================================================
 // Helper Functions
 // ============================================================================
 
 /**
- * Calculate sector allocation from holdings
- * Client-side helper for when backend endpoint isn't available
+ * Calculate total portfolio value from overview
  */
-export const calculateSectorAllocationFromHoldings = (
-  holdings: PortfolioHolding[]
-): SectorAllocation[] => {
-  const totalValue = holdings.reduce((sum, h) => sum + h.totalValue, 0);
-
-  // Group by sector (you'd need sector data in holdings)
-  const sectorMap = new Map<string, { value: number; gain: number }>();
-
-  holdings.forEach((holding) => {
-    // NOTE: This assumes holdings have a 'sector' property
-    // You may need to fetch this from company profile
-    const sector = 'Unknown'; // Placeholder
-
-    const current = sectorMap.get(sector) || { value: 0, gain: 0 };
-    sectorMap.set(sector, {
-      value: current.value + holding.totalValue,
-      gain: current.gain + holding.totalGain,
-    });
-  });
-
-  return Array.from(sectorMap.entries()).map(([sector, data]) => ({
-    sector,
-    value: data.value,
-    percentage: (data.value / totalValue) * 100,
-    change: data.gain,
-    changePercent: data.value > 0 ? (data.gain / (data.value - data.gain)) * 100 : 0,
-  }));
+export const getTotalValue = (overview: PortfolioOverviewDTO): number => {
+  return overview.totalPortfolioValue + overview.cashBalance;
 };
 
 /**
- * Sort holdings by performance
+ * Calculate total gain (realized + unrealized)
  */
-export const sortHoldingsByPerformance = (
-  holdings: PortfolioHolding[],
-  direction: 'gainers' | 'losers' = 'gainers'
-): PortfolioHolding[] => {
-  return [...holdings].sort((a, b) => {
-    if (direction === 'gainers') {
-      return b.totalGainPercent - a.totalGainPercent;
-    } else {
-      return a.totalGainPercent - b.totalGainPercent;
+export const getTotalGain = (overview: PortfolioOverviewDTO): number => {
+  return overview.totalRealizedGain + overview.totalUnrealizedGain;
+};
+
+/**
+ * Calculate total gain percentage
+ */
+export const getTotalGainPercent = (overview: PortfolioOverviewDTO): number => {
+  if (overview.totalCostBasis === 0) return 0;
+  const totalGain = getTotalGain(overview);
+  return (totalGain / overview.totalCostBasis) * 100;
+};
+
+/**
+ * Get top holdings by value
+ */
+export const getTopHoldingsByValue = (
+  overview: PortfolioOverviewDTO,
+  limit: number = 5
+) => {
+  return [...overview.holdings]
+    .sort((a, b) => b.currentValue - a.currentValue)
+    .slice(0, limit);
+};
+
+/**
+ * Get top gainers (by unrealized gain percent)
+ */
+export const getTopGainers = (
+  overview: PortfolioOverviewDTO,
+  limit: number = 5
+) => {
+  return [...overview.holdings]
+    .sort((a, b) => b.unrealizedGainPercent - a.unrealizedGainPercent)
+    .slice(0, limit);
+};
+
+/**
+ * Get top losers (by unrealized gain percent)
+ */
+export const getTopLosers = (
+  overview: PortfolioOverviewDTO,
+  limit: number = 5
+) => {
+  return [...overview.holdings]
+    .sort((a, b) => a.unrealizedGainPercent - b.unrealizedGainPercent)
+    .slice(0, limit);
+};
+
+/**
+ * Filter active price alerts
+ */
+export const getActivePriceAlerts = (alerts: PriceAlertDTO[]): PriceAlertDTO[] => {
+  return alerts.filter((alert) => alert.isActive);
+};
+
+/**
+ * Filter triggered price alerts
+ */
+export const getTriggeredPriceAlerts = (
+  alerts: PriceAlertDTO[]
+): PriceAlertDTO[] => {
+  return alerts.filter((alert) => alert.triggeredAt !== undefined);
+};
+
+/**
+ * Group price alerts by stock
+ */
+export const groupAlertsByStock = (
+  alerts: PriceAlertDTO[]
+): Record<string, PriceAlertDTO[]> => {
+  return alerts.reduce((grouped, alert) => {
+    const stockId = alert.stockId;
+    if (!grouped[stockId]) {
+      grouped[stockId] = [];
     }
+    grouped[stockId].push(alert);
+    return grouped;
+  }, {} as Record<string, PriceAlertDTO[]>);
+};
+
+/**
+ * Filter earnings by date range
+ */
+export const filterEarningsByDateRange = (
+  earnings: EarningsDTO[],
+  startDate: Date,
+  endDate: Date
+): EarningsDTO[] => {
+  return earnings.filter((earning) => {
+    const earningDate = new Date(earning.earningsDate);
+    return earningDate >= startDate && earningDate <= endDate;
   });
+};
+
+/**
+ * Get earnings for next N days
+ */
+export const getEarningsForNextDays = async (
+  days: number = 7
+): Promise<EarningsDTO[]> => {
+  const allEarnings = await getUpcomingEarnings();
+  const today = new Date();
+  const futureDate = new Date();
+  futureDate.setDate(today.getDate() + days);
+
+  return filterEarningsByDateRange(allEarnings, today, futureDate);
+};
+
+/**
+ * Sort earnings by date (ascending - soonest first)
+ */
+export const sortEarningsByDate = (
+  earnings: EarningsDTO[]
+): EarningsDTO[] => {
+  return [...earnings].sort((a, b) => {
+    const dateA = new Date(a.earningsDate).getTime();
+    const dateB = new Date(b.earningsDate).getTime();
+    return dateA - dateB;
+  });
+};
+
+/**
+ * Group earnings by date
+ */
+export const groupEarningsByDate = (
+  earnings: EarningsDTO[]
+): Record<string, EarningsDTO[]> => {
+  return earnings.reduce((grouped, earning) => {
+    const date = earning.earningsDate;
+    if (!grouped[date]) {
+      grouped[date] = [];
+    }
+    grouped[date].push(earning);
+    return grouped;
+  }, {} as Record<string, EarningsDTO[]>);
 };
