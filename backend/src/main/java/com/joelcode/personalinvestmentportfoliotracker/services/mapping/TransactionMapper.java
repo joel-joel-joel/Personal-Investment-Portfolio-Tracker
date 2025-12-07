@@ -40,7 +40,8 @@ public class TransactionMapper {
                 transaction.getAccount() != null ? transaction.getAccount().getAccountId() : null,
                 transaction.getShareQuantity(),
                 transaction.getPricePerShare(),
-                transaction.getTransactionType()
+                transaction.getTransactionType(),
+                transaction.getCreatedAt()
         );
     }
 }
