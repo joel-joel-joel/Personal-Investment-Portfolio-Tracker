@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
     View,
     Text,
@@ -6,10 +6,14 @@ import {
     TouchableOpacity,
     useColorScheme,
     ScrollView,
+    ActivityIndicator,
+    RefreshControl,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { getThemeColors } from '@/src/constants/colors';
 import { useRouter } from 'expo-router';
+import { useAuth } from '@/src/context/AuthContext';
+import { getAccountTransactions } from '@/src/services/portfolioService';
 
 interface Transaction {
     id: string;
@@ -31,98 +35,6 @@ const sectorColors: Record<string, { color: string; bgLight: string }> = {
     'Healthcare': { color: '#BE123C', bgLight: '#FFE4E6' },
     'Markets': { color: '#7C3AED', bgLight: '#F5F3FF' },
 };
-
-// Mock transaction data
-const mockTransactions: Transaction[] = [
-    {
-        id: '1',
-        symbol: 'AAPL',
-        name: 'Apple Inc.',
-        type: 'buy',
-        shares: 50,
-        price: 145.32,
-        total: 7266.00,
-        date: '2024-12-01',
-        sector: 'Technology',
-    },
-    {
-        id: '2',
-        symbol: 'NVDA',
-        name: 'NVIDIA Corporation',
-        type: 'buy',
-        shares: 30,
-        price: 495.22,
-        total: 14856.60,
-        date: '2024-11-28',
-        sector: 'Semiconductors',
-    },
-    {
-        id: '3',
-        symbol: 'MSFT',
-        name: 'Microsoft Corporation',
-        type: 'buy',
-        shares: 25,
-        price: 378.91,
-        total: 9472.75,
-        date: '2024-11-25',
-        sector: 'Technology',
-    },
-    {
-        id: '4',
-        symbol: 'TSLA',
-        name: 'Tesla Inc.',
-        type: 'sell',
-        shares: 10,
-        price: 242.84,
-        total: 2428.40,
-        date: '2024-11-20',
-        sector: 'Consumer/Tech',
-    },
-    {
-        id: '5',
-        symbol: 'GOOGL',
-        name: 'Alphabet Inc.',
-        type: 'buy',
-        shares: 40,
-        price: 139.57,
-        total: 5582.80,
-        date: '2024-11-18',
-        sector: 'Technology',
-    },
-    {
-        id: '6',
-        symbol: 'AMD',
-        name: 'Advanced Micro Devices',
-        type: 'buy',
-        shares: 60,
-        price: 122.45,
-        total: 7347.00,
-        date: '2024-11-15',
-        sector: 'Semiconductors',
-    },
-    {
-        id: '7',
-        symbol: 'AMZN',
-        name: 'Amazon.com Inc.',
-        type: 'buy',
-        shares: 35,
-        price: 173.12,
-        total: 6059.20,
-        date: '2024-11-10',
-        sector: 'Consumer/Tech',
-    },
-    {
-        id: '8',
-        symbol: 'TSLA',
-        name: 'Tesla Inc.',
-        type: 'buy',
-        shares: 20,
-        price: 238.50,
-        total: 4770.00,
-        date: '2024-11-05',
-        sector: 'Consumer/Tech',
-    },
-];
 
 type SortOption = 'date' | 'symbol' | 'type' | 'amount';
 type FilterOption = 'all' | 'buy' | 'sell';
@@ -260,15 +172,72 @@ const TransactionCard = ({ transaction, colors }: { transaction: Transaction; co
 export default function TransactionHistory({ stockSymbol, showHeader = true }: TransactionHistoryProps) {
     const colorScheme = useColorScheme();
     const Colors = getThemeColors(colorScheme);
+    const { user, activeAccount } = useAuth();
 
+    const [transactions, setTransactions] = useState<Transaction[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const [sortBy, setSortBy] = useState<SortOption>('date');
     const [filterBy, setFilterBy] = useState<FilterOption>('all');
     const [showFilters, setShowFilters] = useState(false);
 
+    // Fetch transactions from backend
+    const fetchTransactions = useCallback(async () => {
+        if (!user || !activeAccount) {
+            setTransactions([]);
+            setLoading(false);
+            return;
+        }
+
+        try {
+            setError(null);
+            const data = await getAccountTransactions(activeAccount.accountId);
+
+            // Transform backend data to component format
+            // TODO: Map stockId to actual stock symbol and name from stock service
+            const transformedData: Transaction[] = data.map((item, index) => {
+                const total = item.shareQuantity * item.pricePerShare;
+
+                return {
+                    id: item.transactionId,
+                    symbol: item.stockId, // TODO: Map to actual symbol
+                    name: `Company ${index + 1}`, // TODO: Fetch from stock service
+                    type: item.transactionType === 'BUY' ? 'buy' : 'sell',
+                    shares: item.shareQuantity,
+                    price: item.pricePerShare,
+                    total: total,
+                    date: new Date().toISOString().split('T')[0], // TODO: Get actual date from backend
+                    sector: 'Technology', // TODO: Fetch from stock service
+                };
+            });
+
+            setTransactions(transformedData);
+        } catch (error: any) {
+            console.error('Failed to fetch transactions:', error);
+            setError(error.message || 'Failed to load transactions');
+        } finally {
+            setLoading(false);
+            setRefreshing(false);
+        }
+    }, [user, activeAccount]);
+
+    // Initial fetch and refetch when account changes
+    useEffect(() => {
+        setLoading(true);
+        fetchTransactions();
+    }, [fetchTransactions]);
+
+    // Pull to refresh
+    const onRefresh = useCallback(() => {
+        setRefreshing(true);
+        fetchTransactions();
+    }, [fetchTransactions]);
+
     // Filter transactions by stock symbol if provided
     const filteredByStock = stockSymbol
-        ? mockTransactions.filter(t => t.symbol === stockSymbol)
-        : mockTransactions;
+        ? transactions.filter(t => t.symbol === stockSymbol)
+        : transactions;
 
     // Apply type filter and sort
     const processedTransactions = useMemo(() => {
@@ -311,61 +280,119 @@ export default function TransactionHistory({ stockSymbol, showHeader = true }: T
         return { totalBuy, totalSell, netAmount, count: processedTransactions.length };
     }, [processedTransactions]);
 
+    // Loading state
+    if (loading) {
+        return (
+            <View style={[styles.container, styles.centerContent]}>
+                <ActivityIndicator size="large" color={Colors.tint} />
+                <Text style={[styles.loadingText, { color: Colors.text, marginTop: 16 }]}>
+                    Loading transactions...
+                </Text>
+            </View>
+        );
+    }
+
+    // Error state
+    if (error) {
+        return (
+            <View style={[styles.container, styles.centerContent, { paddingHorizontal: 24 }]}>
+                <MaterialCommunityIcons
+                    name="alert-circle-outline"
+                    size={56}
+                    color={Colors.text}
+                    style={{ opacity: 0.3, marginBottom: 16 }}
+                />
+                <Text style={[styles.errorTitle, { color: Colors.text, marginBottom: 8 }]}>
+                    Failed to Load Transactions
+                </Text>
+                <Text style={[styles.errorSubtitle, { color: Colors.text, opacity: 0.6, marginBottom: 24, textAlign: 'center' }]}>
+                    {error}
+                </Text>
+                <TouchableOpacity
+                    onPress={() => {
+                        setLoading(true);
+                        fetchTransactions();
+                    }}
+                    style={[styles.retryButton, { backgroundColor: Colors.tint }]}
+                >
+                    <MaterialCommunityIcons name="refresh" size={20} color="white" />
+                    <Text style={styles.retryButtonText}>Retry</Text>
+                </TouchableOpacity>
+            </View>
+        );
+    }
+
     return (
-        <View style={styles.container}>
+        <ScrollView
+            style={styles.scrollContainer}
+            contentContainerStyle={styles.container}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+                <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={onRefresh}
+                    tintColor={Colors.tint}
+                    colors={[Colors.tint]}
+                />
+            }
+        >
             {showHeader && (
                 <>
                     {/* Summary Stats */}
-                    <View style={[styles.statsContainer, { backgroundColor: Colors.card, borderColor: Colors.border }]}>
-                        <View style={styles.statBlock}>
-                            <Text style={[styles.statLabel, { color: Colors.text, opacity: 0.6 }]}>
-                                Total Transactions
-                            </Text>
-                            <Text style={[styles.statValue, { color: Colors.text }]}>
-                                {stats.count}
-                            </Text>
+                    {transactions.length > 0 && (
+                        <View style={[styles.statsContainer, { backgroundColor: Colors.card, borderColor: Colors.border }]}>
+                            <View style={styles.statBlock}>
+                                <Text style={[styles.statLabel, { color: Colors.text, opacity: 0.6 }]}>
+                                    Total Transactions
+                                </Text>
+                                <Text style={[styles.statValue, { color: Colors.text }]}>
+                                    {stats.count}
+                                </Text>
+                            </View>
+                            <View style={[styles.statDivider, { backgroundColor: Colors.border }]} />
+                            <View style={styles.statBlock}>
+                                <Text style={[styles.statLabel, { color: Colors.text, opacity: 0.6 }]}>
+                                    Total Bought
+                                </Text>
+                                <Text style={[styles.statValue, { color: '#C62828' }]}>
+                                    A${stats.totalBuy.toLocaleString('en-AU', { minimumFractionDigits: 2 })}
+                                </Text>
+                            </View>
+                            <View style={[styles.statDivider, { backgroundColor: Colors.border }]} />
+                            <View style={styles.statBlock}>
+                                <Text style={[styles.statLabel, { color: Colors.text, opacity: 0.6 }]}>
+                                    Total Sold
+                                </Text>
+                                <Text style={[styles.statValue, { color: '#2E7D32' }]}>
+                                    A${stats.totalSell.toLocaleString('en-AU', { minimumFractionDigits: 2 })}
+                                </Text>
+                            </View>
                         </View>
-                        <View style={[styles.statDivider, { backgroundColor: Colors.border }]} />
-                        <View style={styles.statBlock}>
-                            <Text style={[styles.statLabel, { color: Colors.text, opacity: 0.6 }]}>
-                                Total Bought
-                            </Text>
-                            <Text style={[styles.statValue, { color: '#C62828' }]}>
-                                A${stats.totalBuy.toLocaleString('en-AU', { minimumFractionDigits: 2 })}
-                            </Text>
-                        </View>
-                        <View style={[styles.statDivider, { backgroundColor: Colors.border }]} />
-                        <View style={styles.statBlock}>
-                            <Text style={[styles.statLabel, { color: Colors.text, opacity: 0.6 }]}>
-                                Total Sold
-                            </Text>
-                            <Text style={[styles.statValue, { color: '#2E7D32' }]}>
-                                A${stats.totalSell.toLocaleString('en-AU', { minimumFractionDigits: 2 })}
-                            </Text>
-                        </View>
-                    </View>
+                    )}
 
                     {/* Filter and Sort Controls */}
-                    <View style={styles.controlsContainer}>
-                        <TouchableOpacity
-                            onPress={() => setShowFilters(!showFilters)}
-                            style={[styles.filterButton, { backgroundColor: Colors.card, borderColor: Colors.border }]}
-                        >
-                            <MaterialCommunityIcons
-                                name="filter-variant"
-                                size={16}
-                                color={Colors.tint}
-                            />
-                            <Text style={[styles.filterButtonText, { color: Colors.tint }]}>
-                                Filter & Sort
-                            </Text>
-                            <MaterialCommunityIcons
-                                name={showFilters ? 'chevron-up' : 'chevron-down'}
-                                size={16}
-                                color={Colors.tint}
-                            />
-                        </TouchableOpacity>
-                    </View>
+                    {transactions.length > 0 && (
+                        <View style={styles.controlsContainer}>
+                            <TouchableOpacity
+                                onPress={() => setShowFilters(!showFilters)}
+                                style={[styles.filterButton, { backgroundColor: Colors.card, borderColor: Colors.border }]}
+                            >
+                                <MaterialCommunityIcons
+                                    name="filter-variant"
+                                    size={16}
+                                    color={Colors.tint}
+                                />
+                                <Text style={[styles.filterButtonText, { color: Colors.tint }]}>
+                                    Filter & Sort
+                                </Text>
+                                <MaterialCommunityIcons
+                                    name={showFilters ? 'chevron-up' : 'chevron-down'}
+                                    size={16}
+                                    color={Colors.tint}
+                                />
+                            </TouchableOpacity>
+                        </View>
+                    )}
 
                     {showFilters && (
                         <View style={[styles.filtersPanel, { backgroundColor: Colors.card, borderColor: Colors.border }]}>
@@ -451,7 +478,7 @@ export default function TransactionHistory({ stockSymbol, showHeader = true }: T
                             style={{ opacity: 0.3 }}
                         />
                         <Text style={[styles.emptyText, { color: Colors.text, opacity: 0.6 }]}>
-                            {stockSymbol ? `No transactions for ${stockSymbol}` : 'No transactions found'}
+                            {stockSymbol ? `No transactions for ${stockSymbol}` : 'No transactions yet'}
                         </Text>
                     </View>
                 ) : (
@@ -464,13 +491,22 @@ export default function TransactionHistory({ stockSymbol, showHeader = true }: T
                     ))
                 )}
             </View>
-        </View>
+        </ScrollView>
     );
 }
 
 const styles = StyleSheet.create({
+    scrollContainer: {
+        flex: 1,
+    },
     container: {
         gap: 16,
+        paddingBottom: 24,
+    },
+    centerContent: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     statsContainer: {
         flexDirection: 'row',
@@ -646,5 +682,30 @@ const styles = StyleSheet.create({
     emptyText: {
         fontSize: 13,
         fontWeight: '600',
+    },
+    loadingText: {
+        fontSize: 14,
+        fontWeight: '600',
+    },
+    errorTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+    },
+    errorSubtitle: {
+        fontSize: 14,
+        fontWeight: '500',
+    },
+    retryButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        paddingHorizontal: 24,
+        paddingVertical: 12,
+        borderRadius: 10,
+    },
+    retryButtonText: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: 'white',
     },
 });

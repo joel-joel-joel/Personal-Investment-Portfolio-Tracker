@@ -163,6 +163,41 @@ const SearchResultCard = ({
     const router = useRouter();
     const isPositive = stock.changePercent >= 0;
 
+    const handleNavigateToStock = () => {
+        // Build stock data object for the ticker page
+        const stockData = {
+            symbol: stock.symbol,
+            name: stock.name,
+            price: stock.price,
+            change: stock.change,
+            changePercent: stock.changePercent,
+            sector: stock.sector,
+            marketCap: stock.marketCap,
+            peRatio: '0',
+            dividend: '0',
+            dayHigh: 0,
+            dayLow: 0,
+            yearHigh: 0,
+            yearLow: 0,
+            description: '',
+            employees: '',
+            founded: '',
+            website: '',
+            nextEarningsDate: '',
+            nextDividendDate: '',
+            earningsPerShare: '',
+        };
+
+        // Navigate to stock ticker page
+        router.push({
+            pathname: '/stock/[ticker]',
+            params: {
+                ticker: stock.symbol,
+                stock: JSON.stringify(stockData),
+            },
+        });
+    };
+
     const handleBuyStock = () => {
         const stockData = {
             symbol: stock.symbol,
@@ -197,6 +232,7 @@ const SearchResultCard = ({
 
     return (
         <TouchableOpacity
+            onPress={handleNavigateToStock}
             style={[
                 styles.resultCard,
                 {

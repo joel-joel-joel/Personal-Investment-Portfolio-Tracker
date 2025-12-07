@@ -46,51 +46,6 @@ const chartColors = [
 
 const screenWidth = Dimensions.get('window').width - 48;
 
-const defaultHoldings: Holding[] = [
-    {
-        id: '1',
-        symbol: 'AAPL',
-        company: 'Apple Inc.',
-        currentValue: 8250,
-        sector: 'Technology',
-    },
-    {
-        id: '2',
-        symbol: 'MSFT',
-        company: 'Microsoft Corporation',
-        currentValue: 11400,
-        sector: 'Technology',
-    },
-    {
-        id: '3',
-        symbol: 'NVDA',
-        company: 'NVIDIA Corporation',
-        currentValue: 13380,
-        sector: 'Semiconductors',
-    },
-    {
-        id: '4',
-        symbol: 'TSLA',
-        company: 'Tesla Inc.',
-        currentValue: 4905,
-        sector: 'Consumer/Tech',
-    },
-    {
-        id: '5',
-        symbol: 'GOOGL',
-        company: 'Alphabet Inc.',
-        currentValue: 3507.50,
-        sector: 'Technology',
-    },
-    {
-        id: '6',
-        symbol: 'AMD',
-        company: 'Advanced Micro Devices',
-        currentValue: 2520,
-        sector: 'Semiconductors',
-    },
-];
-
 // Helper function to create pie slice path
 const createPiePath = (
     centerX: number,
@@ -131,7 +86,7 @@ const createPiePath = (
 };
 
 export const AllocationOverview: React.FC<AllocationOverviewProps> = ({
-                                                                          holdings = defaultHoldings,
+                                                                          holdings = [],
                                                                       }) => {
     const colorScheme = useColorScheme();
     const Colors = getThemeColors(colorScheme);
@@ -178,6 +133,33 @@ export const AllocationOverview: React.FC<AllocationOverviewProps> = ({
             color: chartColors[index % chartColors.length],
         };
     });
+
+    // Empty state
+    if (holdings.length === 0) {
+        return (
+            <View style={[styles.container, { backgroundColor: Colors.background }]}>
+                <View style={styles.header}>
+                    <Text style={[styles.title, { color: Colors.text }]}>
+                        Allocation Overview
+                    </Text>
+                </View>
+                <View style={[styles.emptyState, { backgroundColor: Colors.card, borderColor: Colors.border }]}>
+                    <MaterialCommunityIcons
+                        name="chart-donut"
+                        size={56}
+                        color={Colors.text}
+                        style={{ opacity: 0.3, marginBottom: 16 }}
+                    />
+                    <Text style={[styles.emptyTitle, { color: Colors.text }]}>
+                        No allocation data
+                    </Text>
+                    <Text style={[styles.emptySubtitle, { color: Colors.text, opacity: 0.6 }]}>
+                        Start investing to see your portfolio allocation
+                    </Text>
+                </View>
+            </View>
+        );
+    }
 
     return (
         <View style={[styles.container, { backgroundColor: Colors.background }]}>
@@ -491,5 +473,22 @@ const styles = StyleSheet.create({
     detailPercent: {
         fontSize: 11,
         fontWeight: '600',
+    },
+    emptyState: {
+        borderWidth: 1,
+        borderRadius: 12,
+        paddingVertical: 60,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    emptyTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        marginBottom: 8,
+    },
+    emptySubtitle: {
+        fontSize: 13,
+        textAlign: 'center',
+        paddingHorizontal: 24,
     },
 });

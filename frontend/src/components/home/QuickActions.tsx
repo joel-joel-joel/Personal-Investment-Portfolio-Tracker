@@ -26,10 +26,16 @@ interface QuickActionsRowProps {
 // We'll create this inside the component to access router
 const createDefaultActions = (router: any): QuickAction[] => [
     {
-        id: 'add-transaction',
-        label: 'Add Transaction',
+        id: 'add-to-wallet',
+        label: 'Add to Wallet',
         icon: 'plus-circle',
-        onPress: () => router.push('/transaction/buy'),
+        onPress: () => {
+            // Navigate to profile tab with wallet parameter
+            router.push({
+                pathname: '/(tabs)/profile',
+                params: { openWallet: 'true' }
+            });
+        },
     },
     {
         id: 'watchlist',

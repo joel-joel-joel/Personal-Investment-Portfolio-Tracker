@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     View,
     Text,
@@ -8,9 +8,14 @@ import {
     useColorScheme,
     Image,
     Dimensions,
+    ActivityIndicator,
+    RefreshControl,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { getThemeColors } from '../../constants/colors';
+import { useRouter } from 'expo-router';
+import { useAuth } from '@/src/context/AuthContext';
+import { getAccountHoldings } from '@/src/services/portfolioService';
 
 interface Holding {
     id: string;
@@ -28,6 +33,7 @@ interface Holding {
 interface HoldingsListProps {
     holdings?: Holding[];
     onHoldingPress?: (holding: Holding) => void;
+    onRefresh?: () => void;
 }
 
 const sectorColors = {
@@ -50,14 +56,51 @@ const HoldingCard = ({
     onPress?: () => void;
     sectorColor: any;
 }) => {
+    const router = useRouter();
     const [isExpanded, setIsExpanded] = React.useState(true);
     const isPositive = holding.returnPercent >= 0;
     const costPerShare = holding.amountInvested / holding.shares;
     const currentPerShare = holding.currentValue / holding.shares;
 
+    const handleNavigateToStock = () => {
+        // Build stock data object for the ticker page
+        const stockData = {
+            symbol: holding.symbol,
+            name: holding.company,
+            price: currentPerShare,
+            change: holding.returnAmount / holding.shares, // Per share change
+            changePercent: holding.returnPercent,
+            sector: holding.sector,
+            marketCap: '0',
+            peRatio: '0',
+            dividend: '0',
+            dayHigh: currentPerShare,
+            dayLow: currentPerShare,
+            yearHigh: 0,
+            yearLow: 0,
+            description: '',
+            employees: '',
+            founded: '',
+            website: '',
+            nextEarningsDate: '',
+            nextDividendDate: '',
+            earningsPerShare: '',
+        };
+
+        // Navigate to stock ticker page
+        router.push({
+            pathname: '/stock/[ticker]',
+            params: {
+                ticker: holding.symbol,
+                stock: JSON.stringify(stockData),
+            },
+        });
+    };
+
     return (
         <TouchableOpacity
-            onPress={() => setIsExpanded(!isExpanded)}
+            onPress={handleNavigateToStock}
+            onLongPress={() => setIsExpanded(!isExpanded)}
             activeOpacity={0.7}
             style={[
                 styles.holdingCard,
@@ -192,18 +235,94 @@ const HoldingCard = ({
 };
 
 export const HoldingsList: React.FC<HoldingsListProps> = ({
-                                                              holdings = defaultHoldings,
+                                                              holdings: providedHoldings,
                                                               onHoldingPress,
+                                                              onRefresh: onRefreshCallback,
                                                           }) => {
     const colorScheme = useColorScheme();
     const Colors = getThemeColors(colorScheme);
+    const { user, activeAccount } = useAuth();
+
+    const [internalHoldings, setInternalHoldings] = useState<Holding[]>([]);
+    const [loading, setLoading] = useState(!providedHoldings);
+    const [refreshing, setRefreshing] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const [sortBy, setSortBy] = useState<'value' | 'return' | 'invested'>('value');
+
+    // Use provided holdings if available, otherwise fetch
+    const holdings = providedHoldings || internalHoldings;
+
+    // Fetch holdings from backend (only if not provided)
+    const fetchHoldings = useCallback(async () => {
+        if (providedHoldings) return; // Skip if holdings are provided by parent
+
+        if (!user || !activeAccount) {
+            setInternalHoldings([]);
+            setLoading(false);
+            return;
+        }
+
+        try {
+            setError(null);
+            const data = await getAccountHoldings(activeAccount.accountId);
+
+            // Transform backend data to component format
+            // TODO: Replace with actual stock price data from stock service
+            const transformedData: Holding[] = data.map((item, index) => {
+                // Use backend-calculated values
+                const currentValue = item.currentValue || (item.quantity * item.currentPrice);
+                const amountInvested = item.totalCostBasis;
+                const returnAmount = item.unrealizedGain;
+                const returnPercent = item.unrealizedGainPercent;
+
+                return {
+                    id: item.holdingId,
+                    symbol: item.stockSymbol,
+                    company: item.stockSymbol, // TODO: Fetch company name from stock service
+                    shares: item.quantity,
+                    amountInvested,
+                    currentValue,
+                    returnAmount,
+                    returnPercent,
+                    sector: 'Technology', // TODO: Fetch from stock service
+                };
+            });
+
+            setInternalHoldings(transformedData);
+        } catch (error: any) {
+            console.error('Failed to fetch holdings:', error);
+            setError(error.message || 'Failed to load holdings');
+        } finally {
+            setLoading(false);
+            setRefreshing(false);
+        }
+    }, [user, activeAccount, providedHoldings]);
+
+    // Initial fetch and refetch when account changes (only if not provided)
+    useEffect(() => {
+        if (!providedHoldings) {
+            setLoading(true);
+            fetchHoldings();
+        }
+    }, [fetchHoldings, providedHoldings]);
+
+    // Pull to refresh
+    const onRefresh = useCallback(() => {
+        setRefreshing(true);
+        if (onRefreshCallback) {
+            onRefreshCallback();
+            // Reset refreshing after a delay
+            setTimeout(() => setRefreshing(false), 1000);
+        } else {
+            fetchHoldings();
+        }
+    }, [fetchHoldings, onRefreshCallback]);
 
     // Calculate totals
     const totalInvested = holdings.reduce((sum, h) => sum + h.amountInvested, 0);
     const totalValue = holdings.reduce((sum, h) => sum + h.currentValue, 0);
     const totalReturn = totalValue - totalInvested;
-    const totalReturnPercent = (totalReturn / totalInvested) * 100;
+    const totalReturnPercent = totalInvested > 0 ? (totalReturn / totalInvested) * 100 : 0;
 
     // Sort holdings
     const sortedHoldings = [...holdings].sort((a, b) => {
@@ -219,6 +338,48 @@ export const HoldingsList: React.FC<HoldingsListProps> = ({
         }
     });
 
+    // Loading state
+    if (loading) {
+        return (
+            <View style={[styles.container, { backgroundColor: Colors.background, alignItems: 'center', justifyContent: 'center' }]}>
+                <ActivityIndicator size="large" color={Colors.tint} />
+                <Text style={[styles.loadingText, { color: Colors.text, marginTop: 16 }]}>
+                    Loading holdings...
+                </Text>
+            </View>
+        );
+    }
+
+    // Error state
+    if (error) {
+        return (
+            <View style={[styles.container, { backgroundColor: Colors.background, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 }]}>
+                <MaterialCommunityIcons
+                    name="alert-circle-outline"
+                    size={56}
+                    color={Colors.text}
+                    style={{ opacity: 0.3, marginBottom: 16 }}
+                />
+                <Text style={[styles.errorTitle, { color: Colors.text, marginBottom: 8 }]}>
+                    Failed to Load Holdings
+                </Text>
+                <Text style={[styles.errorSubtitle, { color: Colors.text, opacity: 0.6, marginBottom: 24, textAlign: 'center' }]}>
+                    {error}
+                </Text>
+                <TouchableOpacity
+                    onPress={() => {
+                        setLoading(true);
+                        fetchHoldings();
+                    }}
+                    style={[styles.retryButton, { backgroundColor: Colors.tint }]}
+                >
+                    <MaterialCommunityIcons name="refresh" size={20} color="white" />
+                    <Text style={styles.retryButtonText}>Retry</Text>
+                </TouchableOpacity>
+            </View>
+        );
+    }
+
     return (
         <View style={[styles.container, { backgroundColor: Colors.background }]}>
             {/* Header */}
@@ -232,169 +393,143 @@ export const HoldingsList: React.FC<HoldingsListProps> = ({
             </View>
 
             {/* Summary Card */}
-            <View style={[styles.summaryCard, { backgroundColor: Colors.card, borderColor: Colors.border }]}>
-                <View style={styles.summaryRow}>
-                    <View style={styles.summaryItem}>
-                        <Text style={[styles.summaryLabel, { color: Colors.text, opacity: 0.6 }]}>
-                            Total Invested
-                        </Text>
-                        <Text style={[styles.summaryValue, { color: Colors.text }]}>
-                            A${totalInvested.toLocaleString('en-AU', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-                        </Text>
-                    </View>
-
-                    <View style={[styles.summarySeparator, { backgroundColor: Colors.border }]} />
-
-                    <View style={styles.summaryItem}>
-                        <Text style={[styles.summaryLabel, { color: Colors.text, opacity: 0.6 }]}>
-                            Current Value
-                        </Text>
-                        <Text style={[styles.summaryValue, { color: Colors.text }]}>
-                            A${totalValue.toLocaleString('en-AU', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-                        </Text>
-                    </View>
-
-                    <View style={[styles.summarySeparator, { backgroundColor: Colors.border }]} />
-
-                    <View style={styles.summaryItem}>
-                        <Text style={[styles.summaryLabel, { color: Colors.text, opacity: 0.6 }]}>
-                            Total Return
-                        </Text>
-                        <View style={styles.returnBadge}>
-                            <MaterialCommunityIcons
-                                name={totalReturn >= 0 ? 'trending-up' : 'trending-down'}
-                                size={14}
-                                color={totalReturn >= 0 ? '#2E7D32' : '#C62828'}
-                            />
-                            <Text style={[
-                                styles.summaryReturn,
-                                { color: totalReturn >= 0 ? '#2E7D32' : '#C62828' }
-                            ]}>
-                                {totalReturn >= 0 ? '+' : ''}A${Math.abs(totalReturn).toLocaleString('en-AU', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} ({totalReturnPercent.toFixed(2)}%)
+            {holdings.length > 0 && (
+                <View style={[styles.summaryCard, { backgroundColor: Colors.card, borderColor: Colors.border }]}>
+                    <View style={styles.summaryRow}>
+                        <View style={styles.summaryItem}>
+                            <Text style={[styles.summaryLabel, { color: Colors.text, opacity: 0.6 }]}>
+                                Total Invested
                             </Text>
+                            <Text style={[styles.summaryValue, { color: Colors.text }]}>
+                                A${totalInvested.toLocaleString('en-AU', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                            </Text>
+                        </View>
+
+                        <View style={[styles.summarySeparator, { backgroundColor: Colors.border }]} />
+
+                        <View style={styles.summaryItem}>
+                            <Text style={[styles.summaryLabel, { color: Colors.text, opacity: 0.6 }]}>
+                                Current Value
+                            </Text>
+                            <Text style={[styles.summaryValue, { color: Colors.text }]}>
+                                A${totalValue.toLocaleString('en-AU', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                            </Text>
+                        </View>
+
+                        <View style={[styles.summarySeparator, { backgroundColor: Colors.border }]} />
+
+                        <View style={styles.summaryItem}>
+                            <Text style={[styles.summaryLabel, { color: Colors.text, opacity: 0.6 }]}>
+                                Total Return
+                            </Text>
+                            <View style={styles.returnBadge}>
+                                <MaterialCommunityIcons
+                                    name={totalReturn >= 0 ? 'trending-up' : 'trending-down'}
+                                    size={14}
+                                    color={totalReturn >= 0 ? '#2E7D32' : '#C62828'}
+                                />
+                                <Text style={[
+                                    styles.summaryReturn,
+                                    { color: totalReturn >= 0 ? '#2E7D32' : '#C62828' }
+                                ]}>
+                                    {totalReturn >= 0 ? '+' : ''}A${Math.abs(totalReturn).toLocaleString('en-AU', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} ({totalReturnPercent.toFixed(2)}%)
+                                </Text>
+                            </View>
                         </View>
                     </View>
                 </View>
-            </View>
+            )}
 
             {/* Sort Options */}
-            <View style={styles.sortContainer}>
-                {(['value', 'return', 'invested'] as const).map((option) => (
-                    <TouchableOpacity
-                        key={option}
-                        onPress={() => setSortBy(option)}
-                        style={[
-                            styles.sortButton,
-                            sortBy === option && [
-                                styles.sortButtonActive,
-                                { backgroundColor: Colors.tint }
-                            ],
-                            sortBy !== option && { backgroundColor: Colors.card }
-                        ]}
-                    >
-                        <Text
+            {holdings.length > 0 && (
+                <View style={styles.sortContainer}>
+                    {(['value', 'return', 'invested'] as const).map((option) => (
+                        <TouchableOpacity
+                            key={option}
+                            onPress={() => setSortBy(option)}
                             style={[
-                                styles.sortButtonText,
-                                sortBy === option && { color: 'white', fontWeight: '700' }
+                                styles.sortButton,
+                                sortBy === option && [
+                                    styles.sortButtonActive,
+                                    { backgroundColor: Colors.tint }
+                                ],
+                                sortBy !== option && { backgroundColor: Colors.card }
                             ]}
                         >
-                            {option === 'value' ? 'Value' : option === 'return' ? 'Return' : 'Invested'}
-                        </Text>
-                    </TouchableOpacity>
-                ))}
-            </View>
+                            <Text
+                                style={[
+                                    styles.sortButtonText,
+                                    sortBy === option && { color: 'white', fontWeight: '700' }
+                                ]}
+                            >
+                                {option === 'value' ? 'Value' : option === 'return' ? 'Return' : 'Invested'}
+                            </Text>
+                        </TouchableOpacity>
+                    ))}
+                </View>
+            )}
 
             {/* Holdings List */}
-            <ScrollView
-                showsVerticalScrollIndicator={false}
-                style={styles.holdingsList}
-                contentContainerStyle={styles.holdingsContent}
-            >
-                {sortedHoldings.map((holding) => {
-                    const sectorColor = sectorColors[holding.sector as keyof typeof sectorColors] || sectorColors['Technology'];
-                    return (
-                        <HoldingCard
-                            key={holding.id}
-                            holding={holding}
-                            colors={Colors}
-                            onPress={() => onHoldingPress?.(holding)}
-                            sectorColor={sectorColor}
+            {sortedHoldings.length > 0 ? (
+                <ScrollView
+                    showsVerticalScrollIndicator={false}
+                    style={styles.holdingsList}
+                    contentContainerStyle={styles.holdingsContent}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={onRefresh}
+                            tintColor={Colors.tint}
+                            colors={[Colors.tint]}
                         />
-                    );
-                })}
-            </ScrollView>
+                    }
+                >
+                    {sortedHoldings.map((holding) => {
+                        const sectorColor = sectorColors[holding.sector as keyof typeof sectorColors] || sectorColors['Technology'];
+                        return (
+                            <HoldingCard
+                                key={holding.id}
+                                holding={holding}
+                                colors={Colors}
+                                onPress={() => onHoldingPress?.(holding)}
+                                sectorColor={sectorColor}
+                            />
+                        );
+                    })}
+                </ScrollView>
+            ) : (
+                <ScrollView
+                    showsVerticalScrollIndicator={false}
+                    style={styles.holdingsList}
+                    contentContainerStyle={styles.emptyStateContainer}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={onRefresh}
+                            tintColor={Colors.tint}
+                            colors={[Colors.tint]}
+                        />
+                    }
+                >
+                    <View style={styles.emptyState}>
+                        <MaterialCommunityIcons
+                            name="briefcase-outline"
+                            size={56}
+                            color={Colors.text}
+                            style={{ opacity: 0.3, marginBottom: 16 }}
+                        />
+                        <Text style={[styles.emptyStateTitle, { color: Colors.text }]}>
+                            No holdings yet
+                        </Text>
+                        <Text style={[styles.emptyStateSubtitle, { color: Colors.text, opacity: 0.6 }]}>
+                            Start investing to build your portfolio
+                        </Text>
+                    </View>
+                </ScrollView>
+            )}
         </View>
     );
 };
-
-const defaultHoldings: Holding[] = [
-    {
-        id: '1',
-        symbol: 'AAPL',
-        company: 'Apple Inc.',
-        shares: 50,
-        amountInvested: 7500,
-        currentValue: 8250,
-        returnAmount: 750,
-        returnPercent: 10,
-        sector: 'Technology',
-    },
-    {
-        id: '2',
-        symbol: 'MSFT',
-        company: 'Microsoft Corporation',
-        shares: 30,
-        amountInvested: 9000,
-        currentValue: 11400,
-        returnAmount: 2400,
-        returnPercent: 26.67,
-        sector: 'Technology',
-    },
-    {
-        id: '3',
-        symbol: 'NVDA',
-        company: 'NVIDIA Corporation',
-        shares: 15,
-        amountInvested: 5000,
-        currentValue: 13380,
-        returnAmount: 8380,
-        returnPercent: 167.6,
-        sector: 'Semiconductors',
-    },
-    {
-        id: '4',
-        symbol: 'TSLA',
-        company: 'Tesla Inc.',
-        shares: 20,
-        amountInvested: 4000,
-        currentValue: 4905,
-        returnAmount: 905,
-        returnPercent: 22.63,
-        sector: 'Consumer/Tech',
-    },
-    {
-        id: '5',
-        symbol: 'GOOGL',
-        company: 'Alphabet Inc.',
-        shares: 25,
-        amountInvested: 3125,
-        currentValue: 3507.50,
-        returnAmount: 382.50,
-        returnPercent: 12.24,
-        sector: 'Technology',
-    },
-    {
-        id: '6',
-        symbol: 'AMD',
-        company: 'Advanced Micro Devices',
-        shares: 40,
-        amountInvested: 2800,
-        returnAmount: -280,
-        currentValue: 2520,
-        returnPercent: -10,
-        sector: 'Semiconductors',
-    },
-];
 
 const styles = StyleSheet.create({
     container: {
@@ -599,5 +734,50 @@ const styles = StyleSheet.create({
     collapsedReturnText: {
         fontSize: 12,
         fontWeight: '700',
+    },
+    emptyState: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: 24,
+    },
+    emptyStateContainer: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    emptyStateTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        marginBottom: 8,
+    },
+    emptyStateSubtitle: {
+        fontSize: 13,
+        textAlign: 'center',
+    },
+    loadingText: {
+        fontSize: 14,
+        fontWeight: '600',
+    },
+    errorTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+    },
+    errorSubtitle: {
+        fontSize: 14,
+        fontWeight: '500',
+    },
+    retryButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        paddingHorizontal: 24,
+        paddingVertical: 12,
+        borderRadius: 10,
+    },
+    retryButtonText: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: 'white',
     },
 })

@@ -12,11 +12,14 @@ import {
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { getThemeColors } from '@/src/constants/colors';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '@/src/context/AuthContext';
 import { getUserDashboard } from '@/src/services/dashboardService';
 import type { DashboardDTO } from '@/src/types/api';
 import { logout as apiLogout } from '@/src/services/authService';
+import WalletModal from '@/src/components/wallet/WalletModal';
+import { QuickActionsRow } from '@/src/components/home/QuickActions';
+
 
 const ProfileMenuOption = ({
     icon,
@@ -76,9 +79,11 @@ export default function ProfileScreen() {
     const colorScheme = useColorScheme();
     const Colors = getThemeColors(colorScheme);
     const router = useRouter();
-    const { user, accounts, activeAccount, switchAccount, logout, refreshAccounts } = useAuth();
+    const params = useLocalSearchParams<{ openWallet?: string }>();
+    const { user, accounts, activeAccount, switchAccount, logout, refreshAccounts, setActiveAccount } = useAuth();
 
     const [showAccountSwitcher, setShowAccountSwitcher] = useState(false);
+    const [showWalletModal, setShowWalletModal] = useState(false);
     const [dashboardData, setDashboardData] = useState<DashboardDTO | null>(null);
     const [loading, setLoading] = useState(false);
 
@@ -87,6 +92,16 @@ export default function ProfileScreen() {
             loadDashboardData();
         }
     }, [user, activeAccount]);
+
+    // Check for openWallet parameter and open wallet modal
+    useEffect(() => {
+        if (params.openWallet === 'true' && activeAccount) {
+            // Small delay to ensure screen is mounted
+            setTimeout(() => {
+                setShowWalletModal(true);
+            }, 300);
+        }
+    }, [params.openWallet, activeAccount]);
 
     const loadDashboardData = async () => {
         if (!user) return;
@@ -140,6 +155,29 @@ export default function ProfileScreen() {
                 },
             ]
         );
+    };
+
+    const handleWalletPress = () => {
+        if (!activeAccount) {
+            Alert.alert('No Account', 'Please select or create an account first');
+            return;
+        }
+        setShowWalletModal(true);
+    };
+
+    const handleBalanceUpdate = (newBalance: number) => {
+        // Update the active account with new balance
+        if (activeAccount) {
+            const updatedAccount = {
+                ...activeAccount,
+                cashBalance: newBalance,
+            };
+            setActiveAccount(updatedAccount);
+
+            // Refresh accounts list and dashboard data
+            refreshAccounts();
+            loadDashboardData();
+        }
     };
 
     // Calculate portfolio stats from dashboard data
@@ -332,6 +370,14 @@ export default function ProfileScreen() {
                     </Text>
 
                     <ProfileMenuOption
+                        icon="wallet"
+                        label="Manage Wallet"
+                        value={activeAccount ? `A$${activeAccount.cashBalance.toLocaleString('en-AU')}` : undefined}
+                        onPress={handleWalletPress}
+                        colors={Colors}
+                    />
+
+                    <ProfileMenuOption
                         icon="history"
                         label="Transaction History"
                         onPress={handleTransactionHistoryPress}
@@ -446,6 +492,14 @@ export default function ProfileScreen() {
                     </View>
                 </View>
             </Modal>
+
+            {/* Wallet Modal */}
+            <WalletModal
+                visible={showWalletModal}
+                onClose={() => setShowWalletModal(false)}
+                account={activeAccount}
+                onBalanceUpdate={handleBalanceUpdate}
+            />
         </View>
     );
 }
