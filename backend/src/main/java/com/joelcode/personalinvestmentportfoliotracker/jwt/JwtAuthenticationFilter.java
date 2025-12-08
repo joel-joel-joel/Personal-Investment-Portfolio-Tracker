@@ -54,6 +54,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         .orElseThrow(() -> new ServletException("User not found"));
 
                 CustomUserDetails customUserDetails = customUserDetailsService.loadUserByUsername(user.getUsername());
+                logger.info("JWT: " + jwt);
+                logger.info("Is token valid? " + jwtTokenProvider.validateToken(jwt));
+                logger.info("User from DB: " + user);
+                logger.info("CustomUserDetails: " + customUserDetails);
+
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(customUserDetails, null, customUserDetails.getAuthorities());
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

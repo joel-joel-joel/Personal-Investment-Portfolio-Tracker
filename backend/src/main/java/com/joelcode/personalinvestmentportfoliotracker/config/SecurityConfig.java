@@ -30,7 +30,7 @@ public class SecurityConfig {
     private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     @Autowired(required = false)
-    private Optional<JwtAuthenticationFilter> jwtAuthenticationFilter;
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Autowired
     private CorsConfigurationSource corsConfigurationSource;
@@ -79,9 +79,8 @@ public class SecurityConfig {
                 );
 
         // JWT filter - only add if it's enabled
-        if (jwtAuthenticationFilter.isPresent()) {
-            http.addFilterBefore(jwtAuthenticationFilter.get(), UsernamePasswordAuthenticationFilter.class);
-        }
+        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
 
         // For H2 console
         http.headers(headers -> headers.frameOptions(frameOptions -> frameOptions.sameOrigin()));
