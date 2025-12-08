@@ -1,0 +1,44 @@
+# Test Configuration - automatically applied to all tests
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=PostgreSQL
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: create-drop
+    database-platform: org.hibernate.dialect.H2Dialect
+  flyway:
+    enabled: false
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.r2dbc.R2dbcAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.r2dbc.R2dbcDataAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.r2dbc.R2dbcRepositoriesAutoConfiguration
+      - org.springframework.modulith.events.jpa.JpaEventPublicationAutoConfiguration
+      - org.springframework.modulith.events.jdbc.JdbcEventPublicationAutoConfiguration
+      - org.springframework.modulith.events.config.EventPublicationAutoConfiguration
+
+# CORS Configuration for tests
+cors:
+  allowed-origins: http://localhost:3000
+  allowed-methods: GET,POST,PUT,DELETE,OPTIONS,HEAD,PATCH
+  max-age: 3600
+
+# JWT Configuration for tests
+app:
+  jwt:
+    secret: test-secret-key-for-testing-purposes-only-minimum-256-bits
+    expiration: 86400000
+
+h2:
+  console:
+    enabled: false
+
+logging:
+  level:
+    root: WARN
+    com.joelcode.personalinvestmentportfoliotracker: INFO
+    org.hibernate.SQL: WARN

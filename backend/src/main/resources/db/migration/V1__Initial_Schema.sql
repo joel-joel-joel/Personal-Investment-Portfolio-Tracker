@@ -2,8 +2,8 @@
 -- Initial schema creation for Personal Investment Portfolio Tracker
 -- This migration creates all core tables based on JPA entities
 
--- Enable UUID extension for PostgreSQL
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+-- Enable UUID extension for PostgreSQL (H2 ignores this)
+-- CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- ==================== USERS TABLE ====================
 CREATE TABLE users (

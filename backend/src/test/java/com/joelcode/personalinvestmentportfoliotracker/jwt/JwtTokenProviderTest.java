@@ -97,7 +97,7 @@ class JwtTokenProviderTest {
 
         // Assert
         assertEquals(testUser.getEmail(), claims.get("email", String.class));
-        assertEquals(testUser.getPassword(), claims.get("password", String.class));
+        // REMOVED: password is no longer stored in JWT for security reasons
         assertEquals(testUser.getUsername(), claims.get("username", String.class));
         assertEquals(testUser.getRoles().name(), claims.get("roles", String.class));
         assertEquals(testUser.getFullName(), claims.get("fullName", String.class));
@@ -234,19 +234,19 @@ class JwtTokenProviderTest {
     }
 
     @Test
-    void testIsTokenExpire_NotExpired_Success() {
+    void testIsTokenExpired_NotExpired_Success() {
         // Arrange
         String token = jwtTokenProvider.generateToken(testUser);
 
         // Act
-        boolean isExpired = jwtTokenProvider.isTokenExpire(token);
+        boolean isExpired = jwtTokenProvider.isTokenExpired(token);  // UPDATED: isTokenExpire -> isTokenExpired
 
         // Assert
         assertFalse(isExpired);
     }
 
     @Test
-    void testIsTokenExpire_ExpiredToken_Success() {
+    void testIsTokenExpired_ExpiredToken_Success() {
         // Arrange
         jwtTokenProvider = new JwtTokenProvider();
         ReflectionTestUtils.setField(jwtTokenProvider, "jwtSecret", validSecret);
@@ -255,31 +255,31 @@ class JwtTokenProviderTest {
         String expiredToken = jwtTokenProvider.generateToken(testUser);
 
         // Act
-        boolean isExpired = jwtTokenProvider.isTokenExpire(expiredToken);
+        boolean isExpired = jwtTokenProvider.isTokenExpired(expiredToken);  // UPDATED: isTokenExpire -> isTokenExpired
 
         // Assert
         assertTrue(isExpired);
     }
 
     @Test
-    void testIsTokenExpire_InvalidToken_ReturnsTrue() {
+    void testIsTokenExpired_InvalidToken_ReturnsTrue() {
         // Arrange
         String invalidToken = "invalid.token.here";
 
         // Act
-        boolean isExpired = jwtTokenProvider.isTokenExpire(invalidToken);
+        boolean isExpired = jwtTokenProvider.isTokenExpired(invalidToken);  // UPDATED: isTokenExpire -> isTokenExpired
 
         // Assert
         assertTrue(isExpired, "Invalid token should be treated as expired");
     }
 
     @Test
-    void testIsTokenExpire_EmptyToken_ReturnsTrue() {
+    void testIsTokenExpired_EmptyToken_ReturnsTrue() {
         // Arrange
         String emptyToken = "";
 
         // Act
-        boolean isExpired = jwtTokenProvider.isTokenExpire(emptyToken);
+        boolean isExpired = jwtTokenProvider.isTokenExpired(emptyToken);  // UPDATED: isTokenExpire -> isTokenExpired
 
         // Assert
         assertTrue(isExpired);
@@ -373,5 +373,6 @@ class JwtTokenProviderTest {
         assertNotNull(claims.get("username"), "Username claim should not be null");
         assertNotNull(claims.get("roles"), "Roles claim should not be null");
         assertNotNull(claims.get("fullName"), "Full name claim should not be null");
+        // REMOVED: Password claim test - password is no longer stored in JWT
     }
 }

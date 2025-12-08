@@ -7,7 +7,6 @@ import com.joelcode.personalinvestmentportfoliotracker.entities.PriceHistory;
 import com.joelcode.personalinvestmentportfoliotracker.exceptions.CustomAuthenticationException;
 import com.joelcode.personalinvestmentportfoliotracker.repositories.PriceHistoryRepository;
 import com.joelcode.personalinvestmentportfoliotracker.services.mapping.PriceHistoryMapper;
-import org.springframework.context.annotation.Profile;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
@@ -19,7 +18,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
-@Profile("!test")
 public class PriceHistoryServiceImpl implements PriceHistoryService{
 
     // Define key fields

@@ -30,7 +30,7 @@ server:
 # ==================== JWT CONFIGURATION ====================
 app:
   jwt:
-    secret: ${JWT_SECRET:your-super-secret-jwt-key-change-this-in-production-min-256-bits}
+    secret: ${JWT_SECRET:${APP_JWT_SECRET:your-super-secret-jwt-key-change-this-in-production-min-256-bits}}
     expiration: 86400000
 
 # ==================== CORS CONFIGURATION ====================
