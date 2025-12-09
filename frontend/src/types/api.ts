@@ -31,25 +31,37 @@ export interface UpdateStockRequest {
 // ============================================================================
 
 export interface FinnhubQuoteDTO {
-  currentPrice: number;           // e.g., 195.75
-  highPrice: number;              // Day high
-  lowPrice: number;               // Day low
-  openPrice: number;              // Day opening price
-  previousClosePrice: number;     // Previous day close
-  timestamp: number;              // Unix timestamp
+  c: number;   // current price
+  h: number;   // high price
+  l: number;   // low price
+  o: number;   // open price
+  pc: number;  // previous close price
+  t: number;   // timestamp (Unix)
+
+  // Convenience getters with full names
+  currentPrice?: number;
+  highPrice?: number;
+  lowPrice?: number;
+  openPrice?: number;
+  previousClosePrice?: number;
+  timestamp?: number;
 }
 
 export interface FinnhubCompanyProfileDTO {
   ticker: string;                 // e.g., "AAPL"
-  companyName: string;            // e.g., "Apple Inc."
-  industry: string;               // e.g., "technology"
-  marketCap: number;              // e.g., 3000000000000
+  name: string;                   // e.g., "Apple Inc." (maps from Finnhub's "name" field)
+  companyName?: string;           // Alias for name
+  finnhubIndustry: string;        // e.g., "Technology"
+  industry?: string;              // Alias for finnhubIndustry
+  marketCapitalization: number;   // e.g., 3000000 (in millions)
+  marketCap?: number;             // Alias for marketCapitalization
   logo: string;                   // URL to logo
   country: string;                // e.g., "US"
   currency: string;               // e.g., "USD"
-  phone: string;                  // e.g., "+1-408-996-1010"
-  website: string;                // e.g., "https://www.apple.com"
-  description: string;            // Company description
+  phone: string;                  // e.g., "14089961010"
+  weburl: string;                 // e.g., "https://www.apple.com"
+  website?: string;               // Alias for weburl
+  description?: string;           // Company description
 }
 
 // ============================================================================

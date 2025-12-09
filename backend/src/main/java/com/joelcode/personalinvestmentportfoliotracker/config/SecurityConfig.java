@@ -56,6 +56,7 @@ public class SecurityConfig {
                         // Public endpoints
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/news/**").permitAll()
+                        .requestMatchers("/api/stocks/finnhub/**").permitAll()  // Finnhub public market data
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/h2-console/**").denyAll()
