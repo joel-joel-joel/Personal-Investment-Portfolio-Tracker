@@ -253,6 +253,23 @@ export interface EarningsDTO {
 }
 
 // ============================================================================
+// Price History Types
+// ============================================================================
+
+export interface PriceHistoryDTO {
+  priceHistoryId: string;    // UUID
+  closeDate: string;         // ISO 8601 timestamp
+  closePrice: number;        // BigDecimal
+  stockId: string;           // UUID
+}
+
+export interface PriceHistoryCreateRequest {
+  stockId: string;
+  closeDate: string;
+  closePrice: number;
+}
+
+// ============================================================================
 // Error Types
 // ============================================================================
 
@@ -294,9 +311,9 @@ export interface LoginRequest {
 
 export interface RegisterRequest {
   email: string;
+  username: string;
   password: string;
-  firstName?: string;
-  lastName?: string;
+  fullName: string;
 }
 
 export interface AuthResponse {

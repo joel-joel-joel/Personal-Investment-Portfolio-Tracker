@@ -25,7 +25,6 @@ function ProtectedRoutes() {
         if (isLoading) return; // Don't navigate while checking auth state
 
         const inAuthGroup = segments[0] === 'auth';
-        const inTabsGroup = segments[0] === '(tabs)';
 
         if (isAuthenticated) {
             // User is authenticated

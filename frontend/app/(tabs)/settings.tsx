@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, ScrollView, useColorScheme } from 'react-native';
 import { getThemeColors } from '../../src/constants/colors';
-import { HeaderSection } from "@/src/components/home/HeaderSection";
 import SettingsScreen from "@/src/components/settings/SettingsScreen";
 
 

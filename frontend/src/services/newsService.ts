@@ -8,8 +8,6 @@ import { apiFetch, buildQueryString } from './api';
 import {
   NewsArticleDTO,
   FrontendSector,
-  NewsQueryParams,
-  NewsBySectorsParams,
 } from '../types/api';
 
 // ============================================================================

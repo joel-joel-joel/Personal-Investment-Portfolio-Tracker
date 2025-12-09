@@ -6,7 +6,6 @@ import {
     ScrollView,
     TouchableOpacity,
     useColorScheme,
-    Dimensions,
     Image,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';

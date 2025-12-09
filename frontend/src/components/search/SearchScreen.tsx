@@ -7,9 +7,6 @@ import {
     TextInput,
     TouchableOpacity,
     useColorScheme,
-    Dimensions,
-    Image,
-    ActivityIndicator,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { getThemeColors } from '@/src/constants/colors';

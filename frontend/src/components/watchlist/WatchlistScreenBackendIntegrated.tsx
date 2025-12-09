@@ -18,7 +18,6 @@ import {
     getWatchlist,
     removeFromWatchlist,
 } from '@/src/services/portfolioService';
-import type { WatchlistDTO } from '@/src/types/api';
 
 interface WatchlistStock {
     id: string;

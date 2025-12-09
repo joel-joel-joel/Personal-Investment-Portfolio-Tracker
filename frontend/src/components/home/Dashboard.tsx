@@ -68,11 +68,6 @@ export const Dashboard = () => {
     };
 
     useEffect(() => {
-        const id = animation.addListener(({ value }) => {
-            setAnimatedPoints(generatePointsString(value));
-            setProgressIndex(Math.floor(value * fullPoints.length));
-        });
-
         Animated.timing(animation, {
             toValue: 1,
             duration: 750,

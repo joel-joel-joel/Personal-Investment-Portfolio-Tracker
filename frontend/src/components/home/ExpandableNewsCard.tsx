@@ -9,7 +9,6 @@ import {
     ScrollView,
     Animated,
     useColorScheme,
-    Dimensions,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { getThemeColors } from '../../constants/colors';

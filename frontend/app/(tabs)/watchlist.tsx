@@ -1,4 +1,4 @@
-import {View, Text, StyleSheet, useColorScheme, ScrollView} from 'react-native';
+import {View, useColorScheme, ScrollView} from 'react-native';
 import { getThemeColors } from '@/src/constants/colors';
 import { HeaderSection } from '@/src/components/home/HeaderSection';
 import WatchlistScreenComponent from '@/src/components/watchlist/WatchlistScreen';

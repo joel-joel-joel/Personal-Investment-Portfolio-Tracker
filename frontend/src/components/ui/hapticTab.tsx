@@ -6,7 +6,6 @@ import {
     StyleProp,
     View,
     Image,
-    Text,
     StyleSheet,
 } from 'react-native';
 import {icons} from "@/src/constants/icons";

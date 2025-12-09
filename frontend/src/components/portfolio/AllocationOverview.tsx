@@ -5,11 +5,10 @@ import {
     StyleSheet,
     ScrollView,
     TouchableOpacity,
-    useColorScheme,
-    Dimensions,
+    useColorScheme, Dimensions,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Svg, Circle, Path, G } from 'react-native-svg';
+import { Svg, Path, G } from 'react-native-svg';
 import { getThemeColors } from '../../constants/colors';
 
 interface Holding {
@@ -24,14 +23,6 @@ interface AllocationOverviewProps {
     holdings?: Holding[];
 }
 
-const sectorColors = {
-    "Technology":      { textColor: "#0369A1", cardColor: "#EFF6FF" },
-    "Semiconductors":  { textColor: "#EF6C00", cardColor: "#FFF3E0" },
-    "FinTech":         { textColor: "#15803D", cardColor: "#F0FDF4" },
-    "Consumer/Tech":   { textColor: "#6D28D9", cardColor: "#F5F3FF" },
-    "Healthcare":      { textColor: "#BE123C", cardColor: "#FFE4E6" },
-    "Markets":         { textColor: "#7C3AED", cardColor: "#F3E8FF" },
-};
 
 
 const chartColors = [

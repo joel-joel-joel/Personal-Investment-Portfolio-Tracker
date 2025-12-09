@@ -21,7 +21,6 @@ import { useAuth } from '@/src/context/AuthContext';
 export default function LoginScreen() {
   const colorScheme = useColorScheme();
   const Colors = getThemeColors(colorScheme);
-  const router = useRouter();
   const { login } = useAuth();
 
   const [isLogin, setIsLogin] = useState(true);
@@ -34,14 +33,6 @@ export default function LoginScreen() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const validateEmail = (email: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
-  const validatePassword = (password: string) => {
-    return password.length >= 6;
-  };
 
     const handleSubmit = async () => {
         // Basic validation

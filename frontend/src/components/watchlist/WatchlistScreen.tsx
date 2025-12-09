@@ -18,6 +18,7 @@ import {
     getWatchlist,
     removeFromWatchlist,
 } from '@/src/services/portfolioService';
+import { getStockById, getStockQuoteSafe } from '@/src/services/entityService';
 
 interface WatchlistStock {
     id: string;
@@ -30,11 +31,6 @@ interface WatchlistStock {
     sector: string;
     dayHigh: number;
     dayLow: number;
-}
-
-interface SortOption {
-    field: 'symbol' | 'price' | 'changePercent' | 'sector';
-    order: 'asc' | 'desc';
 }
 
 const sectorColors = {
@@ -264,20 +260,56 @@ export default function WatchlistScreen() {
             setError(null);
             const data = await getWatchlist();
 
-            // Transform backend data to component format
-            // TODO: Replace with actual stock data fetch from stock service
-            const transformedData: WatchlistStock[] = data.map((item, index) => ({
-                id: item.watchlistId,
-                stockId: item.stockId,
-                symbol: `STOCK${index + 1}`, // Replace with actual API call
-                name: `Company ${index + 1}`,
-                price: 100 + Math.random() * 100,
-                change: (Math.random() - 0.5) * 10,
-                changePercent: (Math.random() - 0.5) * 5,
-                sector: 'Technology',
-                dayHigh: 110,
-                dayLow: 90,
-            }));
+            // Transform backend data and fetch stock details
+            const transformedData: WatchlistStock[] = await Promise.all(
+                data.map(async (item) => {
+                    // Fetch stock details
+                    let symbol = item.stockSymbol || item.stockId.substring(0, 8);
+                    let name = `Stock ${item.stockId.substring(0, 8)}`;
+                    let price = 100;
+                    let change = 0;
+                    let changePercent = 0;
+                    let sector = 'Unknown';
+                    let dayHigh = 100;
+                    let dayLow = 100;
+
+                    try {
+                        const stockDetails = await getStockById(item.stockId);
+                        symbol = stockDetails.stockCode;
+                        name = stockDetails.companyName;
+
+                        // Try to get real-time quote data
+                        try {
+                            const quote = await getStockQuoteSafe(symbol);
+                            if (quote) {
+                                price = quote.currentPrice;
+                                change = quote.currentPrice - quote.previousClosePrice;
+                                changePercent = (change / quote.previousClosePrice) * 100;
+                                dayHigh = quote.highPrice;
+                                dayLow = quote.lowPrice;
+                            }
+                        } catch {
+                            // If quote fetch fails, use stock value
+                            price = stockDetails.stockValue;
+                        }
+                    } catch {
+                        // If stock fetch fails, use fallback values
+                    }
+
+                    return {
+                        id: item.watchlistId,
+                        stockId: item.stockId,
+                        symbol,
+                        name,
+                        price,
+                        change,
+                        changePercent,
+                        sector,
+                        dayHigh,
+                        dayLow,
+                    };
+                })
+            );
 
             setWatchlist(transformedData);
         } catch (error: any) {

@@ -12,8 +12,19 @@ export * from './entityService';
 // News services (✅ Backend implemented)
 export * from './newsService';
 
-// Authentication services (❌ Backend NOT implemented yet)
-export * from './authService';
+// Authentication services (✅ Backend implemented)
+export {
+  login,
+  register,
+  logout,
+  getCurrentUser,
+  refreshToken,
+  verifyToken,
+  forgotPassword,
+  resetPassword,
+  changePassword,
+  type UserProfile
+} from './authService';
 
 // Portfolio services (❌ Backend NOT implemented yet)
 export * from './portfolioService';
@@ -21,5 +32,54 @@ export * from './portfolioService';
 // Dashboard services (❌ Backend NOT implemented yet)
 export * from './dashboardService';
 
-// Type definitions
-export * from '../types/api';
+// Price History services (✅ Backend implemented)
+export {
+  getPriceHistoryForStock,
+  getLatestPriceForStock,
+  getAllPriceHistory,
+  createPriceHistory,
+  deletePriceHistory,
+  filterPriceHistoryByTimeRange
+} from './priceHistoryService';
+
+// Type definitions (avoiding duplicate exports from authService)
+export type {
+  StockDTO,
+  CreateStockRequest,
+  UpdateStockRequest,
+  FinnhubQuoteDTO,
+  FinnhubCompanyProfileDTO,
+  NewsArticleDTO,
+  FrontendSector,
+  UserDTO,
+  AccountDTO,
+  CreateAccountRequest,
+  UpdateAccountRequest,
+  HoldingDTO,
+  CreateHoldingRequest,
+  UpdateHoldingRequest,
+  TransactionDTO,
+  CreateTransactionRequest,
+  TransactionType,
+  PortfolioOverviewDTO,
+  PortfolioPerformanceDTO,
+  AllocationBreakdownDTO,
+  DashboardDTO,
+  WatchlistDTO,
+  AddToWatchlistRequest,
+  PriceAlertDTO,
+  CreatePriceAlertRequest,
+  AlertType,
+  EarningsDTO,
+  PriceHistoryDTO,
+  PriceHistoryCreateRequest,
+  APIErrorResponse,
+  ApiResponse,
+  PaginationMetadata,
+  LoginRequest,
+  RegisterRequest,
+  AuthResponse,
+  ChangePasswordRequest,
+  ForgotPasswordRequest,
+  ResetPasswordRequest
+} from '../types/api';

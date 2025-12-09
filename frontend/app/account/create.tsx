@@ -28,7 +28,6 @@ interface AccountDTO {
 export default function CreateAccountScreen() {
     const colorScheme = useColorScheme();
     const Colors = getThemeColors(colorScheme);
-    const router = useRouter();
 
     const [accountName, setAccountName] = useState('');
     const [initialBalance, setInitialBalance] = useState('');

@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { getThemeColors } from '@/src/constants/colors';
-import { updateAccount, getAccountById } from '@/src/services/portfolioService';
+import { updateAccount } from '@/src/services/portfolioService';
 import type { AccountDTO } from '@/src/types/api';
 
 interface WalletModalProps {

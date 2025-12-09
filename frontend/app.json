@@ -1,17 +1,23 @@
 {
   "expo": {
-    "name": "frontend",
-    "slug": "frontend",
+    "name": "Pegasus",
+    "slug": "personal-investment-portfolio-tracker",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "frontend",
+    "scheme": "portfolio-tracker",
     "userInterfaceStyle": "automatic",
+    "description": "Track your investments, monitor stock performance, and manage your virtual portfolio with real-time market data",
+    "owner": "joelcode",
+    "privacy": "unlisted",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.joelcode.portfoliotracker"
     },
     "android": {
+      "package": "com.joelcode.portfoliotracker",
+      "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -19,7 +25,11 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "INTERNET",
+        "ACCESS_NETWORK_STATE"
+      ]
     },
     "web": {
       "output": "static",
@@ -44,6 +54,18 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "your-project-id-here"
+      }
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0,
+      "url": "https://u.expo.dev/your-project-id-here"
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
     }
   }
 }

@@ -4,8 +4,8 @@
  */
 import * as SecureStore from 'expo-secure-store';
 
-// Base URL for the backend API
-export const API_BASE_URL = 'http://localhost:8080';
+// Base URL for the backend API - uses environment variable with fallback
+export const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:8080';
 
 const TOKEN_KEY = 'user_token';
 

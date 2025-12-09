@@ -209,177 +209,85 @@
   ---
   FRONTEND TEAM DEPLOYMENT CHECKLIST
 
-  Phase 1: Configuration & Environment Setup (High Priority) ✅ COMPLETED
+  Phase 1: Configuration & Environment Setup (High Priority)
 
-  - ✅ 1.1 Environment Configuration
-    - ✅ Created .env file structure
-    - ✅ Added environment files to .gitignore
-    - ✅ Created environment-specific configs:
-        - ✅ .env.development (localhost:8080)
-        - ✅ .env.staging (staging backend URL placeholder)
-        - ✅ .env.production (production backend URL placeholder)
+  - 1.1 Environment Configuration
+    - Create .env file structure
+    - Add .env*.local to .gitignore
+    - Create environment-specific configs:
+        - .env.development (localhost:8080)
+      - .env.staging (staging backend URL)
+      - .env.production (production backend URL)
 
-  Files created:
-  - frontend/.env.development - Development configuration (localhost:8080)
-  - frontend/.env.staging - Staging configuration template
-  - frontend/.env.production - Production configuration template
+  Files to create:
+  # .env.development
+  EXPO_PUBLIC_API_BASE_URL=http://localhost:8080
 
-  Note: Update staging and production URLs when servers are deployed
-
-  - ✅ 1.2 Update API Configuration
-    - ✅ Replaced hardcoded URL in src/services/api.ts
-    - ✅ Now using environment variable with fallback:
+  # .env.production
+  EXPO_PUBLIC_API_BASE_URL=https://api.your-production-domain.com
+  - 1.2 Update API Configuration
+    - Replace hardcoded URL in src/services/api.ts
+    - Use environment variable:
     export const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:8080';
 
   File: frontend/src/services/api.ts:8
 
-  Phase 2: Fix Lint Errors & Code Quality (Critical) ✅ COMPLETED
+  Phase 2: Fix Lint Errors & Code Quality (Critical)
 
-  - ✅ 2.1 Fix Duplicate Exports (17 Errors)
-    - ✅ Fixed src/services/index.ts duplicate exports
-    - ✅ Removed duplicate type exports (LoginRequest, RegisterRequest, AuthResponse)
-    - ✅ Fixed authService.ts to import types from ../types/api instead of defining them
-    - ✅ Fixed priceHistoryService.ts duplicate exports
-    - ✅ Fixed StockTickerScreen.tsx React Hooks errors (11 errors)
-      - Moved all hooks before early return statement
-      - Moved useEffect before conditional rendering
+  - 2.1 Fix Duplicate Exports (17 Errors)
+    - Fix src/services/index.ts duplicate exports
+    - Remove duplicate type exports (LoginRequest, RegisterRequest, AuthResponse)
+    - Consolidate into single export statement
 
-  Files modified:
-    - frontend/src/services/authService.ts - Removed duplicate type definitions
-    - frontend/src/services/index.ts - Made exports selective instead of using export *
-    - frontend/src/services/priceHistoryService.ts - Import types instead of defining
-    - frontend/src/components/stock/StockTickerScreen.tsx - Fixed hooks order
+  File: frontend/src/services/index.ts:16,25
+  - 2.2 Fix Warnings (49 Total)
+    - Remove unused imports/variables
+    - Address unused type definitions in newsService.ts
+    - Clean up buildQueryString in portfolioService.ts
 
-  Result: Reduced from 17 errors to 0 errors ✅
-  Remaining: 22 warnings (down from 23)
+  Files:
+    - frontend/src/services/newsService.ts:11,12
+    - frontend/src/services/portfolioService.ts:7
+  - 2.3 Remove Debug Console Logs
+    - Review and remove/replace 21 console.log statements
+    - Use proper logging library for production (expo-logger or custom)
+    - Keep only error logging for production
 
-  - ✅ 2.2 Add Price History Functionality
-    - ✅ Created priceHistoryService.ts with full CRUD operations
-    - ✅ Added PriceHistoryDTO and PriceHistoryCreateRequest to types/api.ts
-    - ✅ Integrated real-time price history into StockTickerScreen
-    - ✅ Added loading indicators for price data fetching
-    - ✅ Added "Live Data" vs "Mock Data" badge to charts
-    - ✅ Implemented timeframe filtering (1D, 1W, 1M, 3M, 1Y)
-    - ✅ Backend endpoint: GET /api/pricehistory/stock/{stockId}
+  Files: 11 files contain console logs (use npm run lint to see)
 
-  Files created/modified:
-    - frontend/src/services/priceHistoryService.ts - New service
-    - frontend/src/types/api.ts - Added PriceHistoryDTO types
-    - frontend/src/components/stock/StockTickerScreen.tsx - Integrated live data
+  Phase 3: Code Cleanup & TODOs
 
-  - ⚠️ 2.3 Remaining Warnings (22 Total)
-    - Unused variables: setAnimatedPoints, setProgressIndex, generatePointsString
-    - React Hook dependency warnings in useEffect hooks
-    - Unused error variables in catch blocks
-    - Note: These are non-critical warnings that don't block deployment
-
-  Phase 3: Code Cleanup & TODOs ✅ COMPLETED
-
-  - ✅ 3.1 Address TODO Comments
-    - ✅ Fixed TransactionHistory.tsx - Integrated getStockById to fetch company names
-    - ✅ Fixed HoldingsList.tsx - Fetch stock details for each holding
-    - ✅ Fixed portfolio.tsx - Fetch company names from stock service
-    - ✅ Fixed WatchlistScreen.tsx - Integrated real-time stock quotes with FinnHub
-
-  Files modified:
-    - frontend/src/components/transaction/TransactionHistory.tsx
-      - Added getStockById import
-      - Replaced hardcoded company names with real stock data
-      - Now fetches stock symbol and company name for each transaction
-      - Removed placeholder date (still needs backend timestamp field)
-
-    - frontend/src/components/portfolio/HoldingsList.tsx
-      - Added getStockById import
-      - Fetches company name for each holding using stockId
-      - Graceful fallback if stock fetch fails
-
-    - frontend/app/(tabs)/portfolio.tsx
-      - Added getStockById import
-      - Fetches company name for each holding
-      - Consistent with HoldingsList implementation
-
-    - frontend/src/components/watchlist/WatchlistScreen.tsx
-      - Added getStockById and getStockQuoteSafe imports
-      - Fetches stock details (symbol, company name)
-      - Fetches real-time quote data (price, change, high, low)
-      - Provides comprehensive stock information with FinnHub integration
-
-  Result: 0 TODO comments remaining in source code ✅
-  Note: TESTING_REPORT.md still contains documentation TODOs (non-blocking)
+  - 3.1 Address TODO Comments
+    - Review TODO in TransactionHistory.tsx
+    - Review TODO in HoldingsList.tsx
+    - Review TODO in portfolio.tsx
+    - Review TODO in WatchlistScreen.tsx
 
   Phase 4: Build & Test
 
-  - ✅ 4.1 TypeScript Compilation
-    - ✅ Ran TypeScript compiler: npx tsc --noEmit
-    - ✅ Fixed all 6 type errors
-    - ✅ Ensured strict mode compliance
-
-  Type Errors Fixed:
-    1. ✅ RegisterRequest interface mismatch (login.tsx)
-       - Updated RegisterRequest type to match backend DTO
-       - Changed from firstName/lastName to username/fullName
-       - Updated register() function signature in authService.ts
-
-    2. ✅ StockTickerScreen timeframe type error
-       - Fixed updateTimeframe() parameter type from string to union type
-       - Added 'as const' to timeframes array for proper type inference
-
-    3-6. ✅ StockTickerScreen animatedPoints/progressIndex errors
-       - Removed unused animation state variables that were causing issues
-       - Simplified chart rendering to use fullPoints directly
-       - Chart still displays correctly without animation complexity
-
-  Files modified:
-    - frontend/src/types/api.ts - Updated RegisterRequest interface
-    - frontend/src/services/authService.ts - Updated register() signature
-    - frontend/src/components/stock/StockTickerScreen.tsx - Fixed type errors
-
-  Result: 0 TypeScript compilation errors ✅
-  Lint status: Still 0 errors, 21 warnings (non-critical)
-
-  - ✅ 4.2 Lint Fixes (Already completed in Phase 2)
-    - ✅ All 17 critical errors fixed
-    - ⚠️ 21 warnings remaining (non-critical, don't block deployment)
+  - 4.1 TypeScript Compilation
+    - Run TypeScript compiler: npx tsc --noEmit
+    - Fix all type errors
+    - Ensure strict mode compliance
+  - 4.2 Lint Fixes
+    - Run: npm run lint
+    - Fix all errors (17 critical)
+    - Run: npm run lint -- --fix for auto-fixable issues
+    - Manually fix remaining issues
   - 4.3 Build Verification
     - Test development build: npx expo start
+    - Test web build: npm run web
     - Test iOS build (if applicable): npm run ios
+    - Test Android build (if applicable): npm run android
 
   Phase 5: Mobile App Configuration
 
-  - ✅ 5.1 Update app.json for Production
-    - ✅ Updated app name from "frontend" to "Portfolio Tracker"
-    - ✅ Updated slug to "personal-investment-portfolio-tracker"
-    - ✅ Version already set to "1.0.0" (production-ready)
-    - ✅ App icons and splash screens already configured
-    - ✅ iOS bundle identifier: com.joelcode.portfoliotracker
-    - ✅ Android package: com.joelcode.portfoliotracker
-    - ✅ Added app description and metadata
-    - ✅ Configured EAS and OTA updates structure
-    - ✅ Added Android permissions (INTERNET, ACCESS_NETWORK_STATE)
-
-  Changes made to frontend/app.json:   
-    - slug: "personal-investment-portfolio-tracker" (unique Expo slug)
-    - scheme: "portfolio-tracker" (deep linking scheme)
-    - description: "Track your investments, monitor stock performance..."
-    - owner: "joelcode"
-    - privacy: "unlisted"
-    - ios.bundleIdentifier: "com.joelcode.portfoliotracker"
-    - android.package: "com.joelcode.portfoliotracker"
-    - android.versionCode: 1
-    - android.permissions: ["INTERNET", "ACCESS_NETWORK_STATE"]
-    - extra.eas.projectId: "your-project-id-here" (update when setting up EAS)
-    - updates: Configured for OTA updates
-    - runtimeVersion: Set to appVersion policy
-
-  Assets verified (all present):
-    - ✅ icon.png (393KB, app icon)
-    - ✅ splash-icon.png (17KB, splash screen)
-    - ✅ favicon.png (1KB, web favicon)
-    - ✅ android-icon-foreground.png (79KB)
-    - ✅ android-icon-background.png (17KB)
-    - ✅ android-icon-monochrome.png (4KB)
-
-  Note: Update EAS projectId when you run `eas build:configure`
+  - 5.1 Update app.json for Production
+    - Update app name (currently "frontend")
+    - Update app slug to be unique
+    - Update version number for release
+    - Configure app icons and splash screens
+    - Set up proper bundle identifier for iOS/Android
 
   File: frontend/app.json
   - 5.2 Platform-Specific Setup
@@ -735,17 +643,15 @@
 
   1. ✅ Backend: API keys in source code - FIXED (moved to .env files)
   2. ✅ Backend: Database configuration mismatch - FIXED (standardized on port 5432)
-  3. ✅ Frontend: 17 lint errors - FIXED (all critical errors resolved)
-  4. ✅ Frontend: Hardcoded localhost URL - FIXED (using environment variables)
-  5. ✅ Frontend: No environment configuration - FIXED (created .env files for all environments)
-
-  ALL CRITICAL BLOCKERS RESOLVED! ✅🎉
+  3. ❌ Frontend: 17 lint errors
+  4. ❌ Frontend: Hardcoded localhost URL
+  5. ❌ Frontend: No environment configuration
 
   Should Fix Before Deployment (High Priority)
 
   1. ⚠️ Backend: Deprecation warnings
   2. ✅ Backend: CORS wildcard in production - FIXED (specific domain configured)
-  3. ⚠️ Frontend: 22 lint warnings (non-critical)
+  3. ⚠️ Frontend: 21 console.log statements
   4. ⚠️ Frontend: TODO comments
   5. ⚠️ Both: No deployment documentation
 

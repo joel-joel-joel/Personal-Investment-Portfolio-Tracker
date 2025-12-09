@@ -18,7 +18,6 @@ import { getUserDashboard } from '@/src/services/dashboardService';
 import type { DashboardDTO } from '@/src/types/api';
 import { logout as apiLogout } from '@/src/services/authService';
 import WalletModal from '@/src/components/wallet/WalletModal';
-import { QuickActionsRow } from '@/src/components/home/QuickActions';
 
 
 const ProfileMenuOption = ({

@@ -1,6 +1,5 @@
 import React from "react";
 import { View, Image, StyleSheet, useColorScheme } from "react-native";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { getThemeColors } from "../../../src/constants/colors";
 import { icons } from "../../../src/constants/icons";
 

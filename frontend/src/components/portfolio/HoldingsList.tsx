@@ -7,7 +7,6 @@ import {
     TouchableOpacity,
     useColorScheme,
     Image,
-    Dimensions,
     ActivityIndicator,
     RefreshControl,
 } from 'react-native';
@@ -16,6 +15,7 @@ import { getThemeColors } from '../../constants/colors';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/src/context/AuthContext';
 import { getAccountHoldings } from '@/src/services/portfolioService';
+import { getStockById } from '@/src/services/entityService';
 
 interface Holding {
     id: string;
@@ -254,10 +254,10 @@ export const HoldingsList: React.FC<HoldingsListProps> = ({
 
     // Fetch holdings from backend (only if not provided)
     const fetchHoldings = useCallback(async () => {
-        if (providedHoldings) return; // Skip if holdings are provided by parent
+        if (providedHoldings) return; // Skip if parent provides holdings
 
         if (!user || !activeAccount) {
-            setInternalHoldings([]);
+            setInternalHoldings([])
             setLoading(false);
             return;
         }
@@ -267,26 +267,41 @@ export const HoldingsList: React.FC<HoldingsListProps> = ({
             const data = await getAccountHoldings(activeAccount.accountId);
 
             // Transform backend data to component format
-            // TODO: Replace with actual stock price data from stock service
-            const transformedData: Holding[] = data.map((item, index) => {
-                // Use backend-calculated values
-                const currentValue = item.currentValue || (item.quantity * item.currentPrice);
-                const amountInvested = item.totalCostBasis;
-                const returnAmount = item.unrealizedGain;
-                const returnPercent = item.unrealizedGainPercent;
+            // Fetch stock details for each holding
+            const transformedData: Holding[] = await Promise.all(
+                data.map(async (item) => {
+                    // Use backend-calculated values
+                    const currentValue = item.currentValue || (item.quantity * item.currentPrice);
+                    const amountInvested = item.totalCostBasis;
+                    const returnAmount = item.unrealizedGain;
+                    const returnPercent = item.unrealizedGainPercent;
 
-                return {
-                    id: item.holdingId,
-                    symbol: item.stockSymbol,
-                    company: item.stockSymbol, // TODO: Fetch company name from stock service
-                    shares: item.quantity,
-                    amountInvested,
-                    currentValue,
-                    returnAmount,
-                    returnPercent,
-                    sector: 'Technology', // TODO: Fetch from stock service
-                };
-            });
+                    // Fetch stock details to get company name
+                    let companyName = item.stockSymbol;
+                    let sector = 'Unknown';
+
+                    try {
+                        const stockDetails = await getStockById(item.stockId);
+                        companyName = stockDetails.companyName;
+                        // Note: Backend StockDTO doesn't include sector, using default
+                        sector = 'Technology';
+                    } catch {
+                        // If stock fetch fails, use fallback values
+                    }
+
+                    return {
+                        id: item.holdingId,
+                        symbol: item.stockSymbol,
+                        company: companyName,
+                        shares: item.quantity,
+                        amountInvested,
+                        currentValue,
+                        returnAmount,
+                        returnPercent,
+                        sector: sector,
+                    };
+                })
+            );
 
             setInternalHoldings(transformedData);
         } catch (error: any) {

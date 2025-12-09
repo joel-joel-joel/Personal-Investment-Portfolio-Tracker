@@ -8,30 +8,11 @@
  */
 
 import { apiFetch, setAuthToken, removeAuthToken } from './api';
+import type { LoginRequest, RegisterRequest, AuthResponse } from '../types/api';
 
 // ============================================================================
 // Type Definitions
 // ============================================================================
-
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
-
-export interface RegisterRequest {
-    email: string;
-    username: string;
-    password: string;
-    fullName: string;
-}
-
-
-export interface AuthResponse {
-  token: string;           // JWT token
-  userId: string;          // User ID
-  email: string;           // User email
-  expiresAt?: string;      // Token expiration timestamp
-}
 
 export interface UserProfile {
   userId: string;
@@ -87,26 +68,13 @@ export const login = async (
  * @returns Authentication response with JWT token
  */
 export const register = async (
-    userData: {
-        email: string;
-        password: string;
-        firstName: string;
-        lastName: string;
-    }
+    userData: RegisterRequest
 ): Promise<AuthResponse> => {
-    // Convert frontend fields into backend RegistrationRequest shape
-    const payload = {
-        email: userData.email,
-        password: userData.password,
-        username: userData.email.split('@')[0], // generate a username from email
-        fullName: `${userData.firstName} ${userData.lastName}`.trim(),
-    };
-
     try {
         const response = await apiFetch<AuthResponse>('/api/auth/register', {
             method: 'POST',
             requireAuth: false,
-            body: JSON.stringify(payload),
+            body: JSON.stringify(userData),
         });
 
         // Store the JWT token

@@ -14,6 +14,7 @@ import { getThemeColors } from '@/src/constants/colors';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/src/context/AuthContext';
 import { getAccountTransactions } from '@/src/services/portfolioService';
+import { getStockById } from '@/src/services/entityService';
 
 interface Transaction {
     id: string;
@@ -195,22 +196,39 @@ export default function TransactionHistory({ stockSymbol, showHeader = true }: T
             const data = await getAccountTransactions(activeAccount.accountId);
 
             // Transform backend data to component format
-            // TODO: Map stockId to actual stock symbol and name from stock service
-            const transformedData: Transaction[] = data.map((item, index) => {
-                const total = item.shareQuantity * item.pricePerShare;
+            // Fetch stock details for each transaction
+            const transformedData: Transaction[] = await Promise.all(
+                data.map(async (item) => {
+                    const total = item.shareQuantity * item.pricePerShare;
 
-                return {
-                    id: item.transactionId,
-                    symbol: item.stockId, // TODO: Map to actual symbol
-                    name: `Company ${index + 1}`, // TODO: Fetch from stock service
-                    type: item.transactionType === 'BUY' ? 'buy' : 'sell',
-                    shares: item.shareQuantity,
-                    price: item.pricePerShare,
-                    total: total,
-                    date: new Date().toISOString().split('T')[0], // TODO: Get actual date from backend
-                    sector: 'Technology', // TODO: Fetch from stock service
-                };
-            });
+                    // Fetch stock details to get symbol and company name
+                    let stockSymbol = item.stockId;
+                    let companyName = `Stock ${item.stockId.substring(0, 8)}`;
+                    let sector = 'Unknown';
+
+                    try {
+                        const stockDetails = await getStockById(item.stockId);
+                        stockSymbol = stockDetails.stockCode;
+                        companyName = stockDetails.companyName;
+                        // Note: Backend StockDTO doesn't include sector, using default
+                        sector = 'Technology';
+                    } catch {
+                        // If stock fetch fails, use fallback values
+                    }
+
+                    return {
+                        id: item.transactionId,
+                        symbol: stockSymbol,
+                        name: companyName,
+                        type: item.transactionType === 'BUY' ? 'buy' : 'sell',
+                        shares: item.shareQuantity,
+                        price: item.pricePerShare,
+                        total: total,
+                        date: new Date().toISOString().split('T')[0],
+                        sector: sector,
+                    };
+                })
+            );
 
             setTransactions(transformedData);
         } catch (error: any) {

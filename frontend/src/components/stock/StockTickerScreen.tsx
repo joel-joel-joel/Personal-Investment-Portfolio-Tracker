@@ -7,9 +7,9 @@ import {
     TouchableOpacity,
     useColorScheme,
     Dimensions,
-    Alert,
     Animated,
     TextInput,
+    ActivityIndicator,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -17,6 +17,7 @@ import { getThemeColors } from '@/src/constants/colors';
 import { HeaderSection } from "@/src/components/home/HeaderSection";
 import TransactionHistory from '@/src/components/transaction/TransactionHistory';
 import { Svg, Polyline, Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
+import { getPriceHistoryForStock, filterPriceHistoryByTimeRange, type PriceHistoryDTO } from '@/src/services';
 
 const screenWidth = Dimensions.get('window').width - 48;
 
@@ -57,8 +58,75 @@ export default function StockTickerScreen({ route }: { route?: any }) {
     const colorScheme = useColorScheme();
     const Colors = getThemeColors(colorScheme);
 
-    // Get stock data from route params
+    // All hooks must be called before any early returns
+    const [selectedTimeframe, setSelectedTimeframe] = useState<'1D' | '1W' | '1M' | '3M' | '1Y'>('1M');
+    const [isWatchlisted, setIsWatchlisted] = useState(false);
+    const [activeTab, setActiveTab] = useState<'overview' | 'news' | 'transactions' | 'compare'>('overview');
+    const [compareStock, setCompareStock] = useState<any>(null);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [showSearchResults, setShowSearchResults] = useState(false);
+    const [priceData, setPriceData] = useState(chartDataSets[selectedTimeframe]);
+    const [priceHistory, setPriceHistory] = useState<PriceHistoryDTO[]>([]);
+    const [loadingPriceHistory, setLoadingPriceHistory] = useState(false);
+    const [useMockData, setUseMockData] = useState(true);
+    const animation = useRef(new Animated.Value(0)).current;
+
+    // Get stock data from route params (needs to be before effects that use it)
     const stock = route?.params?.stock;
+
+    // Fetch price history from backend when stock changes
+    useEffect(() => {
+        if (stock?.stockId) {
+            setLoadingPriceHistory(true);
+            getPriceHistoryForStock(stock.stockId)
+                .then((data) => {
+                    setPriceHistory(data);
+                    if (data.length > 0) {
+                        setUseMockData(false);
+                        // Update price data with real data for current timeframe
+                        const filtered = filterPriceHistoryByTimeRange(data, selectedTimeframe);
+                        const prices = filtered.map(ph => ph.closePrice);
+                        if (prices.length > 0) {
+                            setPriceData(prices);
+                        }
+                    }
+                })
+                .catch(() => {
+                    // If fetch fails, continue using mock data
+                    setUseMockData(true);
+                })
+                .finally(() => {
+                    setLoadingPriceHistory(false);
+                });
+        }
+    }, [stock?.stockId]);
+
+    // Update price data when timeframe changes
+    useEffect(() => {
+        if (!useMockData && priceHistory.length > 0) {
+            const filtered = filterPriceHistoryByTimeRange(priceHistory, selectedTimeframe);
+            const prices = filtered.map(ph => ph.closePrice);
+            if (prices.length > 0) {
+                setPriceData(prices);
+            } else {
+                // Fallback to mock data if no data for this timeframe
+                setPriceData(chartDataSets[selectedTimeframe]);
+            }
+        } else {
+            setPriceData(chartDataSets[selectedTimeframe]);
+        }
+    }, [selectedTimeframe, priceHistory, useMockData]);
+
+    // Animation effect must be before early return
+    useEffect(() => {
+        Animated.timing(animation, {
+            toValue: 1,
+            duration: 750,
+            useNativeDriver: false,
+        }).start();
+
+        return () => animation.removeAllListeners();
+    }, [priceData, animation]);
 
     if (!stock) {
         return (
@@ -69,16 +137,7 @@ export default function StockTickerScreen({ route }: { route?: any }) {
     }
 
     const sectorColor = sectorColors[stock.sector] || sectorColors['Technology'];
-    const [selectedTimeframe, setSelectedTimeframe] = useState('1M');
-    const [isWatchlisted, setIsWatchlisted] = useState(false);
-    const [activeTab, setActiveTab] = useState<'overview' | 'news' | 'transactions' | 'compare'>('overview');
-
-    // Comparison state
-    const [compareStock, setCompareStock] = useState<any>(null);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [showSearchResults, setShowSearchResults] = useState(false);
-
-    const timeframes = ['1D', '1W', '1M', '3M', '1Y'];
+    const timeframes = ['1D', '1W', '1M', '3M', '1Y'] as const;
     const isPositive = stock.changePercent >= 0;
 
     // Filter stocks for search
@@ -88,12 +147,6 @@ export default function StockTickerScreen({ route }: { route?: any }) {
             s.name.toLowerCase().includes(searchQuery.toLowerCase())
         ).filter(s => s.symbol !== stock.symbol)
         : availableStocks.filter(s => s.symbol !== stock.symbol);
-
-    // Chart animation state
-    const [priceData, setPriceData] = useState(chartDataSets[selectedTimeframe]);
-    const animation = useRef(new Animated.Value(0)).current;
-    const [animatedPoints, setAnimatedPoints] = useState<string>('');
-    const [progressIndex, setProgressIndex] = useState(0);
 
     const chartWidth = screenWidth - chartPadding * 2;
     const usableHeight = chartHeight - chartPadding * 2;
@@ -116,26 +169,11 @@ export default function StockTickerScreen({ route }: { route?: any }) {
             .join(' ');
     };
 
-    const updateTimeframe = (timeframe: string) => {
+    const updateTimeframe = (timeframe: '1D' | '1W' | '1M' | '3M' | '1Y') => {
         setSelectedTimeframe(timeframe);
         setPriceData(chartDataSets[timeframe]);
         animation.setValue(0);
     };
-
-    useEffect(() => {
-        const id = animation.addListener(({ value }) => {
-            setAnimatedPoints(generatePointsString(value));
-            setProgressIndex(Math.floor(value * fullPoints.length));
-        });
-
-        Animated.timing(animation, {
-            toValue: 1,
-            duration: 750,
-            useNativeDriver: false,
-        }).start();
-
-        return () => animation.removeAllListeners();
-    }, [priceData]);
 
     const handleGoBack = () => {
         router.back();
@@ -231,6 +269,24 @@ export default function StockTickerScreen({ route }: { route?: any }) {
 
                 {/* Animated Chart */}
                 <View style={[styles.chartContainer, { backgroundColor: Colors.card, borderColor: Colors.border }]}>
+                    {loadingPriceHistory && (
+                        <View style={styles.loadingOverlay}>
+                            <ActivityIndicator size="large" color={Colors.tint} />
+                            <Text style={[styles.loadingText, { color: Colors.text }]}>Loading price history...</Text>
+                        </View>
+                    )}
+                    {!loadingPriceHistory && (
+                        <View style={styles.dataSourceBadge}>
+                            <MaterialCommunityIcons
+                                name={useMockData ? "alert-circle-outline" : "check-circle-outline"}
+                                size={14}
+                                color={useMockData ? "#F59E0B" : "#10B981"}
+                            />
+                            <Text style={[styles.dataSourceText, { color: useMockData ? "#F59E0B" : "#10B981" }]}>
+                                {useMockData ? "Mock Data" : "Live Data"}
+                            </Text>
+                        </View>
+                    )}
                     <Svg width={screenWidth} height={chartHeight}>
                         <Defs>
                             <LinearGradient id="stockGradient" x1="0" y1="0" x2="0" y2="1">
@@ -240,20 +296,18 @@ export default function StockTickerScreen({ route }: { route?: any }) {
                         </Defs>
 
                         {/* Gradient area under the line */}
-                        {animatedPoints ? (
-                            <Polyline
-                                points={
-                                    animatedPoints +
-                                    ` ${chartWidth + chartPadding},${chartHeight - chartPadding} ${chartPadding},${chartHeight - chartPadding}`
-                                }
-                                fill="url(#stockGradient)"
-                                stroke="none"
-                            />
-                        ) : null}
+                        <Polyline
+                            points={
+                                fullPoints.map(p => `${p.x},${p.y}`).join(' ') +
+                                ` ${chartWidth + chartPadding},${chartHeight - chartPadding} ${chartPadding},${chartHeight - chartPadding}`
+                            }
+                            fill="url(#stockGradient)"
+                            stroke="none"
+                        />
 
                         {/* Line on top */}
                         <Polyline
-                            points={animatedPoints}
+                            points={fullPoints.map(p => `${p.x},${p.y}`).join(' ')}
                             fill="none"
                             stroke={sectorColor.color}
                             strokeWidth={3}
@@ -262,19 +316,16 @@ export default function StockTickerScreen({ route }: { route?: any }) {
                         />
 
                         {/* Data points */}
-                        {fullPoints.map((p, index) => {
-                            if (index >= progressIndex) return null;
-                            return (
-                                <Circle
-                                    key={index}
-                                    cx={p.x}
-                                    cy={p.y}
-                                    r={4}
-                                    fill={sectorColor.color}
-                                    opacity={0.6}
-                                />
-                            );
-                        })}
+                        {fullPoints.map((p, index) => (
+                            <Circle
+                                key={index}
+                                cx={p.x}
+                                cy={p.y}
+                                r={4}
+                                fill={sectorColor.color}
+                                opacity={0.6}
+                            />
+                        ))}
                     </Svg>
                 </View>
 
@@ -685,6 +736,40 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         padding: 5,
         overflow: 'hidden',
+        position: 'relative',
+    },
+    loadingOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        zIndex: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 8,
+    },
+    loadingText: {
+        fontSize: 12,
+        fontWeight: '600',
+    },
+    dataSourceBadge: {
+        position: 'absolute',
+        top: 12,
+        right: 12,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        borderRadius: 12,
+        zIndex: 5,
+    },
+    dataSourceText: {
+        fontSize: 10,
+        fontWeight: '700',
     },
     tabContainer: {
         flexDirection: 'row',
