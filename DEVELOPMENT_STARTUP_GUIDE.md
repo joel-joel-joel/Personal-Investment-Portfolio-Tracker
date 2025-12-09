@@ -388,20 +388,3 @@ docker exec -it portfolio_postgres_migration_test psql -U devuser -d portfolio_d
 
 
 
-Ok there are still a lot of problems
-- When trying to access api stock info i get
- ERROR  Failed to fetch quote for AAPL: [Error: Unauthorized: Invalid or missing authentication] 
-
-Code: api.ts
-  91 |           throw new Error(`Bad Request: ${errorData}`);
-  92 |         case 401:
-> 93 |           throw new Error('Unauthorized: Invalid or missing authentication');
-     |                          ^
-  94 |         case 404:
-  95 |           throw new Error('Resource not found');
-  96 |         case 500:
-Call Stack
-  apiFetch (src/services/api.ts:93:26)
- ERROR  Failed to fetch quote for AAPL: [Error: Unauthorized: Invalid or missing authentication] 
-  - Dashboard cash and holdings value is not indicative of the account's cashbalance + value of holdings. I think its best to add two new attributes, cashbalance (meaning wallet balance) and holdingsbalance(total value of all holdings)
- - When trying to invest in a stock in says Error Insufficnet account balance which means that updating the wallet  in the account is not updating properly.

@@ -102,6 +102,7 @@ export const ExpandableNewsCard: React.FC<ExpandableNewsCardProps> = ({ news }) 
                     // Get sector colors, fallback to Technology if undefined
                     const sectorTheme = sectorColors[item.sector as keyof typeof sectorColors] || sectorColors["Technology"];
 
+                    // @ts-ignore
                     return (
                         <TouchableOpacity
                             key={item.id}

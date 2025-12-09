@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
     View,
     Text,
@@ -7,12 +7,17 @@ import {
     TextInput,
     TouchableOpacity,
     useColorScheme,
+    ActivityIndicator,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { getThemeColors } from '@/src/constants/colors';
 import { useRouter } from 'expo-router';
 import { addToWatchlist, removeFromWatchlist } from '@/src/services/portfolioService';
 import { getOrCreateStockBySymbol } from '@/src/services/entityService';
+import { FinnhubCompanyProfileDTO, FinnhubQuoteDTO } from '@/src/types/api';
+
+// Popular stocks to display on initial load
+const POPULAR_STOCK_SYMBOLS = ['AAPL', 'MSFT', 'NVDA', 'GOOGL', 'TSLA', 'AMZN', 'AMD', 'META'];
 
 interface Stock {
     id: string;
@@ -23,7 +28,8 @@ interface Stock {
     changePercent: number;
     sector: string;
     marketCap: string;
-    image?: any;
+    profile?: FinnhubCompanyProfileDTO;
+    quote?: FinnhubQuoteDTO;
 }
 
 interface SearchFilters {
@@ -39,109 +45,6 @@ const sectorColors = {
     'Healthcare': { color: '#BE123C', bgLight: '#FFE4E6' },
     'Retail': { color: '#EA580C', bgLight: '#FFEDD5' },
 };
-
-const allStocks: Stock[] = [
-    {
-        id: '1',
-        symbol: 'AAPL',
-        name: 'Apple Inc.',
-        price: 195.50,
-        change: 2.50,
-        changePercent: 1.30,
-        sector: 'Technology',
-        marketCap: '3.2T',
-    },
-    {
-        id: '2',
-        symbol: 'MSFT',
-        name: 'Microsoft Corporation',
-        price: 380.50,
-        change: 5.25,
-        changePercent: 1.40,
-        sector: 'Technology',
-        marketCap: '2.8T',
-    },
-    {
-        id: '3',
-        symbol: 'NVDA',
-        name: 'NVIDIA Corporation',
-        price: 892.50,
-        change: 25.30,
-        changePercent: 2.92,
-        sector: 'Semiconductors',
-        marketCap: '2.2T',
-    },
-    {
-        id: '4',
-        symbol: 'GOOGL',
-        name: 'Alphabet Inc.',
-        price: 140.75,
-        change: 2.10,
-        changePercent: 1.52,
-        sector: 'Technology',
-        marketCap: '1.8T',
-    },
-    {
-        id: '5',
-        symbol: 'TSLA',
-        name: 'Tesla Inc.',
-        price: 245.30,
-        change: -3.50,
-        changePercent: -1.41,
-        sector: 'Consumer/Tech',
-        marketCap: '780B',
-    },
-    {
-        id: '6',
-        symbol: 'AMZN',
-        name: 'Amazon.com Inc.',
-        price: 170.90,
-        change: 3.20,
-        changePercent: 1.91,
-        sector: 'Retail',
-        marketCap: '1.7T',
-    },
-    {
-        id: '7',
-        symbol: 'AMD',
-        name: 'Advanced Micro Devices',
-        price: 165.45,
-        change: 4.50,
-        changePercent: 2.79,
-        sector: 'Semiconductors',
-        marketCap: '268B',
-    },
-    {
-        id: '8',
-        symbol: 'META',
-        name: 'Meta Platforms',
-        price: 480.25,
-        change: 8.75,
-        changePercent: 1.86,
-        sector: 'Technology',
-        marketCap: '1.2T',
-    },
-    {
-        id: '9',
-        symbol: 'COIN',
-        name: 'Coinbase Global',
-        price: 178.30,
-        change: 12.30,
-        changePercent: 7.40,
-        sector: 'FinTech',
-        marketCap: '90B',
-    },
-    {
-        id: '10',
-        symbol: 'UBER',
-        name: 'Uber Technologies',
-        price: 72.15,
-        change: 1.50,
-        changePercent: 2.12,
-        sector: 'Consumer/Tech',
-        marketCap: '150B',
-    },
-];
 
 const recentSearches = ['AAPL', 'NVDA', 'MSFT', 'TSLA'];
 const sectors = ['Technology', 'Semiconductors', 'FinTech', 'Consumer/Tech', 'Healthcare', 'Retail'];
@@ -163,31 +66,29 @@ const SearchResultCard = ({
     const isPositive = stock.changePercent >= 0;
 
     const handleNavigateToStock = () => {
-        // Build stock data object for the ticker page
         const stockData = {
             symbol: stock.symbol,
             name: stock.name,
-            price: stock.price,
-            change: stock.change,
-            changePercent: stock.changePercent,
+            price: stock.price || 0,
+            change: stock.change || 0,  // Ensure change is never null
+            changePercent: stock.changePercent || 0,  // Ensure changePercent is never null
             sector: stock.sector,
             marketCap: stock.marketCap,
             peRatio: '0',
             dividend: '0',
-            dayHigh: 0,
-            dayLow: 0,
+            dayHigh: stock.quote?.highPrice || stock.quote?.h || 0,
+            dayLow: stock.quote?.lowPrice || stock.quote?.l || 0,
             yearHigh: 0,
             yearLow: 0,
-            description: '',
+            description: stock.profile?.description || '',
             employees: '',
             founded: '',
-            website: '',
+            website: stock.profile?.website || stock.profile?.weburl || '',
             nextEarningsDate: '',
             nextDividendDate: '',
             earningsPerShare: '',
         };
 
-        // Navigate to stock ticker page
         router.push({
             pathname: '/stock/[ticker]',
             params: {
@@ -201,21 +102,21 @@ const SearchResultCard = ({
         const stockData = {
             symbol: stock.symbol,
             name: stock.name,
-            price: stock.price,
-            change: stock.change,
-            changePercent: stock.changePercent,
+            price: stock.price || 0,
+            change: stock.change || 0,  // Ensure change is never null
+            changePercent: stock.changePercent || 0,  // Ensure changePercent is never null
             sector: stock.sector,
             marketCap: stock.marketCap,
             peRatio: '0',
             dividend: '0',
-            dayHigh: 0,
-            dayLow: 0,
+            dayHigh: stock.quote?.highPrice || stock.quote?.h || 0,
+            dayLow: stock.quote?.lowPrice || stock.quote?.l || 0,
             yearHigh: 0,
             yearLow: 0,
-            description: '',
+            description: stock.profile?.description || '',
             employees: '',
             founded: '',
-            website: '',
+            website: stock.profile?.website || stock.profile?.weburl || '',
             nextEarningsDate: '',
             nextDividendDate: '',
             earningsPerShare: '',
@@ -319,19 +220,132 @@ export default function SearchScreen() {
     const [showFilters, setShowFilters] = useState(false);
     const [recentSearchesList, setRecentSearchesList] = useState(recentSearches);
     const [watchlistedStocks, setWatchlistedStocks] = useState<Set<string>>(new Set());
+    const [allStocks, setAllStocks] = useState<Stock[]>([]);
+    const [loadingStocks, setLoadingStocks] = useState(true);
+    const [searchResults, setSearchResults] = useState<Stock[]>([]);
+    const [loadingSearch, setLoadingSearch] = useState(false);
+
+    // Fetch popular stocks on component mount
+    useEffect(() => {
+        loadPopularStocks();
+    }, []);
+
+    const loadPopularStocks = async () => {
+        setLoadingStocks(true);
+        try {
+            const stocks: Stock[] = [];
+
+            for (const symbol of POPULAR_STOCK_SYMBOLS) {
+                try {
+                    const stock = await fetchStockData(symbol);
+                    if (stock) {
+                        stocks.push(stock);
+                    }
+                } catch (error) {
+                    console.error(`Failed to fetch ${symbol}:`, error);
+                }
+            }
+
+            setAllStocks(stocks);
+        } catch (error) {
+            console.error('Failed to load popular stocks:', error);
+        } finally {
+            setLoadingStocks(false);
+        }
+    };
+
+    const fetchStockData = async (symbol: string): Promise<Stock | null> => {
+        try {
+            const apiUrl = process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:8080';
+
+            // Fetch from your backend endpoints
+            const profileResponse = await fetch(
+                `${apiUrl}/api/stocks/finnhub/profile/${symbol}`
+            );
+            const quoteResponse = await fetch(
+                `${apiUrl}/api/stocks/finnhub/quote/${symbol}`
+            );
+
+            if (!profileResponse.ok || !quoteResponse.ok) {
+                console.warn(`Failed to fetch data for ${symbol}: profile=${profileResponse.ok}, quote=${quoteResponse.ok}`);
+                return null;
+            }
+
+            const profile: FinnhubCompanyProfileDTO = await profileResponse.json();
+            const quote: FinnhubQuoteDTO = await quoteResponse.json();
+
+            // Finnhub quote structure:
+            // c = current price
+            // h = high price
+            // l = low price
+            // o = open price
+            // pc = previous close price
+            // t = timestamp
+
+            if (!quote || !quote.c || !quote.pc) {
+                console.warn(`Invalid quote data for ${symbol}:`, quote);
+                return null;
+            }
+
+            const currentPrice = quote.c || 0;
+            const previousClose = quote.pc || currentPrice;
+            const change = currentPrice - previousClose;
+            const changePercent = previousClose !== 0 ? (change / previousClose) * 100 : 0;
+
+            return {
+                id: symbol,
+                symbol: symbol,
+                name: profile?.name || profile?.companyName || symbol,
+                price: currentPrice,
+                change: change,
+                changePercent: changePercent,
+                sector: profile?.finnhubIndustry || profile?.industry || 'Other',
+                marketCap: formatMarketCap(profile?.marketCapitalization || 0),
+                profile: profile,
+                quote: quote,
+            };
+        } catch (error) {
+            console.error(`Error fetching stock data for ${symbol}:`, error);
+            return null;
+        }
+    };
+
+    const formatMarketCap = (marketCap: number): string => {
+        if (marketCap >= 1000000) {
+            return `${(marketCap / 1000000).toFixed(1)}T`;
+        } else if (marketCap >= 1000) {
+            return `${(marketCap / 1000).toFixed(1)}B`;
+        }
+        return `${marketCap.toFixed(0)}M`;
+    };
+
+    const handleSearch = async (query: string) => {
+        setSearchQuery(query);
+
+        if (!query.trim()) {
+            setSearchResults([]);
+            return;
+        }
+
+        setLoadingSearch(true);
+        try {
+            const stock = await fetchStockData(query.toUpperCase());
+            if (stock) {
+                setSearchResults([stock]);
+            } else {
+                setSearchResults([]);
+            }
+        } catch (error) {
+            console.error('Search failed:', error);
+            setSearchResults([]);
+        } finally {
+            setLoadingSearch(false);
+        }
+    };
 
     // Filter and search stocks
     const filteredStocks = useMemo(() => {
-        let results = allStocks;
-
-        // Search by symbol or name
-        if (searchQuery.trim()) {
-            const query = searchQuery.toLowerCase();
-            results = results.filter(stock =>
-                stock.symbol.toLowerCase().includes(query) ||
-                stock.name.toLowerCase().includes(query)
-            );
-        }
+        let results = searchResults.length > 0 ? searchResults : allStocks;
 
         // Filter by sector
         if (filters.sector) {
@@ -339,10 +353,11 @@ export default function SearchScreen() {
         }
 
         return results;
-    }, [searchQuery, filters]);
+    }, [searchResults, filters, allStocks]);
 
     const handleClearSearch = () => {
         setSearchQuery('');
+        setSearchResults([]);
         setFilters({ sector: null, marketCap: null });
     };
 
@@ -350,21 +365,18 @@ export default function SearchScreen() {
         setRecentSearchesList([]);
     };
 
-    const handleRecentSearch = (query: string) => {
-        setSearchQuery(query);
+    const handleRecentSearch = async (query: string) => {
+        await handleSearch(query);
     };
 
     const toggleWatchlist = async (stockId: string) => {
-        // Find the stock by ID to get its symbol
-        const stock = allStocks.find(s => s.id === stockId);
+        const stock = allStocks.find(s => s.id === stockId) || searchResults.find(s => s.id === stockId);
         if (!stock) return;
 
         try {
-            // Get or create stock in database
             const dbStock = await getOrCreateStockBySymbol(stock.symbol);
 
             if (watchlistedStocks.has(stockId)) {
-                // Remove from watchlist
                 await removeFromWatchlist(dbStock.stockId);
                 setWatchlistedStocks(prev => {
                     const newSet = new Set(prev);
@@ -372,7 +384,6 @@ export default function SearchScreen() {
                     return newSet;
                 });
             } else {
-                // Add to watchlist
                 await addToWatchlist(dbStock.stockId);
                 setWatchlistedStocks(prev => {
                     const newSet = new Set(prev);
@@ -385,7 +396,6 @@ export default function SearchScreen() {
         }
     };
 
-    // @ts-ignore
     return (
         <View style={[styles.container, { backgroundColor: Colors.background }]}>
             {/* Header */}
@@ -417,13 +427,13 @@ export default function SearchScreen() {
                     />
                     <TextInput
                         style={[styles.searchInput, { color: Colors.text }]}
-                        placeholder="Search by symbol or company..."
+                        placeholder="Search by symbol (e.g. AAPL)..."
                         placeholderTextColor={Colors.text + '99'}
                         value={searchQuery}
-                        onChangeText={setSearchQuery}
+                        onChangeText={handleSearch}
                     />
                     {searchQuery ? (
-                        <TouchableOpacity onPress={() => setSearchQuery('')}>
+                        <TouchableOpacity onPress={() => handleSearch('')}>
                             <MaterialCommunityIcons
                                 name="close-circle"
                                 size={20}
@@ -505,8 +515,15 @@ export default function SearchScreen() {
             )}
 
             {/* Results or Empty State */}
-            {!searchQuery && filteredStocks.length === allStocks.length ? (
-                // Recent Searches
+            {loadingStocks && !searchQuery ? (
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color={Colors.tint} />
+                    <Text style={[styles.loadingText, { color: Colors.text }]}>
+                        Loading popular stocks...
+                    </Text>
+                </View>
+            ) : !searchQuery && filteredStocks.length === allStocks.length ? (
+                // Recent Searches & Popular Stocks
                 <ScrollView
                     style={styles.content}
                     showsVerticalScrollIndicator={false}
@@ -568,6 +585,10 @@ export default function SearchScreen() {
                         })}
                     </View>
                 </ScrollView>
+            ) : loadingSearch ? (
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color={Colors.tint} />
+                </View>
             ) : filteredStocks.length > 0 ? (
                 // Search Results
                 <ScrollView
@@ -607,16 +628,14 @@ export default function SearchScreen() {
                         No stocks found
                     </Text>
                     <Text style={[styles.emptyStateSubtitle, { color: Colors.text, opacity: 0.6 }]}>
-                        Try searching with a different term or adjust your filters
+                        Try searching with a different ticker symbol
                     </Text>
                     <TouchableOpacity
                         onPress={handleClearSearch}
-                        //@ts-ignore
                         style={[styles.clearButton, { marginTop: 16 }]}
                     >
                         <Text style={{ color: Colors.tint, fontWeight: '700' }}>Clear search</Text>
                     </TouchableOpacity>
-
                 </View>
             )}
         </View>
@@ -832,4 +851,14 @@ const styles = StyleSheet.create({
         fontSize: 13,
         textAlign: 'center',
     },
-})
+    loadingContainer: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 12,
+    },
+    loadingText: {
+        fontSize: 14,
+        fontWeight: '500',
+    },
+});
