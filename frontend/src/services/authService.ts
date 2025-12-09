@@ -82,7 +82,11 @@ export const register = async (
 
         return response;
     } catch (error) {
-        throw new Error('Registration failed: Email may already be in use');
+        // Re-throw the actual error message from the backend
+        if (error instanceof Error) {
+            throw error;
+        }
+        throw new Error('Registration failed: Unknown error');
     }
 };
 
