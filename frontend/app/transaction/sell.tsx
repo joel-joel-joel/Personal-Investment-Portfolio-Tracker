@@ -16,6 +16,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { createTransaction, getAllAccounts } from '@/src/services/portfolioService';
 import { getOrCreateStockBySymbol } from '@/src/services/entityService';
+import type { FinnhubCompanyProfileDTO, FinnhubQuoteDTO } from '@/src/types/api';
 
 const sectorColors: Record<string, { color: string; bgLight: string }> = {
     'Technology': { color: '#0369A1', bgLight: '#EFF6FF' },
@@ -52,6 +53,9 @@ export default function SellTransactionPage() {
     const [loading, setLoading] = useState(false);
     const [accounts, setAccounts] = useState<any[]>([]);
     const [selectedAccount, setSelectedAccount] = useState<string | null>(null);
+    const [realtimePrice, setRealtimePrice] = useState<number | null>(null);
+    const [loadingPrice, setLoadingPrice] = useState(false);
+    const [realtimeStockData, setRealtimeStockData] = useState<any | null>(null);
 
     useEffect(() => {
         const fetchAccounts = async () => {
@@ -68,14 +72,73 @@ export default function SellTransactionPage() {
         fetchAccounts();
     }, []);
 
-    const currentPrice = stockData?.price || 0;
+    // Fetch real-time price data
+    useEffect(() => {
+        const fetchRealtimePrice = async () => {
+            if (!stockData?.symbol) return;
+
+            setLoadingPrice(true);
+            try {
+                const apiUrl = process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:8080';
+
+                const [profileResponse, quoteResponse] = await Promise.all([
+                    fetch(`${apiUrl}/api/stocks/finnhub/profile/${stockData.symbol}`),
+                    fetch(`${apiUrl}/api/stocks/finnhub/quote/${stockData.symbol}`)
+                ]);
+
+                if (!profileResponse.ok || !quoteResponse.ok) {
+                    console.warn(`Failed to fetch real-time data for ${stockData.symbol}`);
+                    setLoadingPrice(false);
+                    return;
+                }
+
+                const profile: FinnhubCompanyProfileDTO = await profileResponse.json();
+                const quote: FinnhubQuoteDTO = await quoteResponse.json();
+
+                if (!quote || !quote.c || !quote.pc) {
+                    console.warn(`Invalid quote data for ${stockData.symbol}`);
+                    setLoadingPrice(false);
+                    return;
+                }
+
+                const currentPrice = quote.c || 0;
+                const previousClose = quote.pc || currentPrice;
+                const change = currentPrice - previousClose;
+                const changePercent = previousClose !== 0 ? (change / previousClose) * 100 : 0;
+
+                setRealtimePrice(currentPrice);
+                setRealtimeStockData({
+                    ...stockData,
+                    price: currentPrice,
+                    change: change,
+                    changePercent: changePercent,
+                    dayHigh: quote?.h || stockData?.dayHigh || 0,
+                    dayLow: quote?.l || stockData?.dayLow || 0,
+                });
+            } catch (error) {
+                console.error(`Error fetching real-time price for ${stockData.symbol}:`, error);
+            } finally {
+                setLoadingPrice(false);
+            }
+        };
+
+        fetchRealtimePrice();
+
+        // Refresh price every 30 seconds
+        const interval = setInterval(fetchRealtimePrice, 30000);
+
+        return () => clearInterval(interval);
+    }, [stockData?.symbol]);
+
+    const displayStockData = realtimeStockData || stockData;
+    const currentPrice = realtimePrice !== null ? realtimePrice : (stockData?.price || 0);
     const shareCount = parseFloat(shares) || 0;
     const effectivePrice = priceType === 'limit' ? (parseFloat(limitPrice) || currentPrice) : currentPrice;
     const totalProceeds = shareCount * effectivePrice;
     const estimatedFees = totalProceeds * 0.001; // 0.1% fee
     const netAmount = totalProceeds - estimatedFees;
 
-    const sectorColor = stockData ? (sectorColors[stockData.sector] || sectorColors['Technology']) : sectorColors['Technology'];
+    const sectorColor = displayStockData ? (sectorColors[displayStockData.sector] || sectorColors['Technology']) : sectorColors['Technology'];
 
     const handleGoBack = () => {
         router.back();
@@ -169,15 +232,15 @@ export default function SellTransactionPage() {
                             <View style={styles.stockHeader}>
                                 <View style={[styles.sectorBadge, { backgroundColor: sectorColor.bgLight }]}>
                                     <Text style={[styles.sectorBadgeText, { color: sectorColor.color }]}>
-                                        {stockData.sector.charAt(0)}
+                                        {displayStockData.sector.charAt(0)}
                                     </Text>
                                 </View>
                                 <View style={styles.stockInfo}>
                                     <Text style={[styles.stockSymbol, { color: sectorColor.color }]}>
-                                        {stockData.symbol}
+                                        {displayStockData.symbol}
                                     </Text>
                                     <Text style={[styles.stockName, { color: Colors.text, opacity: 0.7 }]}>
-                                        {stockData.name}
+                                        {displayStockData.name}
                                     </Text>
                                 </View>
                             </View>
@@ -185,9 +248,14 @@ export default function SellTransactionPage() {
                                 <Text style={[styles.priceLabel, { color: Colors.text, opacity: 0.6 }]}>
                                     Current Price
                                 </Text>
-                                <Text style={[styles.currentPrice, { color: Colors.text }]}>
-                                    A${currentPrice.toFixed(2)}
-                                </Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                    <Text style={[styles.currentPrice, { color: Colors.text }]}>
+                                        A${currentPrice.toFixed(2)}
+                                    </Text>
+                                    {loadingPrice && (
+                                        <ActivityIndicator size="small" color={Colors.tint} />
+                                    )}
+                                </View>
                             </View>
                             <View style={[styles.ownedRow, { backgroundColor: '#FFF9E6', borderColor: '#FFD700' }]}>
                                 <MaterialCommunityIcons name="wallet-outline" size={16} color="#B8860B" />

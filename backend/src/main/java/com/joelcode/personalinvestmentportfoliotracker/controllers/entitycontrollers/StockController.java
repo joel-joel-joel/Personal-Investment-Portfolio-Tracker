@@ -1,6 +1,8 @@
 package com.joelcode.personalinvestmentportfoliotracker.controllers.entitycontrollers;
 
+import com.joelcode.personalinvestmentportfoliotracker.dto.finnhub.FinnhubCandleDTO;
 import com.joelcode.personalinvestmentportfoliotracker.dto.finnhub.FinnhubCompanyProfileDTO;
+import com.joelcode.personalinvestmentportfoliotracker.dto.finnhub.FinnhubMetricsDTO;
 import com.joelcode.personalinvestmentportfoliotracker.dto.finnhub.FinnhubQuoteDTO;
 import com.joelcode.personalinvestmentportfoliotracker.dto.stock.StockCreateRequest;
 import com.joelcode.personalinvestmentportfoliotracker.dto.stock.StockDTO;
@@ -123,6 +125,32 @@ public class StockController {
             return ResponseEntity.ok(profile);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error fetching profile for symbol: " + symbol);
+        }
+    }
+
+    // Get stock metrics from FinnHub by symbol (P/E, EPS, 52W high/low, etc.)
+    @GetMapping("/finnhub/metrics/{symbol}")
+    public ResponseEntity<?> getFinnhubMetrics(@PathVariable String symbol) {
+        try {
+            FinnhubMetricsDTO metrics = finnhubApiClient.getMetrics(symbol);
+            return ResponseEntity.ok(metrics);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error fetching metrics for symbol: " + symbol);
+        }
+    }
+
+    // Get historical candle data from FinnHub
+    @GetMapping("/finnhub/candles/{symbol}")
+    public ResponseEntity<?> getFinnhubCandles(
+            @PathVariable String symbol,
+            @RequestParam String resolution,
+            @RequestParam long from,
+            @RequestParam long to) {
+        try {
+            FinnhubCandleDTO candles = finnhubApiClient.getCandles(symbol, resolution, from, to);
+            return ResponseEntity.ok(candles);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error fetching candles for symbol: " + symbol);
         }
     }
 }

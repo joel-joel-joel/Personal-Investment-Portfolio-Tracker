@@ -19,7 +19,7 @@ import TransactionHistory from '@/src/components/transaction/TransactionHistory'
 import { Svg, Polyline, Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { getPriceHistoryForStock, filterPriceHistoryByTimeRange, type PriceHistoryDTO, addToWatchlist, removeFromWatchlist, isInWatchlist } from '@/src/services';
 import { getOrCreateStockBySymbol } from '@/src/services/entityService';
-import type { FinnhubCompanyProfileDTO, FinnhubQuoteDTO } from '@/src/types/api';
+import type { FinnhubCompanyProfileDTO, FinnhubQuoteDTO, FinnhubMetricsDTO, FinnhubCandleDTO } from '@/src/types/api';
 
 const screenWidth = Dimensions.get('window').width - 48;
 
@@ -87,10 +87,22 @@ export default function StockTickerScreen({ route }: { route?: any }) {
     const [useMockData, setUseMockData] = useState(true);
     const [searchResults, setSearchResults] = useState<CompareStockData[]>([]);
     const [loadingCompareData, setLoadingCompareData] = useState(false);
+    const [realtimeQuote, setRealtimeQuote] = useState<FinnhubQuoteDTO | null>(null);
+    const [loadingRealtimeData, setLoadingRealtimeData] = useState(false);
+    const [stockMetrics, setStockMetrics] = useState<FinnhubMetricsDTO | null>(null);
+    const [loadingMetrics, setLoadingMetrics] = useState(false);
     const animation = useRef(new Animated.Value(0)).current;
 
     // Get stock data from route params
     const stock = route?.params?.stock;
+
+    // Calculate real-time price data
+    const currentPrice = realtimeQuote?.c || stock?.price || 0;
+    const previousClose = realtimeQuote?.pc || currentPrice;
+    const priceChange = realtimeQuote ? (currentPrice - previousClose) : (stock?.change || 0);
+    const priceChangePercent = realtimeQuote && previousClose !== 0 ? (priceChange / previousClose) * 100 : (stock?.changePercent || 0);
+    const dayHigh = realtimeQuote?.h || stock?.dayHigh || 0;
+    const dayLow = realtimeQuote?.l || stock?.dayLow || 0;
 
     // Check if stock is in watchlist on component mount
     useEffect(() => {
@@ -108,48 +120,117 @@ export default function StockTickerScreen({ route }: { route?: any }) {
         checkWatchlistStatus();
     }, [stock?.symbol]);
 
-    // Fetch price history from backend when stock changes
+    // Fetch real-time quote data
     useEffect(() => {
-        if (stock?.symbol) {
-            setLoadingPriceHistory(true);
-            getOrCreateStockBySymbol(stock.symbol)
-                .then((dbStock) => {
-                    return getPriceHistoryForStock(dbStock.stockId);
-                })
-                .then((data) => {
-                    setPriceHistory(data);
-                    if (data.length > 0) {
-                        setUseMockData(false);
-                        const filtered = filterPriceHistoryByTimeRange(data, selectedTimeframe);
-                        const prices = filtered.map(ph => ph.closePrice);
-                        if (prices.length > 0) {
-                            setPriceData(prices);
-                        }
-                    }
-                })
-                .catch(() => {
-                    setUseMockData(true);
-                })
-                .finally(() => {
-                    setLoadingPriceHistory(false);
-                });
-        }
+        const fetchRealtimeQuote = async () => {
+            if (!stock?.symbol) return;
+
+            setLoadingRealtimeData(true);
+            try {
+                const apiUrl = process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:8080';
+                const quoteResponse = await fetch(`${apiUrl}/api/stocks/finnhub/quote/${stock.symbol}`);
+
+                if (!quoteResponse.ok) {
+                    console.warn(`Failed to fetch real-time quote for ${stock.symbol}`);
+                    return;
+                }
+
+                const quote: FinnhubQuoteDTO = await quoteResponse.json();
+                if (quote && quote.c && quote.pc) {
+                    setRealtimeQuote(quote);
+                }
+            } catch (error) {
+                console.error(`Error fetching real-time quote for ${stock.symbol}:`, error);
+            } finally {
+                setLoadingRealtimeData(false);
+            }
+        };
+
+        fetchRealtimeQuote();
+
+        // Refresh every 30 seconds
+        const interval = setInterval(fetchRealtimeQuote, 30000);
+        return () => clearInterval(interval);
     }, [stock?.symbol]);
 
-    // Update price data when timeframe changes
+    // Fetch stock metrics (P/E, EPS, Dividend, 52W High/Low, etc.)
     useEffect(() => {
-        if (!useMockData && priceHistory.length > 0) {
-            const filtered = filterPriceHistoryByTimeRange(priceHistory, selectedTimeframe);
-            const prices = filtered.map(ph => ph.closePrice);
-            if (prices.length > 0) {
-                setPriceData(prices);
-            } else {
-                setPriceData(chartDataSets[selectedTimeframe]);
+        const fetchMetrics = async () => {
+            if (!stock?.symbol) return;
+
+            setLoadingMetrics(true);
+            try {
+                const apiUrl = process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:8080';
+                const response = await fetch(`${apiUrl}/api/stocks/finnhub/metrics/${stock.symbol}`);
+
+                if (response.ok) {
+                    const data: FinnhubMetricsDTO = await response.json();
+                    setStockMetrics(data);
+                } else {
+                    console.warn(`Failed to fetch metrics for ${stock.symbol}`);
+                }
+            } catch (error) {
+                console.error('Error fetching metrics:', error);
+            } finally {
+                setLoadingMetrics(false);
             }
-        } else {
-            setPriceData(chartDataSets[selectedTimeframe]);
-        }
-    }, [selectedTimeframe, priceHistory, useMockData]);
+        };
+
+        fetchMetrics();
+    }, [stock?.symbol]);
+
+    // Fetch candle data for chart based on timeframe
+    useEffect(() => {
+        const fetchCandleData = async () => {
+            if (!stock?.symbol) return;
+
+            setLoadingPriceHistory(true);
+            try {
+                const apiUrl = process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:8080';
+
+                // Map timeframe to resolution and date range
+                const resolutionMap: Record<string, { resolution: string; days: number }> = {
+                    '1D': { resolution: '5', days: 1 },
+                    '1W': { resolution: 'D', days: 7 },
+                    '1M': { resolution: 'D', days: 30 },
+                    '3M': { resolution: 'D', days: 90 },
+                    '1Y': { resolution: 'W', days: 365 },
+                };
+
+                const config = resolutionMap[selectedTimeframe];
+                const to = Math.floor(Date.now() / 1000);
+                const from = to - (config.days * 24 * 60 * 60);
+
+                const url = `${apiUrl}/api/stocks/finnhub/candles/${stock.symbol}?resolution=${config.resolution}&from=${from}&to=${to}`;
+                const response = await fetch(url);
+
+                if (response.ok) {
+                    const data: FinnhubCandleDTO = await response.json();
+                    if (data.s === 'ok' && data.c && data.c.length > 0) {
+                        setPriceData(data.c.map(price => Number(price)));
+                        setUseMockData(false);
+                    } else {
+                        console.warn(`No candle data available for ${stock.symbol}`);
+                        setPriceData(chartDataSets[selectedTimeframe]);
+                        setUseMockData(true);
+                    }
+                } else {
+                    console.warn(`Failed to fetch candle data for ${stock.symbol}`);
+                    setPriceData(chartDataSets[selectedTimeframe]);
+                    setUseMockData(true);
+                }
+            } catch (error) {
+                console.error('Error fetching candle data:', error);
+                setPriceData(chartDataSets[selectedTimeframe]);
+                setUseMockData(true);
+            } finally {
+                setLoadingPriceHistory(false);
+            }
+        };
+
+        fetchCandleData();
+    }, [selectedTimeframe, stock?.symbol]);
+
 
     // Animation effect
     useEffect(() => {
@@ -287,7 +368,7 @@ export default function StockTickerScreen({ route }: { route?: any }) {
 
     const sectorColor = sectorColors[stock.sector] || sectorColors['Technology'];
     const timeframes = ['1D', '1W', '1M', '3M', '1Y'] as const;
-    const isPositive = (stock.changePercent || 0) >= 0;
+    const isPositive = priceChangePercent >= 0;
 
     const chartWidth = screenWidth - chartPadding * 2;
     const usableHeight = chartHeight - chartPadding * 2;
@@ -370,9 +451,14 @@ export default function StockTickerScreen({ route }: { route?: any }) {
                     </View>
 
                     <View style={styles.priceSection}>
-                        <Text style={[styles.price, { color: Colors.text }]}>
-                            A${(stock.price || 0).toFixed(2)}
-                        </Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                            <Text style={[styles.price, { color: Colors.text }]}>
+                                A${currentPrice.toFixed(2)}
+                            </Text>
+                            {loadingRealtimeData && (
+                                <ActivityIndicator size="small" color={Colors.tint} />
+                            )}
+                        </View>
                         <View style={[styles.changeBadge, { backgroundColor: isPositive ? '#E7F5E7' : '#FCE4E4' }]}>
                             <MaterialCommunityIcons
                                 name={isPositive ? 'trending-up' : 'trending-down'}
@@ -380,7 +466,7 @@ export default function StockTickerScreen({ route }: { route?: any }) {
                                 color={isPositive ? '#2E7D32' : '#C62828'}
                             />
                             <Text style={[styles.changeText, { color: isPositive ? '#2E7D32' : '#C62828' }]}>
-                                {isPositive ? '+' : ''}{(stock.change || 0).toFixed(2)} ({isPositive ? '+' : ''}{(stock.changePercent || 0).toFixed(2)}%)
+                                {isPositive ? '+' : ''}{priceChange.toFixed(2)} ({isPositive ? '+' : ''}{priceChangePercent.toFixed(2)}%)
                             </Text>
                         </View>
                     </View>
@@ -507,16 +593,91 @@ export default function StockTickerScreen({ route }: { route?: any }) {
                             <Text style={[styles.sectionTitle, { color: Colors.text }]}>
                                 Key Statistics
                             </Text>
-                            <View style={[styles.statsGrid, { backgroundColor: Colors.card, borderColor: Colors.border }]}>
-                                <StatItem label="P/E Ratio" value={stock.peRatio || 'N/A'} colors={Colors} />
-                                <StatItem label="Market Cap" value={stock.marketCap || 'N/A'} colors={Colors} />
-                                <StatItem label="Dividend Yield" value={(stock.dividend || '0') + '%'} colors={Colors} />
-                                <StatItem label="EPS" value={stock.earningsPerShare || 'N/A'} colors={Colors} />
-                                <StatItem label="Day High" value={`A$${(stock.dayHigh || 0).toFixed(2)}`} colors={Colors} />
-                                <StatItem label="Day Low" value={`A$${(stock.dayLow || 0).toFixed(2)}`} colors={Colors} />
-                                <StatItem label="52W High" value={`A$${(stock.yearHigh || 0).toFixed(2)}`} colors={Colors} />
-                                <StatItem label="52W Low" value={`A$${(stock.yearLow || 0).toFixed(2)}`} colors={Colors} />
-                            </View>
+                            {loadingMetrics ? (
+                                <View style={{ paddingVertical: 40, alignItems: 'center' }}>
+                                    <ActivityIndicator size="large" color={Colors.tint} />
+                                    <Text style={[styles.placeholderText, { color: Colors.text, marginTop: 12 }]}>
+                                        Loading metrics...
+                                    </Text>
+                                </View>
+                            ) : (
+                                <View style={[styles.statsGrid, { backgroundColor: Colors.card, borderColor: Colors.border }]}>
+                                    <StatItem
+                                        label="P/E Ratio"
+                                        value={stockMetrics?.metric?.peExclExtraTTM?.toFixed(2) || 'N/A'}
+                                        colors={Colors}
+                                    />
+                                    <StatItem
+                                        label="EPS"
+                                        value={stockMetrics?.metric?.epsExclExtraItemsTTM
+                                            ? `A$${stockMetrics.metric.epsExclExtraItemsTTM.toFixed(2)}`
+                                            : 'N/A'}
+                                        colors={Colors}
+                                    />
+                                    <StatItem
+                                        label="Dividend Yield"
+                                        value={stockMetrics?.metric?.dividendYieldIndicatedAnnual
+                                            ? `${stockMetrics.metric.dividendYieldIndicatedAnnual.toFixed(2)}%`
+                                            : 'N/A'}
+                                        colors={Colors}
+                                    />
+                                    <StatItem
+                                        label="Beta"
+                                        value={stockMetrics?.metric?.beta?.toFixed(2) || 'N/A'}
+                                        colors={Colors}
+                                    />
+                                    <StatItem
+                                        label="Day High"
+                                        value={`A$${dayHigh.toFixed(2)}`}
+                                        colors={Colors}
+                                    />
+                                    <StatItem
+                                        label="Day Low"
+                                        value={`A$${dayLow.toFixed(2)}`}
+                                        colors={Colors}
+                                    />
+                                    <StatItem
+                                        label="52W High"
+                                        value={stockMetrics?.metric?.['52WeekHigh']
+                                            ? `A$${stockMetrics.metric['52WeekHigh'].toFixed(2)}`
+                                            : 'N/A'}
+                                        colors={Colors}
+                                    />
+                                    <StatItem
+                                        label="52W Low"
+                                        value={stockMetrics?.metric?.['52WeekLow']
+                                            ? `A$${stockMetrics.metric['52WeekLow'].toFixed(2)}`
+                                            : 'N/A'}
+                                        colors={Colors}
+                                    />
+                                    <StatItem
+                                        label="P/B Ratio"
+                                        value={stockMetrics?.metric?.pbQuarterly?.toFixed(2) || 'N/A'}
+                                        colors={Colors}
+                                    />
+                                    <StatItem
+                                        label="ROE"
+                                        value={stockMetrics?.metric?.roaeTTM
+                                            ? `${stockMetrics.metric.roaeTTM.toFixed(2)}%`
+                                            : 'N/A'}
+                                        colors={Colors}
+                                    />
+                                    <StatItem
+                                        label="Gross Margin"
+                                        value={stockMetrics?.metric?.grossMarginTTM
+                                            ? `${stockMetrics.metric.grossMarginTTM.toFixed(2)}%`
+                                            : 'N/A'}
+                                        colors={Colors}
+                                    />
+                                    <StatItem
+                                        label="Net Margin"
+                                        value={stockMetrics?.metric?.netMarginTTM
+                                            ? `${stockMetrics.metric.netMarginTTM.toFixed(2)}%`
+                                            : 'N/A'}
+                                        colors={Colors}
+                                    />
+                                </View>
+                            )}
                         </View>
                     )}
 
@@ -628,7 +789,7 @@ export default function StockTickerScreen({ route }: { route?: any }) {
                                             <Text style={[styles.comparisonLabel, { color: Colors.text, opacity: 0.7 }]}>Price</Text>
                                             <View style={styles.comparisonValues}>
                                                 <Text style={[styles.comparisonValue, { color: sectorColor.color }]}>
-                                                    A${(stock.price || 0).toFixed(2)}
+                                                    A${currentPrice.toFixed(2)}
                                                 </Text>
                                                 <Text style={[styles.comparisonValue, { color: sectorColors[compareStock.sector as keyof typeof sectorColors]?.color || Colors.text }]}>
                                                     A${(compareStock.price || 0).toFixed(2)}
@@ -640,9 +801,9 @@ export default function StockTickerScreen({ route }: { route?: any }) {
                                         <View style={styles.comparisonRow}>
                                             <Text style={[styles.comparisonLabel, { color: Colors.text, opacity: 0.7 }]}>Change %</Text>
                                             <View style={styles.comparisonValues}>
-                                                <View style={[styles.changeIndicator, { backgroundColor: (stock.changePercent || 0) >= 0 ? '#E7F5E7' : '#FCE4E4' }]}>
-                                                    <Text style={[styles.comparisonValue, { color: (stock.changePercent || 0) >= 0 ? '#2E7D32' : '#C62828' }]}>
-                                                        {(stock.changePercent || 0) >= 0 ? '+' : ''}{(stock.changePercent || 0).toFixed(2)}%
+                                                <View style={[styles.changeIndicator, { backgroundColor: priceChangePercent >= 0 ? '#E7F5E7' : '#FCE4E4' }]}>
+                                                    <Text style={[styles.comparisonValue, { color: priceChangePercent >= 0 ? '#2E7D32' : '#C62828' }]}>
+                                                        {priceChangePercent >= 0 ? '+' : ''}{priceChangePercent.toFixed(2)}%
                                                     </Text>
                                                 </View>
                                                 <View style={[styles.changeIndicator, { backgroundColor: (compareStock.changePercent || 0) >= 0 ? '#E7F5E7' : '#FCE4E4' }]}>
@@ -654,4 +815,433 @@ export default function StockTickerScreen({ route }: { route?: any }) {
                                         </View>
 
                                         {/* P/E Ratio */}
-                                        <View style={
+                                        <View style={styles.comparisonRow}>
+                                            <Text style={[styles.comparisonLabel, { color: Colors.text, opacity: 0.7 }]}>P/E Ratio</Text>
+                                            <View style={styles.comparisonValues}>
+                                                <Text style={[styles.comparisonValue, { color: Colors.text }]}>
+                                                    {stock.peRatio || 'N/A'}
+                                                </Text>
+                                                <Text style={[styles.comparisonValue, { color: Colors.text }]}>
+                                                    {compareStock.peRatio || 'N/A'}
+                                                </Text>
+                                            </View>
+                                        </View>
+
+                                        {/* Market Cap */}
+                                        <View style={styles.comparisonRow}>
+                                            <Text style={[styles.comparisonLabel, { color: Colors.text, opacity: 0.7 }]}>Market Cap</Text>
+                                            <View style={styles.comparisonValues}>
+                                                <Text style={[styles.comparisonValue, { color: Colors.text }]}>
+                                                    {stock.marketCap || 'N/A'}
+                                                </Text>
+                                                <Text style={[styles.comparisonValue, { color: Colors.text }]}>
+                                                    {compareStock.marketCap || 'N/A'}
+                                                </Text>
+                                            </View>
+                                        </View>
+
+                                        {/* Dividend */}
+                                        <View style={styles.comparisonRow}>
+                                            <Text style={[styles.comparisonLabel, { color: Colors.text, opacity: 0.7 }]}>Dividend</Text>
+                                            <View style={styles.comparisonValues}>
+                                                <Text style={[styles.comparisonValue, { color: Colors.text }]}>
+                                                    {stock.dividend || '0'}%
+                                                </Text>
+                                                <Text style={[styles.comparisonValue, { color: Colors.text }]}>
+                                                    {compareStock.dividend || '0'}%
+                                                </Text>
+                                            </View>
+                                        </View>
+                                    </View>
+                                </View>
+                            ) : (
+                                <View style={[styles.emptyCompare, { backgroundColor: Colors.card, borderColor: Colors.border }]}>
+                                    <MaterialCommunityIcons name="chart-line-variant" size={48} color={Colors.text} style={{ opacity: 0.3 }} />
+                                    <Text style={[styles.emptyCompareText, { color: Colors.text, opacity: 0.6 }]}>
+                                        Search and select a stock to compare with {stock.symbol}
+                                    </Text>
+                                </View>
+                            )}
+                        </View>
+                    )}
+                </View>
+
+                {/* Action Buttons */}
+                <View style={styles.actionButtonsContainer}>
+                    <TouchableOpacity
+                        onPress={() => {
+                            router.push({
+                                pathname: '/transaction/buy',
+                                params: {
+                                    stock: JSON.stringify(stock),
+                                },
+                            });
+                        }}
+                        style={[styles.actionButton, { backgroundColor: Colors.tint }]}
+                    >
+                        <MaterialCommunityIcons name="plus" size={18} color="white" />
+                        <Text style={styles.actionButtonText}>Invest</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        onPress={() => {
+                            router.push({
+                                pathname: '/transaction/sell',
+                                params: {
+                                    stock: JSON.stringify(stock),
+                                    owned: '100',
+                                },
+                            });
+                        }}
+                        style={[styles.actionButton, { backgroundColor: '#FCE4E4' }]}
+                    >
+                        <MaterialCommunityIcons name="minus" size={18} color="#C62828" />
+                        <Text style={[styles.actionButtonText, { color: '#C62828' }]}>Sell</Text>
+                    </TouchableOpacity>
+                </View>
+
+                <View style={{ height: 24 }} />
+            </ScrollView>
+        </View>
+    );
+}
+
+const StatItem = ({ label, value, colors }: { label: string; value: string; colors: any }) => (
+    <View style={styles.statItem}>
+        <Text style={[styles.statLabel, { color: colors.text, opacity: 0.6 }]}>
+            {label}
+        </Text>
+        <Text style={[styles.statValue, { color: colors.text }]}>
+            {value}
+        </Text>
+    </View>
+);
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+    },
+    topBar: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 24,
+        paddingTop: 12,
+        paddingBottom: 8,
+    },
+    backButton: {
+        width: 44,
+        height: 44,
+        borderRadius: 10,
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0,
+    },
+    headerSpacer: {
+        flex: 1,
+        marginLeft: -32,
+        marginTop: 15,
+    },
+    header: {
+        borderWidth: 1,
+        borderRadius: 16,
+        padding: 16,
+        marginHorizontal: 24,
+        marginTop: -20,
+        marginBottom: 16,
+        gap: 12,
+    },
+    headerTop: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+    },
+    stockName: {
+        fontSize: 18,
+        fontWeight: '800',
+        marginBottom: 4,
+    },
+    stockSymbol: {
+        fontSize: 14,
+        fontWeight: '700',
+    },
+    favoriteButton: {
+        width: 44,
+        height: 44,
+        borderRadius: 10,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    priceSection: {
+        gap: 8,
+    },
+    price: {
+        fontSize: 28,
+        fontWeight: '800',
+    },
+    changeBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 8,
+        alignSelf: 'flex-start',
+    },
+    changeText: {
+        fontSize: 13,
+        fontWeight: '700',
+    },
+    sectorBadge: {
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 8,
+        alignSelf: 'flex-start',
+    },
+    sectorText: {
+        fontSize: 12,
+        fontWeight: '700',
+    },
+    timeframeContainer: {
+        flexDirection: 'row',
+        paddingHorizontal: 24,
+        marginBottom: 16,
+        gap: 8,
+    },
+    timeframeButton: {
+        flex: 1,
+        paddingVertical: 8,
+        borderRadius: 8,
+        alignItems: 'center',
+        backgroundColor: '#F0F0F0',
+    },
+    timeframeText: {
+        fontSize: 12,
+        fontWeight: '600',
+        color: '#666',
+    },
+    chartContainer: {
+        borderWidth: 1,
+        borderRadius: 16,
+        marginHorizontal: 24,
+        marginBottom: 16,
+        padding: 8,
+        position: 'relative',
+    },
+    loadingOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        borderRadius: 16,
+        zIndex: 10,
+        gap: 8,
+    },
+    loadingText: {
+        fontSize: 12,
+        fontWeight: '600',
+    },
+    dataSourceBadge: {
+        position: 'absolute',
+        top: 16,
+        right: 16,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        backgroundColor: 'white',
+        borderRadius: 6,
+        zIndex: 5,
+    },
+    dataSourceText: {
+        fontSize: 10,
+        fontWeight: '700',
+    },
+    tabContainer: {
+        flexDirection: 'row',
+        marginHorizontal: 24,
+        marginBottom: 16,
+        borderWidth: 1,
+        borderRadius: 12,
+        overflow: 'hidden',
+    },
+    tab: {
+        flex: 1,
+        paddingVertical: 12,
+        alignItems: 'center',
+    },
+    tabText: {
+        fontSize: 13,
+        fontWeight: '700',
+    },
+    tabContent: {
+        paddingHorizontal: 24,
+    },
+    statsSection: {
+        gap: 12,
+    },
+    sectionTitle: {
+        fontSize: 16,
+        fontWeight: '800',
+        marginBottom: 4,
+    },
+    statsGrid: {
+        borderWidth: 1,
+        borderRadius: 12,
+        padding: 16,
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 16,
+    },
+    statItem: {
+        width: '47%',
+        gap: 4,
+    },
+    statLabel: {
+        fontSize: 12,
+        fontWeight: '600',
+    },
+    statValue: {
+        fontSize: 16,
+        fontWeight: '800',
+    },
+    placeholderText: {
+        fontSize: 13,
+        fontWeight: '500',
+        textAlign: 'center',
+        paddingVertical: 40,
+    },
+    searchContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderRadius: 10,
+        paddingHorizontal: 12,
+        gap: 8,
+        marginBottom: 12,
+    },
+    searchInput: {
+        flex: 1,
+        fontSize: 14,
+        fontWeight: '500',
+        paddingVertical: 10,
+    },
+    searchResults: {
+        borderWidth: 1,
+        borderRadius: 12,
+        padding: 12,
+        marginBottom: 16,
+        maxHeight: 300,
+    },
+    searchResultsList: {
+        gap: 8,
+    },
+    searchResultItem: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingVertical: 12,
+        borderBottomWidth: 1,
+    },
+    searchResultLeft: {
+        flex: 1,
+        gap: 4,
+    },
+    searchResultSymbol: {
+        fontSize: 14,
+        fontWeight: '700',
+    },
+    searchResultName: {
+        fontSize: 12,
+        fontWeight: '500',
+    },
+    searchResultRight: {
+        alignItems: 'flex-end',
+        gap: 4,
+    },
+    searchResultPrice: {
+        fontSize: 14,
+        fontWeight: '700',
+    },
+    searchResultChange: {
+        fontSize: 11,
+        fontWeight: '600',
+    },
+    comparisonContainer: {
+        gap: 12,
+    },
+    comparisonHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: 12,
+    },
+    comparisonTitle: {
+        fontSize: 15,
+        fontWeight: '700',
+    },
+    comparisonStats: {
+        borderWidth: 1,
+        borderRadius: 12,
+        padding: 16,
+        gap: 12,
+    },
+    comparisonRow: {
+        gap: 8,
+    },
+    comparisonLabel: {
+        fontSize: 12,
+        fontWeight: '600',
+    },
+    comparisonValues: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    comparisonValue: {
+        fontSize: 14,
+        fontWeight: '700',
+    },
+    changeIndicator: {
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 6,
+    },
+    emptyCompare: {
+        borderWidth: 1,
+        borderRadius: 12,
+        paddingVertical: 60,
+        alignItems: 'center',
+        gap: 12,
+        marginTop: 12,
+    },
+    emptyCompareText: {
+        fontSize: 13,
+        fontWeight: '500',
+        textAlign: 'center',
+        paddingHorizontal: 24,
+    },
+    actionButtonsContainer: {
+        flexDirection: 'row',
+        paddingHorizontal: 24,
+        gap: 12,
+        marginTop: 24,
+    },
+    actionButton: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        paddingVertical: 16,
+        borderRadius: 12,
+    },
+    actionButtonText: {
+        fontSize: 15,
+        fontWeight: '800',
+        color: 'white',
+    },
+});

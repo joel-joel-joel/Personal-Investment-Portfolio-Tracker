@@ -64,6 +64,49 @@ export interface FinnhubCompanyProfileDTO {
   description?: string;           // Company description
 }
 
+export interface FinnhubMetricsDTO {
+  metric: {
+    // Price Performance
+    '52WeekHigh': number;
+    '52WeekLow': number;
+    '52WeekHighDate': string;
+    '52WeekLowDate': string;
+    '52WeekPriceReturnDaily': number;
+
+    // Fundamental Metrics
+    peExclExtraTTM: number;           // P/E Ratio
+    pbQuarterly: number;              // Price-to-Book
+    psAnnual: number;                 // Price-to-Sales
+    epsExclExtraItemsTTM: number;     // EPS
+    dividendYieldIndicatedAnnual: number;
+    bookValuePerShareQuarterly: number;
+    revenuePerShareTTM: number;
+
+    // Market Metrics
+    marketCapitalization: number;
+    beta: number;                     // Volatility measure
+    '10DayAverageTradingVolume': number;
+    currentRatioQuarterly: number;
+
+    // Profitability Metrics
+    roaeTTM: number;                  // Return on Average Equity
+    roiTTM: number;                   // Return on Investment
+    grossMarginTTM: number;
+    netMarginTTM: number;
+  };
+  series?: any;
+}
+
+export interface FinnhubCandleDTO {
+  c: number[];  // close prices
+  h: number[];  // high prices
+  l: number[];  // low prices
+  o: number[];  // open prices
+  t: number[];  // timestamps (Unix)
+  v: number[];  // volumes
+  s: string;    // status ("ok" or "no_data")
+}
+
 // ============================================================================
 // News Types
 // ============================================================================

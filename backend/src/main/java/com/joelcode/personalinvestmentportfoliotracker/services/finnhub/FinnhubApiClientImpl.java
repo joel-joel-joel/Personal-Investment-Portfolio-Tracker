@@ -1,6 +1,8 @@
 package com.joelcode.personalinvestmentportfoliotracker.services.finnhub;
 
+import com.joelcode.personalinvestmentportfoliotracker.dto.finnhub.FinnhubCandleDTO;
 import com.joelcode.personalinvestmentportfoliotracker.dto.finnhub.FinnhubCompanyProfileDTO;
+import com.joelcode.personalinvestmentportfoliotracker.dto.finnhub.FinnhubMetricsDTO;
 import com.joelcode.personalinvestmentportfoliotracker.dto.finnhub.FinnhubQuoteDTO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -41,6 +43,27 @@ public class FinnhubApiClientImpl implements FinnhubApiClient {
             return restTemplate.getForObject(url, FinnhubCompanyProfileDTO.class);
         } catch (RestClientException e) {
             throw new RuntimeException("Failed to fetch company profile for symbol: " + symbol, e);
+        }
+    }
+
+    @Override
+    public FinnhubMetricsDTO getMetrics(String symbol) {
+        try {
+            String url = String.format("%s/stock/metric?symbol=%s&metric=all&token=%s", baseUrl, symbol.toUpperCase(), apiKey);
+            return restTemplate.getForObject(url, FinnhubMetricsDTO.class);
+        } catch (RestClientException e) {
+            throw new RuntimeException("Failed to fetch metrics for symbol: " + symbol, e);
+        }
+    }
+
+    @Override
+    public FinnhubCandleDTO getCandles(String symbol, String resolution, long from, long to) {
+        try {
+            String url = String.format("%s/stock/candle?symbol=%s&resolution=%s&from=%d&to=%d&token=%s",
+                    baseUrl, symbol.toUpperCase(), resolution, from, to, apiKey);
+            return restTemplate.getForObject(url, FinnhubCandleDTO.class);
+        } catch (RestClientException e) {
+            throw new RuntimeException("Failed to fetch candles for symbol: " + symbol, e);
         }
     }
 
