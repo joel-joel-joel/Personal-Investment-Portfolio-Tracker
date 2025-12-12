@@ -27,17 +27,17 @@ server:
     include-stacktrace: on_param
     include-exception: false
 
+# ==================== CORS CONFIGURATION ====================
+cors:
+  allowed-origins: http://localhost:3000,http://localhost:4200,http://localhost:5173,http://localhost:*,http://10.*,http://192.168.*,http://172.*
+  allowed-methods: GET,POST,PUT,DELETE,OPTIONS,HEAD,PATCH
+  max-age: 3600
+
 # ==================== JWT CONFIGURATION ====================
 app:
   jwt:
     secret: ${JWT_SECRET:${APP_JWT_SECRET:your-super-secret-jwt-key-change-this-in-production-min-256-bits}}
     expiration: 86400000
-
-# ==================== CORS CONFIGURATION ====================
-cors:
-  allowed-origins: http://localhost:3000,http://localhost:4200,http://localhost:5173
-  allowed-methods: GET,POST,PUT,DELETE,OPTIONS,HEAD,PATCH
-  max-age: 3600
 
 # ==================== LOGGING CONFIGURATION ====================
 logging:
@@ -68,7 +68,6 @@ management:
       show-details: when-authorized
 
 ---
----
 # ==================== DEVELOPMENT PROFILE ====================
 spring:
   config:
@@ -97,9 +96,6 @@ spring:
     locations: classpath:db/migration
     schemas: public
     default-schema: public
-
-cors:
-  allowed-origins: http://localhost:*,http://10.*,http://192.168.*,http://172.*
 
 logging:
   level:
@@ -143,6 +139,7 @@ spring:
 
 cors:
   allowed-origins: https://your-frontend-domain.com
+  allowed-methods: GET,POST,PUT,DELETE,OPTIONS,HEAD,PATCH
   max-age: 7200
 
 app:

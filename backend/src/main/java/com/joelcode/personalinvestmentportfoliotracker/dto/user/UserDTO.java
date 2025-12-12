@@ -6,18 +6,18 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 public class UserDTO {
-
-    // User response DTO (output)
     private UUID userId;
     private String username;
     private String email;
+    private String fullName;
     private LocalDateTime createdAt;
 
-    // Constructor
-    public UserDTO(UUID userId, String username, String email, LocalDateTime createdAt) {
+    public UserDTO(UUID userId, String username, String email,
+                   String fullName, LocalDateTime createdAt) {
         this.userId = userId;
         this.username = username;
         this.email = email;
+        this.fullName = fullName;
         this.createdAt = createdAt;
     }
 
@@ -25,9 +25,11 @@ public class UserDTO {
         this.userId = user.getUserId();
         this.username = user.getUsername();
         this.email = user.getEmail();
+        this.fullName = user.getFullName();
     }
+    public UserDTO() {
 
-    public UserDTO() {}
+    }
 
     // Getters and setters
     public UUID getUserId() {
@@ -54,5 +56,8 @@ public class UserDTO {
         this.createdAt = createdAt;
     }
 
+    public String getFullName() {return fullName;}
+
+    public void setFullName(String fullName) {this.fullName = fullName;}
 
 }

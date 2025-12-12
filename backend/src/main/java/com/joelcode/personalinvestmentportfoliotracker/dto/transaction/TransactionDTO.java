@@ -10,11 +10,22 @@ import java.util.UUID;
 public class TransactionDTO {
 
     // Transaction response DTO (output)
+    @JsonProperty("transactionId")
     private UUID transactionId;
+
+    @JsonProperty("stockId")
     private UUID stockId;
+
+    @JsonProperty("accountId")
     private UUID accountId;
+
+    @JsonProperty("shareQuantity")
     private BigDecimal shareQuantity;
+
+    @JsonProperty("pricePerShare")
     private BigDecimal pricePerShare;
+
+    @JsonProperty("transactionType")
     private Transaction.TransactionType transactionType;
 
     @JsonProperty("transactionDate")

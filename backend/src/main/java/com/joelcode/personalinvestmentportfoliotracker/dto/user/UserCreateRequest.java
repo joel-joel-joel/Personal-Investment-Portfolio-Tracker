@@ -20,11 +20,16 @@ public class UserCreateRequest {
     @Size(min = 8, message = "Password must be at least 8 characters")
     private String password;
 
+    @NotBlank(message = "Full name is required")
+    @Size(min = 2, max = 100, message = "Full name must be between 2 and 100 characters")
+    private String fullName;
+
     //  Constructor
-    public UserCreateRequest(String email, String username, String password) {
+    public UserCreateRequest(String email, String username, String password, String fullName) {
         this.email = email;
         this.username = username;
         this.password = password;
+        this.fullName = fullName;
     }
 
     public UserCreateRequest() {}
@@ -41,4 +46,8 @@ public class UserCreateRequest {
     public void setUsername(String username) {this.username = username;}
 
     public void setPassword (String password) {this.password = password;}
+
+    public String getFullName() {return fullName;}
+
+    public void setFullName(String fullName) {this.fullName = fullName;}
 }

@@ -148,6 +148,7 @@ public class AuthController {
                 user.getUserId(),
                 user.getUsername(),
                 user.getEmail(),
+                user.getFullName(),
                 user.getCreatedAt()
         );
         return ResponseEntity.ok(dto);
