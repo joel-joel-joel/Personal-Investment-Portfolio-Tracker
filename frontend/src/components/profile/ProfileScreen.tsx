@@ -164,18 +164,31 @@ export default function ProfileScreen() {
         setShowWalletModal(true);
     };
 
-    const handleBalanceUpdate = (newBalance: number) => {
-        // Update the active account with new balance
+    const handleBalanceUpdate = async (newBalance: number) => {
+        console.log('📱 ProfileScreen: handleBalanceUpdate called');
+        console.log('  New Balance:', newBalance);
+
         if (activeAccount) {
             const updatedAccount = {
                 ...activeAccount,
                 cashBalance: newBalance,
             };
+
+            console.log('📝 Setting local activeAccount:', updatedAccount);
             setActiveAccount(updatedAccount);
 
-            // Refresh accounts list and dashboard data
-            refreshAccounts();
-            loadDashboardData();
+            try {
+                console.log('🔄 Refreshing accounts from API...');
+                await refreshAccounts();
+                console.log('✅ refreshAccounts completed');
+
+                console.log('🔄 Loading dashboard data...');
+                await loadDashboardData();
+                console.log('✅ loadDashboardData completed');
+            } catch (error) {
+                console.error('❌ Refresh error:', error);
+                Alert.alert('Warning', 'Balance updated but refresh failed');
+            }
         }
     };
 
@@ -497,7 +510,7 @@ export default function ProfileScreen() {
                 visible={showWalletModal}
                 onClose={() => setShowWalletModal(false)}
                 account={activeAccount}
-                onBalanceUpdate={handleBalanceUpdate}
+                onBalanceUpdate={handleBalanceUpdate}  // Now properly awaits
             />
         </View>
     );

@@ -1,118 +1,129 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
-    StyleSheet,
     ScrollView,
     TouchableOpacity,
-    useColorScheme, Dimensions,
+    useColorScheme,
+    StyleSheet,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Svg, Path, G } from 'react-native-svg';
 import { getThemeColors } from '../../constants/colors';
+import { apiFetch } from '../../services/api';
+import type { PortfolioOverviewDTO, HoldingDTO } from '../../types/api';
 
-interface Holding {
-    id: string;
-    symbol: string;
-    company: string;
+interface AllocationItem {
+    stockCode: string;
+    percentage: number;
     currentValue: number;
-    sector: string;
 }
 
-interface AllocationOverviewProps {
-    holdings?: Holding[];
+interface SliceData extends AllocationItem {
+    startAngle: number;
+    endAngle: number;
+    color: string;
 }
-
-
 
 const chartColors = [
-    "#0369A1",  // Technology
-    "#EF6C00",  // Semiconductors
-    "#15803D",  // FinTech
-    "#6D28D9",  // Consumer/Tech
-    "#BE123C",  // Healthcare
-    "#7C3AED",  // Markets
+    "#0369A1",
+    "#EF6C00",
+    "#15803D",
+    "#6D28D9",
+    "#BE123C",
+    "#7C3AED",
 ];
 
+interface AllocationOverviewProps {
+    accountId: string;
+}
 
-const screenWidth = Dimensions.get('window').width - 48;
-
-// Helper function to create pie slice path
-const createPiePath = (
-    centerX: number,
-    centerY: number,
-    radius: number,
-    innerRadius: number,
-    startAngle: number,
-    endAngle: number
-): string => {
-    const start = (angle: number) => {
-        return {
-            x: centerX + radius * Math.cos((angle - 90) * Math.PI / 180),
-            y: centerY + radius * Math.sin((angle - 90) * Math.PI / 180),
-        };
-    };
-
-    const innerStart = (angle: number) => {
-        return {
-            x: centerX + innerRadius * Math.cos((angle - 90) * Math.PI / 180),
-            y: centerY + innerRadius * Math.sin((angle - 90) * Math.PI / 180),
-        };
-    };
-
-    const startOuter = start(startAngle);
-    const endOuter = start(endAngle);
-    const startInner = innerStart(startAngle);
-    const endInner = innerStart(endAngle);
-
-    const largeArc = endAngle - startAngle > 180 ? 1 : 0;
-
-    return `
-        M ${startOuter.x} ${startOuter.y}
-        A ${radius} ${radius} 0 ${largeArc} 1 ${endOuter.x} ${endOuter.y}
-        L ${endInner.x} ${endInner.y}
-        A ${innerRadius} ${innerRadius} 0 ${largeArc} 0 ${startInner.x} ${startInner.y}
-        Z
-    `;
-};
-
-export const AllocationOverview: React.FC<AllocationOverviewProps> = ({
-                                                                          holdings = [],
-                                                                      }) => {
+export const AllocationOverview: React.FC<AllocationOverviewProps> = ({ accountId }) => {
     const colorScheme = useColorScheme();
     const Colors = getThemeColors(colorScheme);
-    const [viewType, setViewType] = useState<'sector' | 'stock'>('sector');
+
+    const [allocationData, setAllocationData] = useState<AllocationItem[]>([]);
     const [activeIndex, setActiveIndex] = useState<number | undefined>(undefined);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    const allocationBySector = useMemo(() => {
-        return holdings.reduce((acc, holding) => {
-            const sector = holding.sector;
-            const existing = acc.find(item => item.name === sector);
-            if (existing) {
-                existing.value += holding.currentValue;
-                existing.count += 1;
-            } else {
-                acc.push({ name: sector, value: holding.currentValue, count: 1 });
+    // Fetch portfolio overview and calculate allocation from holdings
+    useEffect(() => {
+        const fetchData = async () => {
+            if (!accountId) {
+                console.log('⚠️ AllocationOverview: No accountId provided');
+                setIsLoading(false);
+                setError('No account selected');
+                return;
             }
-            return acc;
-        }, [] as Array<{ name: string; value: number; count: number }>);
-    }, [holdings]);
 
-    const allocationByStock = useMemo(() => {
+            try {
+                setIsLoading(true);
+                setError(null);
+
+                console.log('🔄 AllocationOverview: Fetching portfolio overview for account:', accountId);
+
+                const overview = await apiFetch<PortfolioOverviewDTO>(
+                    `/api/portfolio/overview/account/${accountId}`,
+                    {
+                        method: 'GET',
+                        requireAuth: true,
+                    }
+                );
+
+                console.log('✅ AllocationOverview: Got portfolio overview:', overview);
+
+                if (!overview || !overview.holdings || overview.holdings.length === 0) {
+                    console.log('ℹ️ AllocationOverview: No holdings in portfolio');
+                    setAllocationData([]);
+                    setIsLoading(false);
+                    return;
+                }
+
+                // Calculate allocation from holdings
+                const allocations = calculateAllocation(overview.holdings);
+                console.log('📊 AllocationOverview: Calculated allocations:', allocations);
+
+                setAllocationData(allocations);
+            } catch (err: any) {
+                console.error('❌ AllocationOverview: Error fetching portfolio overview');
+                console.error('  Error:', err.message);
+
+                const errorMessage = err.response?.data?.message ||
+                    err.message ||
+                    'Failed to load allocation data';
+                setError(errorMessage);
+                setAllocationData([]);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchData();
+    }, [accountId]);
+
+    // Calculate allocation percentages from holdings
+    const calculateAllocation = (holdings: HoldingDTO[]): AllocationItem[] => {
+        if (holdings.length === 0) return [];
+
+        const totalValue = holdings.reduce((sum, h) => sum + h.currentValue, 0);
+
+        if (totalValue === 0) return [];
+
         return holdings.map(holding => ({
-            name: holding.symbol,
-            value: holding.currentValue,
-            count: 1,
+            stockCode: holding.stockSymbol,
+            currentValue: holding.currentValue,
+            percentage: (holding.currentValue / totalValue) * 100,
         }));
-    }, [holdings]);
+    };
 
-    const allocationData = viewType === 'sector' ? allocationBySector : allocationByStock;
-    const totalValue = allocationData.reduce((sum, item) => sum + item.value, 0);
+    // Calculate total value from allocation data
+    const totalValue = allocationData.reduce((sum, item) => sum + item.currentValue, 0);
 
-    // Generate pie slices
+    // Generate slices for pie chart
     let currentAngle = 0;
-    const slices = allocationData.map((item, index) => {
-        const sliceAngle = (item.value / totalValue) * 360;
+    const slices: SliceData[] = allocationData.map((item, index) => {
+        const sliceAngle = totalValue > 0 ? (item.currentValue / totalValue) * 360 : 0;
         const startAngle = currentAngle;
         const endAngle = currentAngle + sliceAngle;
         currentAngle = endAngle;
@@ -125,8 +136,59 @@ export const AllocationOverview: React.FC<AllocationOverviewProps> = ({
         };
     });
 
-    // Empty state
-    if (holdings.length === 0) {
+    // Loading state
+    if (isLoading) {
+        return (
+            <View style={[styles.container, { backgroundColor: Colors.background }]}>
+                <View style={styles.header}>
+                    <Text style={[styles.title, { color: Colors.text }]}>
+                        Allocation Overview
+                    </Text>
+                </View>
+                <View style={[styles.emptyState, { backgroundColor: Colors.card, borderColor: Colors.border }]}>
+                    <MaterialCommunityIcons
+                        name="loading"
+                        size={56}
+                        color={Colors.text}
+                        style={{ opacity: 0.3, marginBottom: 16 }}
+                    />
+                    <Text style={[styles.emptyTitle, { color: Colors.text }]}>
+                        Loading allocation...
+                    </Text>
+                </View>
+            </View>
+        );
+    }
+
+    // Error state
+    if (error) {
+        return (
+            <View style={[styles.container, { backgroundColor: Colors.background }]}>
+                <View style={styles.header}>
+                    <Text style={[styles.title, { color: Colors.text }]}>
+                        Allocation Overview
+                    </Text>
+                </View>
+                <View style={[styles.emptyState, { backgroundColor: Colors.card, borderColor: Colors.border }]}>
+                    <MaterialCommunityIcons
+                        name="alert-circle-outline"
+                        size={56}
+                        color={Colors.text}
+                        style={{ opacity: 0.3, marginBottom: 16 }}
+                    />
+                    <Text style={[styles.emptyTitle, { color: Colors.text }]}>
+                        {error}
+                    </Text>
+                    <Text style={[styles.emptySubtitle, { color: Colors.text, opacity: 0.6 }]}>
+                        {error === 'No account selected' ? 'Please select an account' : 'Please try again later'}
+                    </Text>
+                </View>
+            </View>
+        );
+    }
+
+    // Empty state - no holdings
+    if (!allocationData || allocationData.length === 0) {
         return (
             <View style={[styles.container, { backgroundColor: Colors.background }]}>
                 <View style={styles.header}>
@@ -152,6 +214,7 @@ export const AllocationOverview: React.FC<AllocationOverviewProps> = ({
         );
     }
 
+    // Main view with data
     return (
         <View style={[styles.container, { backgroundColor: Colors.background }]}>
             {/* Header */}
@@ -160,86 +223,76 @@ export const AllocationOverview: React.FC<AllocationOverviewProps> = ({
                     Allocation Overview
                 </Text>
                 <Text style={[styles.subtitle, { color: Colors.text, opacity: 0.6 }]}>
-                    Total Portfolio: A${totalValue.toLocaleString('en-AU', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                    Total Holdings: A${totalValue.toLocaleString('en-AU', {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                })}
                 </Text>
-            </View>
-
-            {/* Toggle Buttons */}
-            <View style={styles.toggleContainer}>
-                <TouchableOpacity
-                    onPress={() => setViewType('sector')}
-                    style={[
-                        styles.toggleButton,
-                        viewType === 'sector' && { backgroundColor: Colors.tint }
-                    ]}
-                >
-                    <MaterialCommunityIcons
-                        name="tag-multiple"
-                        size={16}
-                        color={viewType === 'sector' ? 'white' : Colors.text}
-                        style={{ marginRight: 6 }}
-                    />
-                    <Text
-                        style={[
-                            styles.toggleButtonText,
-                            viewType === 'sector' && { color: 'white', fontWeight: '700' }
-                        ]}
-                    >
-                        By Sector
-                    </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                    onPress={() => setViewType('stock')}
-                    style={[
-                        styles.toggleButton,
-                        viewType === 'stock' && { backgroundColor: Colors.tint }
-                    ]}
-                >
-                    <MaterialCommunityIcons
-                        name="chart-pie"
-                        size={16}
-                        color={viewType === 'stock' ? 'white' : Colors.text}
-                        style={{ marginRight: 6 }}
-                    />
-                    <Text
-                        style={[
-                            styles.toggleButtonText,
-                            viewType === 'stock' && { color: 'white', fontWeight: '700' }
-                        ]}
-                    >
-                        By Stock
-                    </Text>
-                </TouchableOpacity>
             </View>
 
             {/* Pie Chart Card */}
             <View style={[styles.chartCard, { backgroundColor: Colors.card, borderColor: Colors.border }]}>
                 <View style={styles.chartWrapper}>
-                    <Svg width={screenWidth * 0.9} height={240}>
-                        <G>
-                            {slices.map((slice, index) => (
-                                <Path
-                                    key={`slice-${index}`}
-                                    d={createPiePath(screenWidth * 0.45, 120, 80, 50, slice.startAngle, slice.endAngle)}
-                                    fill={slice.color}
-                                    opacity={activeIndex === index ? 1 : 0.7}
-                                    strokeWidth={1}
-                                    stroke={Colors.card}
-                                    onPress={() => setActiveIndex(activeIndex === index ? undefined : index)}
-                                />
-                            ))}
-                        </G>
-                    </Svg>
+                    <View style={{ width: '100%', height: 280, alignItems: 'center', justifyContent: 'center' }}>
+                        <Svg width={250} height={250} viewBox="0 0 250 250">
+                            <G>
+                                {slices.map((slice, index) => {
+                                    const radius = 80;
+                                    const innerRadius = 50;
+                                    const centerX = 125;
+                                    const centerY = 125;
+
+                                    const start = (angle: number) => ({
+                                        x: centerX + radius * Math.cos((angle - 90) * Math.PI / 180),
+                                        y: centerY + radius * Math.sin((angle - 90) * Math.PI / 180),
+                                    });
+
+                                    const innerStart = (angle: number) => ({
+                                        x: centerX + innerRadius * Math.cos((angle - 90) * Math.PI / 180),
+                                        y: centerY + innerRadius * Math.sin((angle - 90) * Math.PI / 180),
+                                    });
+
+                                    const startOuter = start(slice.startAngle);
+                                    const endOuter = start(slice.endAngle);
+                                    const startInner = innerStart(slice.startAngle);
+                                    const endInner = innerStart(slice.endAngle);
+
+                                    const largeArc = slice.endAngle - slice.startAngle > 180 ? 1 : 0;
+
+                                    const pathData = `
+                                        M ${startOuter.x} ${startOuter.y}
+                                        A ${radius} ${radius} 0 ${largeArc} 1 ${endOuter.x} ${endOuter.y}
+                                        L ${endInner.x} ${endInner.y}
+                                        A ${innerRadius} ${innerRadius} 0 ${largeArc} 0 ${startInner.x} ${startInner.y}
+                                        Z
+                                    `;
+
+                                    return (
+                                        <Path
+                                            key={`slice-${index}`}
+                                            d={pathData}
+                                            fill={slice.color}
+                                            opacity={activeIndex === index ? 1 : 0.8}
+                                            strokeWidth={2}
+                                            stroke={Colors.card}
+                                        />
+                                    );
+                                })}
+                            </G>
+                        </Svg>
+                    </View>
                 </View>
 
-                {/* Custom Legend */}
+                {/* Legend */}
                 <View style={styles.legendContainer}>
                     {allocationData.map((item, index) => (
                         <TouchableOpacity
-                            key={item.name}
+                            key={item.stockCode}
                             onPress={() => setActiveIndex(activeIndex === index ? undefined : index)}
-                            style={styles.legendItem}
+                            style={[
+                                styles.legendItem,
+                                activeIndex === index && { backgroundColor: Colors.card }
+                            ]}
                         >
                             <View
                                 style={[
@@ -247,9 +300,14 @@ export const AllocationOverview: React.FC<AllocationOverviewProps> = ({
                                     { backgroundColor: chartColors[index % chartColors.length] }
                                 ]}
                             />
-                            <Text style={[styles.legendText, { color: Colors.text }]}>
-                                {item.name} ({((item.value / totalValue) * 100).toFixed(1)}%)
-                            </Text>
+                            <View style={{ flex: 1 }}>
+                                <Text style={[styles.legendText, { color: Colors.text }]}>
+                                    {item.stockCode}
+                                </Text>
+                                <Text style={[styles.legendSubtext, { color: Colors.text, opacity: 0.6 }]}>
+                                    {item.percentage.toFixed(1)}% • A${item.currentValue.toLocaleString('en-AU')}
+                                </Text>
+                            </View>
                         </TouchableOpacity>
                     ))}
                 </View>
@@ -267,12 +325,12 @@ export const AllocationOverview: React.FC<AllocationOverviewProps> = ({
                     contentContainerStyle={styles.detailsContent}
                 >
                     {allocationData.map((item, index) => {
-                        const percentage = (item.value / totalValue) * 100;
+                        const percentage = item.percentage;
                         const color = chartColors[index % chartColors.length];
 
                         return (
                             <TouchableOpacity
-                                key={item.name}
+                                key={item.stockCode}
                                 onPress={() => setActiveIndex(activeIndex === index ? undefined : index)}
                                 style={[
                                     styles.detailItem,
@@ -292,17 +350,20 @@ export const AllocationOverview: React.FC<AllocationOverviewProps> = ({
                                     />
                                     <View style={styles.detailText}>
                                         <Text style={[styles.detailName, { color: Colors.text }]}>
-                                            {item.name}
+                                            {item.stockCode}
                                         </Text>
                                         <Text style={[styles.detailSubtext, { color: Colors.text, opacity: 0.6 }]}>
-                                            {item.count} {viewType === 'sector' ? 'position' : 'holding'}{item.count > 1 ? 's' : ''}
+                                            1 holding
                                         </Text>
                                     </View>
                                 </View>
 
                                 <View style={styles.detailRight}>
                                     <Text style={[styles.detailValue, { color: Colors.text }]}>
-                                        A${item.value.toLocaleString('en-AU', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                                        A${item.currentValue.toLocaleString('en-AU', {
+                                        minimumFractionDigits: 0,
+                                        maximumFractionDigits: 0
+                                    })}
                                     </Text>
                                     <View style={styles.percentageBar}>
                                         <View
@@ -345,55 +406,41 @@ const styles = StyleSheet.create({
     subtitle: {
         fontSize: 13,
     },
-    toggleContainer: {
-        flexDirection: 'row',
-        paddingHorizontal: 12,
-        marginBottom: 16,
-        gap: 10,
-    },
-    toggleButton: {
-        flex: 1,
-        flexDirection: 'row',
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-        borderRadius: 8,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#F0F0F0',
-    },
-    toggleButtonText: {
-        fontSize: 12,
-        fontWeight: '600',
-        color: '#666',
-    },
     chartCard: {
         marginBottom: 24,
         borderWidth: 1,
         borderRadius: 12,
-        padding: 12,
+        padding: 16,
     },
     chartWrapper: {
         width: '100%',
         alignItems: 'center',
         justifyContent: 'center',
-        marginBottom: 12,
+        marginBottom: 20,
     },
     legendContainer: {
-        gap: 8,
+        gap: 12,
     },
     legendItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 8,
+        gap: 12,
+        padding: 10,
+        borderRadius: 8,
     },
     legendColor: {
-        width: 12,
-        height: 12,
-        borderRadius: 6,
+        width: 16,
+        height: 16,
+        borderRadius: 8,
     },
     legendText: {
-        fontSize: 12,
-        fontWeight: '600',
+        fontSize: 13,
+        fontWeight: '700',
+    },
+    legendSubtext: {
+        fontSize: 11,
+        fontWeight: '500',
+        marginTop: 2,
     },
     detailsContainer: {
         flex: 1,
@@ -418,6 +465,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
+        marginHorizontal: 12,
     },
     detailLeft: {
         flexDirection: 'row',
@@ -471,6 +519,7 @@ const styles = StyleSheet.create({
         paddingVertical: 60,
         alignItems: 'center',
         justifyContent: 'center',
+        marginHorizontal: 12,
     },
     emptyTitle: {
         fontSize: 18,

@@ -72,14 +72,26 @@ export const createAccount = async (
  * @returns Updated account
  */
 export const updateAccount = async (
-  accountId: string,
-  account: UpdateAccountRequest
+    accountId: string,
+    account: UpdateAccountRequest
 ): Promise<AccountDTO> => {
-  return apiFetch<AccountDTO>(`/api/accounts/${accountId}`, {
-    method: 'PUT',
-    requireAuth: true,
-    body: JSON.stringify(account),
-  });
+    console.log('🔗 updateAccount called');
+    console.log('  URL: /api/accounts/' + accountId);
+    console.log('  Payload:', JSON.stringify(account, null, 2));
+
+    try {
+        const response = await apiFetch<AccountDTO>(`/api/accounts/${accountId}`, {
+            method: 'PUT',
+            requireAuth: true,
+            body: JSON.stringify(account),
+        });
+
+        console.log('✅ updateAccount response:', JSON.stringify(response, null, 2));
+        return response;
+    } catch (error) {
+        console.error('❌ updateAccount error:', error);
+        throw error;
+    }
 };
 
 /**
@@ -349,15 +361,15 @@ export const getPortfolioOverview = async (
  * @returns Portfolio overview for the account
  */
 export const getAccountOverview = async (
-  accountId: string
+    accountId: string
 ): Promise<PortfolioOverviewDTO> => {
-  return apiFetch<PortfolioOverviewDTO>(
-    `/portfolio/overview/account/${accountId}`,
-    {
-      method: 'GET',
-      requireAuth: true,
-    }
-  );
+    return apiFetch<PortfolioOverviewDTO>(
+        `/api/portfolio/overview/account/${accountId}`,  // ✅ Added /api
+        {
+            method: 'GET',
+            requireAuth: true,
+        }
+    );
 };
 
 // ============================================================================

@@ -14,9 +14,10 @@ import { getThemeColors } from '@/src/constants/colors';
 import { HeaderSection } from '@/src/components/home/HeaderSection';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { createTransaction, getAllAccounts } from '@/src/services/portfolioService';
+import { createTransaction } from '@/src/services/portfolioService';
 import { getOrCreateStockBySymbol } from '@/src/services/entityService';
-import type { FinnhubCompanyProfileDTO, FinnhubQuoteDTO } from '@/src/types/api';
+import { useAuth } from '@/src/context/AuthContext';
+import type { FinnhubCompanyProfileDTO, FinnhubQuoteDTO, CreateTransactionRequest, TransactionType } from '@/src/types/api';
 
 const sectorColors: Record<string, { color: string; bgLight: string }> = {
     'Technology': { color: '#0369A1', bgLight: '#EFF6FF' },
@@ -33,6 +34,7 @@ export default function BuyTransactionPage() {
     const Colors = getThemeColors(colorScheme);
     const router = useRouter();
     const params = useLocalSearchParams<{ stock?: string }>();
+    const { activeAccount } = useAuth();
 
     // Parse stock data if provided
     let stockData = null;
@@ -48,26 +50,9 @@ export default function BuyTransactionPage() {
     const [priceType, setPriceType] = useState<'market' | 'limit'>('market');
     const [limitPrice, setLimitPrice] = useState('');
     const [loading, setLoading] = useState(false);
-    const [accounts, setAccounts] = useState<any[]>([]);
-    const [selectedAccount, setSelectedAccount] = useState<string | null>(null);
     const [realtimePrice, setRealtimePrice] = useState<number | null>(null);
     const [loadingPrice, setLoadingPrice] = useState(false);
     const [realtimeStockData, setRealtimeStockData] = useState<any | null>(null);
-
-    useEffect(() => {
-        const fetchAccounts = async () => {
-            try {
-                const accountData = await getAllAccounts();
-                setAccounts(accountData);
-                if (accountData.length > 0) {
-                    setSelectedAccount(accountData[0].accountId);
-                }
-            } catch (error) {
-                console.error('Failed to fetch accounts:', error);
-            }
-        };
-        fetchAccounts();
-    }, []);
 
     // Fetch real-time price data
     useEffect(() => {
@@ -132,7 +117,7 @@ export default function BuyTransactionPage() {
     const shareCount = parseFloat(shares) || 0;
     const effectivePrice = priceType === 'limit' ? (parseFloat(limitPrice) || currentPrice) : currentPrice;
     const totalCost = shareCount * effectivePrice;
-    const estimatedFees = totalCost * 0.001; // 0.1% fee
+    const estimatedFees = totalCost * 0.001;
     const totalAmount = totalCost + estimatedFees;
 
     const sectorColor = displayStockData ? (sectorColors[displayStockData.sector] || sectorColors['Technology']) : sectorColors['Technology'];
@@ -147,8 +132,8 @@ export default function BuyTransactionPage() {
             return;
         }
 
-        if (!selectedAccount) {
-            Alert.alert('Error', 'Please select an account');
+        if (!activeAccount) {
+            Alert.alert('Error', 'No account selected. Please go to Profile and select an account.');
             return;
         }
 
@@ -162,6 +147,15 @@ export default function BuyTransactionPage() {
             return;
         }
 
+        console.log('🛒 Buy Transaction Initiation');
+        console.log('  Account ID:', activeAccount.accountId);
+        console.log('  Account Name:', activeAccount.accountName);
+        console.log('  Stock:', stockData.symbol);
+        console.log('  Shares:', shareCount);
+        console.log('  Price:', effectivePrice);
+        console.log('  Total Cost:', totalAmount);
+        console.log('  Current Account Balance:', activeAccount.cashBalance);
+
         Alert.alert(
             'Confirm Purchase',
             `Buy ${shareCount} shares of ${stockData.symbol} at ${priceType === 'market' ? 'market price' : `A$${effectivePrice.toFixed(2)}`}?\n\nTotal: A$${totalAmount.toFixed(2)}`,
@@ -172,19 +166,21 @@ export default function BuyTransactionPage() {
                     onPress: async () => {
                         setLoading(true);
                         try {
-                            // Get or create stock in database by symbol
                             const stock = await getOrCreateStockBySymbol(stockData.symbol);
 
-                            await createTransaction({
+                            const transactionRequest: CreateTransactionRequest = {
                                 stockId: stock.stockId,
-                                accountId: selectedAccount,
+                                accountId: activeAccount.accountId,
                                 shareQuantity: shareCount,
                                 pricePerShare: effectivePrice,
-                                transactionType: 'BUY'
-                            });
+                                transactionType: 'BUY' as TransactionType,
+                            };
+
+                            await createTransaction(transactionRequest);
                             Alert.alert('Success', `Successfully purchased ${shareCount} shares of ${stockData.symbol}!`);
                             router.back();
                         } catch (error: any) {
+                            console.error('Transaction error:', error);
                             Alert.alert('Error', error.message || 'Failed to complete transaction');
                         } finally {
                             setLoading(false);
@@ -214,8 +210,22 @@ export default function BuyTransactionPage() {
                         <HeaderSection />
                     </View>
                 </View>
-                <Text style={styles.headerTitle}>Buy Stock
-                </Text>
+                <Text style={styles.headerTitle}>Buy Stock</Text>
+
+                {/* Account Banner */}
+                {activeAccount && (
+                    <View style={[styles.accountBanner, { backgroundColor: Colors.tint + '20', borderColor: Colors.tint }]}>
+                        <MaterialCommunityIcons name="wallet-outline" size={16} color={Colors.tint} />
+                        <View style={{ flex: 1 }}>
+                            <Text style={[styles.accountBannerLabel, { color: Colors.tint }]}>
+                                Trading from:
+                            </Text>
+                            <Text style={[styles.accountBannerValue, { color: Colors.tint }]}>
+                                {activeAccount.accountName} • A${activeAccount.cashBalance.toLocaleString('en-AU')}
+                            </Text>
+                        </View>
+                    </View>
+                )}
 
                 {stockData ? (
                     <>
@@ -438,16 +448,22 @@ export default function BuyTransactionPage() {
                                 styles.buyButton,
                                 { backgroundColor: shareCount > 0 ? Colors.tint : Colors.border },
                             ]}
-                            disabled={shareCount <= 0}
+                            disabled={shareCount <= 0 || loading}
                         >
-                            <MaterialCommunityIcons
-                                name="check-circle"
-                                size={20}
-                                color="white"
-                            />
-                            <Text style={styles.buyButtonText}>
-                                Buy {shareCount > 0 ? `${shareCount} Shares` : 'Stock'}
-                            </Text>
+                            {loading ? (
+                                <ActivityIndicator color="white" />
+                            ) : (
+                                <>
+                                    <MaterialCommunityIcons
+                                        name="check-circle"
+                                        size={20}
+                                        color="white"
+                                    />
+                                    <Text style={styles.buyButtonText}>
+                                        Buy {shareCount > 0 ? `${shareCount} Shares` : 'Stock'}
+                                    </Text>
+                                </>
+                            )}
                         </TouchableOpacity>
                     </>
                 ) : (
@@ -505,6 +521,25 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 28, fontWeight: "800", fontStyle: "italic", marginLeft: 10,
         marginBottom: 15, marginTop: -20
+    },
+    accountBanner: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+        borderWidth: 1,
+        borderRadius: 10,
+        padding: 12,
+        marginBottom: 16,
+    },
+    accountBannerLabel: {
+        fontSize: 10,
+        fontWeight: '600',
+        opacity: 0.8,
+    },
+    accountBannerValue: {
+        fontSize: 13,
+        fontWeight: '700',
+        marginTop: 2,
     },
     stockCard: {
         borderWidth: 1,

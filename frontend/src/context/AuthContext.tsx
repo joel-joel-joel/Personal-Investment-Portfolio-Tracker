@@ -145,36 +145,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
    * Refresh accounts - reload user's accounts from backend
    */
   const refreshAccounts = async () => {
-    try {
-      const userAccounts = await getAllAccounts();
-      setAccounts(userAccounts);
+      try {
+          console.log('🔄 AuthContext: Refreshing accounts...');
+          const userAccounts = await getAllAccounts();
+          console.log('📊 Got accounts from API:', userAccounts.map(a => ({
+              id: a.accountId,
+              name: a.accountName,
+              balance: a.cashBalance
+          })));
 
-      // If no active account, set first account
-      if (!activeAccount && userAccounts.length > 0) {
-        setActiveAccount(userAccounts[0]);
-      }
+          setAccounts(userAccounts);
 
-      // If active account was deleted, switch to first available
-      if (
-        activeAccount &&
-        !userAccounts.find((acc) => acc.accountId === activeAccount.accountId)
-      ) {
-        setActiveAccount(userAccounts[0] || null);
+          if (activeAccount) {
+              const updatedActiveAccount = userAccounts.find(
+                  (acc) => acc.accountId === activeAccount.accountId
+              );
+
+              if (updatedActiveAccount) {
+                  console.log('✅ Updated activeAccount:', {
+                      id: updatedActiveAccount.accountId,
+                      balance: updatedActiveAccount.cashBalance
+                  });
+                  setActiveAccount(updatedActiveAccount);
+              } else {
+                  console.log('⚠️ Active account not found, switching to first');
+                  setActiveAccount(userAccounts[0] || null);
+              }
+          }
+      } catch (error) {
+          console.error('❌ refreshAccounts failed:', error);
+          throw error;
       }
-    } catch (error) {
-      console.error('Failed to refresh accounts:', error);
-    }
   };
 
-  /**
-   * Switch active account
-   */
-  const switchAccount = (accountId: string) => {
-    const account = accounts.find((acc) => acc.accountId === accountId);
-    if (account) {
-      setActiveAccount(account);
-    }
-  };
+    /**
+     * Switch active account
+     */
+    const switchAccount = (accountId: string) => {
+        const account = accounts.find((acc) => acc.accountId === accountId);
+        if (account) {
+            setActiveAccount(account);
+        }
+    };
 
   return (
     <AuthContext.Provider

@@ -98,7 +98,7 @@ export default function PortfolioScreen() {
             <ScrollView showsVerticalScrollIndicator={false}>
                 <HeaderSection />
                 <HoldingsList holdings={holdings} onRefresh={handleRefresh} />
-                <AllocationOverview holdings={holdings} />
+                <AllocationOverview accountId={activeAccount?.accountId || ''} />
             </ScrollView>
         </View>
     );

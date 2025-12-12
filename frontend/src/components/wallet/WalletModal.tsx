@@ -117,22 +117,40 @@ export default function WalletModal({
         try {
             setLoading(true);
 
-            // Calculate new balance
             const newBalance =
                 transactionType === 'deposit'
                     ? currentBalance + numAmount
                     : currentBalance - numAmount;
 
+            console.log('='.repeat(60));
+            console.log('💰 WalletModal: Starting transaction');
+            console.log('  Type:', transactionType);
+            console.log('  Account ID:', account.accountId);
+            console.log('  Account Name:', account.accountName);
+            console.log('  Current Balance:', currentBalance);
+            console.log('  Amount:', numAmount);
+            console.log('  New Balance:', newBalance);
+            console.log('-'.repeat(60));
+
+            console.log('📤 Calling updateAccount API...');
+
             // Update account balance via API
-            await updateAccount(account.accountId, {
+            const response = await updateAccount(account.accountId, {
                 accountName: account.accountName,
                 cashBalance: newBalance,
             });
 
+            console.log('✅ API Response received!');
+            console.log('  Response:', JSON.stringify(response, null, 2));
+            console.log('  Response cashBalance:', response.cashBalance);
+            console.log('-'.repeat(60));
+
             // Update local state
             setCurrentBalance(newBalance);
+            console.log('✅ Local state updated');
 
             // Notify parent component
+            console.log('📢 Calling onBalanceUpdate with:', newBalance);
             onBalanceUpdate(newBalance);
 
             // Show success message
@@ -143,14 +161,20 @@ export default function WalletModal({
                     {
                         text: 'OK',
                         onPress: handleClose,
-                    },
+                    }
                 ]
             );
 
             // Clear amount after successful transaction
             setAmount('');
+            console.log('='.repeat(60));
         } catch (error: any) {
-            console.error('Transaction error:', error);
+            console.error('='.repeat(60));
+            console.error('❌ WalletModal: Transaction FAILED');
+            console.error('  Error Message:', error.message);
+            console.error('  Error:', error);
+            console.error('='.repeat(60));
+
             Alert.alert(
                 'Transaction Failed',
                 error.message || 'Failed to process transaction. Please try again.'

@@ -130,7 +130,6 @@ export const Dashboard = () => {
                         Cash and Holdings
                     </Text>
                     <View style={styles.currencyRow}>
-                        <Text style={[styles.currency, { color: Colors.text }]}>A$</Text>
                         <View style={styles.currencyRow}>
                             <Text style={[styles.currency, { color: Colors.text }]}>A$</Text>
                             <Text style={[styles.cashamount, { color: Colors.text }]}>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {View, ScrollView, useColorScheme} from "react-native";
+import { View, ScrollView, useColorScheme } from "react-native";
 import { getThemeColors } from "@/src/constants/colors";
 import { HeaderSection } from "@/src/components/home/HeaderSection";
 import { Dashboard } from "@/src/components/home/Dashboard";
@@ -7,18 +7,46 @@ import { WatchlistHighlights } from "@/src/components/home/WatchlistHighlights";
 import { TopMovers } from "@/src/components/home/TopMovers";
 import { ExpandableNewsCard } from '@/src/components/home/ExpandableNewsCard';
 import { SuggestedForYou } from '@/src/components/home/SuggestedForYou';
-import {StockTicker} from "@/src/components/home/StockTicker";
+import { StockTicker } from "@/src/components/home/StockTicker";
 import { EarningsCalendar } from "@/src/components/home/EarningsCalender";
-import {QuickActionsRow} from "@/src/components/home/QuickActions";
+import { QuickActionsRow } from "@/src/components/home/QuickActions";
 import { getAllNewsSafe } from '@/src/services/newsService';
-import { NewsArticleDTO } from '@/src/types/api';
-
+import { getAccountHoldings } from '@/src/services/portfolioService';
+import { useAuth } from '@/src/context/AuthContext';
+import type { NewsArticleDTO, HoldingDTO } from '@/src/types/api';
 
 export default function HomeScreen() {
     const colorScheme = useColorScheme();
     const Colors = getThemeColors(colorScheme);
+    const { activeAccount } = useAuth();
+
     const [newsItems, setNewsItems] = useState<any[]>([]);
     const [loadingNews, setLoadingNews] = useState(true);
+    const [holdings, setHoldings] = useState<HoldingDTO[]>([]);
+    const [loadingHoldings, setLoadingHoldings] = useState(true);
+
+    // Fetch holdings for TopMovers
+    useEffect(() => {
+        const fetchHoldings = async () => {
+            if (!activeAccount?.accountId) {
+                setLoadingHoldings(false);
+                return;
+            }
+
+            try {
+                setLoadingHoldings(true);
+                const data = await getAccountHoldings(activeAccount.accountId);
+                setHoldings(data || []);
+            } catch (error) {
+                console.error('Failed to fetch holdings:', error);
+                setHoldings([]);
+            } finally {
+                setLoadingHoldings(false);
+            }
+        };
+
+        fetchHoldings();
+    }, [activeAccount?.accountId]);
 
     // Fetch news from API
     useEffect(() => {
@@ -30,7 +58,7 @@ export default function HomeScreen() {
                     title: article.title,
                     description: article.summary,
                     image: article.imageUrl || require('../../assets/images/apple.png'),
-                    content: article.summary, // Use summary as content for now
+                    content: article.summary,
                     sector: article.sector
                 }));
                 setNewsItems(formattedNews);
@@ -79,7 +107,6 @@ export default function HomeScreen() {
         { id: 5, symbol: "AMZN", price: "A$170.90", change: "+2.1%", sector: "Consumer/Tech" },
     ];
 
-
     return (
         <View style={{ flex: 1, backgroundColor: Colors.background, padding: 24 }}>
             <ScrollView showsVerticalScrollIndicator={false}>
@@ -88,7 +115,7 @@ export default function HomeScreen() {
                 <QuickActionsRow />
                 <StockTicker stocks={watchlistStocks} />
                 <WatchlistHighlights />
-                <TopMovers />
+                <TopMovers holdings={holdings} />
                 <EarningsCalendar />
                 <ExpandableNewsCard news={newsItems} />
                 <SuggestedForYou />
@@ -96,5 +123,3 @@ export default function HomeScreen() {
         </View>
     );
 }
-
-
