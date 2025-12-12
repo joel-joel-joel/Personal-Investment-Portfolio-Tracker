@@ -12,7 +12,7 @@ import javax.sound.sampled.Port;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/portfolio/overview")
+@RequestMapping("/api/portfolio/overview")
 @Profile("!test")
 public class PortfolioOverviewController {
 
@@ -20,24 +20,16 @@ public class PortfolioOverviewController {
     PortfolioOverviewService portfolioOverviewService;
 
     // Get portfolio overview for a specific account
-    @GetMapping("/portfolio/overview/account/{accountId}")
+    @GetMapping("/account/{accountId}")
     public ResponseEntity<PortfolioOverviewDTO> getPortfolioOverview(@PathVariable UUID accountId) {
         PortfolioOverviewDTO overview = portfolioOverviewService.getPortfolioOverviewForAccount(accountId);
-        if (overview != null) {
-            return ResponseEntity.ok(overview);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+        return overview != null ? ResponseEntity.ok(overview) : ResponseEntity.notFound().build();
     }
 
     // Get portfolio performance for a user (aggregates across all accounts)
-    @GetMapping("/portfolio/overview/user/{userId}")
+    @GetMapping("/user/{userId}")
     public ResponseEntity<PortfolioOverviewDTO> getPortfolioOverviewForUser(@PathVariable UUID userId) {
         PortfolioOverviewDTO overview = portfolioOverviewService.getPortfolioOverviewForUser(userId);
-        if (overview != null) {
-            return ResponseEntity.ok(overview);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+        return overview != null ? ResponseEntity.ok(overview) : ResponseEntity.notFound().build();
     }
 }

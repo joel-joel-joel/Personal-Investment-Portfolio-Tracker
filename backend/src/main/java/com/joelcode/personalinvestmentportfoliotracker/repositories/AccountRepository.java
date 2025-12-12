@@ -37,9 +37,9 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
 
 
     // Filter by value
-    List<Account> findByAccountBalanceGreaterThan(BigDecimal accountBalance);
+    List<Account> findByCashBalanceGreaterThan(BigDecimal cashBalance);
 
-    List<Account> findByAccountBalanceLessThan(BigDecimal accountBalance);
+    List<Account> findByCashBalanceLessThan(BigDecimal cashBalance);
 
     boolean existsByAccountName(String accountName);
 }

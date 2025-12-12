@@ -18,7 +18,13 @@ public class AccountMapper {
 
     // Update account entity from update request DTO
     public static void updateEntity(Account account, AccountUpdateRequest request) {
-        if (request.getAccountName() != null) {account.setAccountName(request.getAccountName());}
+        if (request.getAccountName() != null) {
+            account.setAccountName(request.getAccountName());
+        }
+        // ⚠️ THIS SECTION MUST EXIST:
+        if (request.getCashBalance() != null) {
+            account.setCashBalance(request.getCashBalance());
+        }
     }
 
     // Convert account entity to response account DTO
@@ -29,5 +35,4 @@ public class AccountMapper {
                 UserMapper.toDTO(account.getUser()),
                 account.getAccountBalance());
     }
-
 }

@@ -35,19 +35,10 @@ public class TransactionServiceImpl implements TransactionService {
     public TransactionDTO createTransaction(TransactionCreateRequest request) {
         transactionValidationService.validateTransactionType(request.getTransactionType());
 
-        // Validate transaction type
-        if (request.getTransactionType().name().equalsIgnoreCase("BUY")) {
-            double requiredAmount = request.getPricePerShare().doubleValue() * request.getShareQuantity().doubleValue();
-            transactionValidationService.validateSufficientBalance(request.getAccountId(), requiredAmount);
-        }
 
-        // Map transaction creation request to enttiy
         Transaction transaction = TransactionMapper.toEntity(request);
-
-        // Save transaction to db
         transaction = transactionRepository.save(transaction);
 
-        // Map entity back dto
         return TransactionMapper.toDTO(transaction);
     }
 

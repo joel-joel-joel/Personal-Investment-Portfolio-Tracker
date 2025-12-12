@@ -47,7 +47,6 @@ class PortfolioAggregationServiceImplTest {
                 accountService,
                 holdingService,
                 null, // holdingCalculationService, not needed for these tests
-                dividendPaymentCalculationService, // <- pass the mock here
                 null, // accountRepository
                 null, // holdingRepository
                 null, // allocationBreakdownService

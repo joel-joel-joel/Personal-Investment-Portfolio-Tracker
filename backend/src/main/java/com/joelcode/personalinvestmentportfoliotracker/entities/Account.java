@@ -37,7 +37,7 @@ public class Account {
     @Column(nullable = false)
     private String accountName;
 
-    @Column(nullable = false)
+    @Column(name = "account_balance", nullable = false)
     private BigDecimal cashBalance = BigDecimal.ZERO;
 
     @CreationTimestamp
