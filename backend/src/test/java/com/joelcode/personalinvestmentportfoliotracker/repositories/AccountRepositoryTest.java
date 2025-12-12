@@ -170,7 +170,7 @@ class AccountRepositoryTest {
         BigDecimal threshold = BigDecimal.valueOf(1000.0);
 
         // Act
-        List<Account> results = accountRepository.findByAccountBalanceGreaterThan(threshold);
+        List<Account> results = accountRepository.findByCashBalanceGreaterThan(threshold);
 
         // Assert
         assertFalse(results.isEmpty());
@@ -183,7 +183,7 @@ class AccountRepositoryTest {
         BigDecimal threshold = BigDecimal.valueOf(10000.0);
 
         // Act
-        List<Account> results = accountRepository.findByAccountBalanceGreaterThan(threshold);
+        List<Account> results = accountRepository.findByCashBalanceGreaterThan(threshold);
 
         // Assert
         assertTrue(results.isEmpty());
@@ -195,7 +195,7 @@ class AccountRepositoryTest {
         BigDecimal threshold = BigDecimal.valueOf(6000.0);
 
         // Act
-        List<Account> results = accountRepository.findByAccountBalanceLessThan(threshold);
+        List<Account> results = accountRepository.findByCashBalanceLessThan(threshold);
 
         // Assert
         assertFalse(results.isEmpty());
@@ -208,7 +208,7 @@ class AccountRepositoryTest {
         BigDecimal threshold = BigDecimal.valueOf(1000.0);
 
         // Act
-        List<Account> results = accountRepository.findByAccountBalanceLessThan(threshold);
+        List<Account> results = accountRepository.findByCashBalanceLessThan(threshold);
 
         // Assert
         assertTrue(results.isEmpty());

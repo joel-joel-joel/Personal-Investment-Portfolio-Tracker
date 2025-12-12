@@ -70,7 +70,7 @@ class DashboardControllerTest {
         // Arrange
         UUID accountId = UUID.randomUUID();
         PortfolioOverviewDTO overview = new PortfolioOverviewDTO(UUID.randomUUID(), accountId, BigDecimal.valueOf(50000),
-                BigDecimal.valueOf(55000), BigDecimal.valueOf(5000), BigDecimal.valueOf(4000), BigDecimal.valueOf(10),
+                BigDecimal.valueOf(55000), BigDecimal.valueOf(5000), BigDecimal.valueOf(1000), BigDecimal.valueOf(4000), BigDecimal.valueOf(10),
                 BigDecimal.valueOf(10), new ArrayList<>());
         PortfolioPerformanceDTO performance = new PortfolioPerformanceDTO(UUID.randomUUID(), accountId, BigDecimal.valueOf(50000),
                 BigDecimal.valueOf(55000), BigDecimal.valueOf(5000), BigDecimal.valueOf(4000), BigDecimal.valueOf(10),
@@ -102,7 +102,7 @@ class DashboardControllerTest {
         UUID userId = UUID.randomUUID();
 
         PortfolioOverviewDTO overview = new PortfolioOverviewDTO(userId, accountId, BigDecimal.valueOf(50000),
-                BigDecimal.valueOf(55000), BigDecimal.valueOf(5000), BigDecimal.valueOf(4000), BigDecimal.valueOf(10),
+                BigDecimal.valueOf(55000), BigDecimal.valueOf(5000), BigDecimal.valueOf(1000),BigDecimal.valueOf(4000), BigDecimal.valueOf(10),
                 BigDecimal.valueOf(10), new ArrayList<>());
         PortfolioPerformanceDTO performance = new PortfolioPerformanceDTO(userId, accountId, BigDecimal.valueOf(50000),
                 BigDecimal.valueOf(55000), BigDecimal.valueOf(5000), BigDecimal.valueOf(4000), BigDecimal.valueOf(10),
@@ -161,7 +161,7 @@ class DashboardControllerTest {
         UUID accountId = UUID.randomUUID();
 
         PortfolioOverviewDTO overview = new PortfolioOverviewDTO(userId, accountId, BigDecimal.valueOf(50000),
-                BigDecimal.valueOf(55000), BigDecimal.valueOf(5000), BigDecimal.valueOf(4000), BigDecimal.valueOf(10),
+                BigDecimal.valueOf(55000), BigDecimal.valueOf(5000), BigDecimal.valueOf(1000),BigDecimal.valueOf(4000), BigDecimal.valueOf(10),
                 BigDecimal.valueOf(10), new ArrayList<>());
         PortfolioPerformanceDTO performance = new PortfolioPerformanceDTO(userId, accountId, BigDecimal.valueOf(50000),
                 BigDecimal.valueOf(55000), BigDecimal.valueOf(5000), BigDecimal.valueOf(4000), BigDecimal.valueOf(10),
@@ -197,7 +197,7 @@ class DashboardControllerTest {
         UUID account2Id = UUID.randomUUID();
 
         PortfolioOverviewDTO overview = new PortfolioOverviewDTO(userId, account1Id, BigDecimal.valueOf(100000),
-                BigDecimal.valueOf(110000), BigDecimal.valueOf(10000), BigDecimal.valueOf(8000), BigDecimal.valueOf(10),
+                BigDecimal.valueOf(110000), BigDecimal.valueOf(10000), BigDecimal.valueOf(1000),BigDecimal.valueOf(8000), BigDecimal.valueOf(10),
                 BigDecimal.valueOf(10), new ArrayList<>());
         PortfolioPerformanceDTO performance = new PortfolioPerformanceDTO(userId, account1Id, BigDecimal.valueOf(100000),
                 BigDecimal.valueOf(110000), BigDecimal.valueOf(10000), BigDecimal.valueOf(8000), BigDecimal.valueOf(10),
@@ -260,7 +260,7 @@ class DashboardControllerTest {
         }
 
         PortfolioOverviewDTO overview = new PortfolioOverviewDTO(userId, accountId, BigDecimal.valueOf(50000),
-                BigDecimal.valueOf(55000), BigDecimal.valueOf(5000), BigDecimal.valueOf(4000), BigDecimal.valueOf(10),
+                BigDecimal.valueOf(55000), BigDecimal.valueOf(5000), BigDecimal.valueOf(1000),BigDecimal.valueOf(4000), BigDecimal.valueOf(10),
                 BigDecimal.valueOf(10), holdings);
         PortfolioPerformanceDTO performance = new PortfolioPerformanceDTO(userId, accountId, BigDecimal.valueOf(50000),
                 BigDecimal.valueOf(55000), BigDecimal.valueOf(5000), BigDecimal.valueOf(4000), BigDecimal.valueOf(10),

@@ -39,8 +39,8 @@ class UserControllerTest {
     void testGetAllUsers_Success() {
         // Setup an array of users
         List<UserDTO> users = new ArrayList<>();
-        users.add(new UserDTO(UUID.randomUUID(), "john_doe", "john@example.com", LocalDateTime.now()));
-        users.add(new UserDTO(UUID.randomUUID(), "jane_doe", "jane@example.com", LocalDateTime.now()));
+        users.add(new UserDTO(UUID.randomUUID(), "john_doe", "joel", "john@example.com", LocalDateTime.now()));
+        users.add(new UserDTO(UUID.randomUUID(), "jane_doe", "joel","jane@example.com", LocalDateTime.now()));
 
         // When service calls method, return the test array
         when(userService.getAllUsers()).thenReturn(users);
@@ -73,7 +73,7 @@ class UserControllerTest {
     void testGetUserById_Success() {
         // Initialize setup for testing
         UUID userId = UUID.randomUUID();
-        UserDTO user = new UserDTO(userId, "john_doe", "john@example.com", LocalDateTime.now());
+        UserDTO user = new UserDTO(userId, "john_doe", "joel","john@example.com", LocalDateTime.now());
         when(userService.getUserById(userId)).thenReturn(user);
 
         // Run method
@@ -106,7 +106,7 @@ class UserControllerTest {
         // Initialize setup for testing
         UUID userId = UUID.randomUUID();
         UserUpdateRequest request = new UserUpdateRequest( "john_updated@example.com", "john_doe_updated","12345");
-        UserDTO updated = new UserDTO(userId, "john_doe_updated", "john_updated@example.com", LocalDateTime.now());
+        UserDTO updated = new UserDTO(userId, "john_doe_updated", "joel", "john_updated@example.com", LocalDateTime.now());
         when(userService.updateUser(userId, request)).thenReturn(updated);
 
         // Run method

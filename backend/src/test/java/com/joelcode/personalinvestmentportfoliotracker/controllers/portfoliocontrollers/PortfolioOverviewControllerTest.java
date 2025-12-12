@@ -39,7 +39,7 @@ class PortfolioOverviewControllerTest {
         // Setup sample portfolio overview data
         UUID accountId = UUID.randomUUID();
         PortfolioOverviewDTO overview = new PortfolioOverviewDTO(UUID.randomUUID(), accountId, BigDecimal.valueOf(50000),
-                BigDecimal.valueOf(55000), BigDecimal.valueOf(5000), BigDecimal.valueOf(4000), BigDecimal.valueOf(10),
+                BigDecimal.valueOf(55000), BigDecimal.valueOf(5000), BigDecimal.valueOf(1000),BigDecimal.valueOf(4000), BigDecimal.valueOf(10),
                 BigDecimal.valueOf(10), new ArrayList<>());
         when(portfolioOverviewService.getPortfolioOverviewForAccount(accountId)).thenReturn(overview);
 
@@ -78,7 +78,7 @@ class PortfolioOverviewControllerTest {
         // Setup portfolio overview with zero totals
         UUID accountId = UUID.randomUUID();
         PortfolioOverviewDTO overview = new PortfolioOverviewDTO(UUID.randomUUID(), accountId, BigDecimal.ZERO,
-                BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
+                BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,BigDecimal.ZERO,
                 BigDecimal.ZERO, null);
         when(portfolioOverviewService.getPortfolioOverviewForAccount(accountId)).thenReturn(overview);
 
@@ -111,7 +111,7 @@ class PortfolioOverviewControllerTest {
         }
 
         PortfolioOverviewDTO overview = new PortfolioOverviewDTO(UUID.randomUUID(), accountId, BigDecimal.valueOf(50000),
-                BigDecimal.valueOf(1000000), BigDecimal.valueOf(5000), BigDecimal.valueOf(4000), BigDecimal.valueOf(10),
+                BigDecimal.valueOf(1000000), BigDecimal.valueOf(5000), BigDecimal.valueOf(1000),BigDecimal.valueOf(4000), BigDecimal.valueOf(10),
                 BigDecimal.valueOf(10), holdings);
         when(portfolioOverviewService.getPortfolioOverviewForAccount(accountId)).thenReturn(overview);
 
@@ -131,7 +131,7 @@ class PortfolioOverviewControllerTest {
         // Setup portfolio overview with negative gains
         UUID accountId = UUID.randomUUID();
         PortfolioOverviewDTO overview = new PortfolioOverviewDTO(UUID.randomUUID(), accountId, BigDecimal.valueOf(50000),
-                BigDecimal.valueOf(55000), BigDecimal.valueOf(-5000), BigDecimal.valueOf(-10), BigDecimal.valueOf(10),
+                BigDecimal.valueOf(55000), BigDecimal.valueOf(-5000), BigDecimal.valueOf(1000),BigDecimal.valueOf(-10), BigDecimal.valueOf(10),
                 BigDecimal.valueOf(10), new ArrayList<>());
         when(portfolioOverviewService.getPortfolioOverviewForAccount(accountId)).thenReturn(overview);
 

@@ -139,7 +139,7 @@ class AccountControllerTest {
         // Setup account update request and expected updated account
         UUID accountId = UUID.randomUUID();
         UserDTO user = new UserDTO(UUID.randomUUID(), "testuser", "joel Ong","<EMAIL>", LocalDateTime.now());
-        AccountUpdateRequest request = new AccountUpdateRequest("Updated");
+        AccountUpdateRequest request = new AccountUpdateRequest("Updated", BigDecimal.valueOf(10000));
         AccountDTO updated = new AccountDTO( "Updated", UUID.randomUUID(), user, BigDecimal.valueOf(5000));
 
         // Map method return value to setup
@@ -160,7 +160,7 @@ class AccountControllerTest {
         // Setup update request with null return
         UUID accountId = UUID.randomUUID();
         UserDTO user = new UserDTO(UUID.randomUUID(), "testuser", "joel Ong","<EMAIL>", LocalDateTime.now());
-        AccountUpdateRequest request = new AccountUpdateRequest("Updated");
+        AccountUpdateRequest request = new AccountUpdateRequest("Updated", BigDecimal.valueOf(10000));
         when(accountService.updateAccount(accountId, request)).thenReturn(null);
 
         // Run method
