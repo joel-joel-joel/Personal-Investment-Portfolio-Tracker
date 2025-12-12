@@ -190,7 +190,7 @@ export default function LoginScreen() {
           {!isLogin && (
             <View style={styles.inputContainer}>
               <Text style={[styles.label, { color: Colors.text }]}>
-                Last Name (Optional)
+                Last Name
               </Text>
               <View
                 style={[

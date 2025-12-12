@@ -695,9 +695,9 @@ export default function StockTickerScreen({ route }: { route?: any }) {
                     {activeTab === 'transactions' && (
                         <View style={styles.statsSection}>
                             <Text style={[styles.sectionTitle, { color: Colors.text }]}>
-                                Transaction History for {stock.symbol}
+                                Recent Transactions for {stock.symbol}
                             </Text>
-                            <TransactionHistory stockSymbol={stock.symbol} showHeader={false} />
+                            <TransactionHistory stockSymbol={stock.symbol} showHeader={false} maxTransactions={5} />
                         </View>
                     )}
 

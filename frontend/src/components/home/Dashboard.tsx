@@ -10,23 +10,14 @@ import {
 } from "react-native";
 import { Svg, Polyline, Circle, Defs, LinearGradient, Stop } from "react-native-svg";
 import { getThemeColors } from "../../../src/constants/colors";
-import { getAccountOverview } from "@/src/services/portfolioService";
+import { getAccountOverview, getPortfolioChartData } from "@/src/services/portfolioService";
 import { useAuth } from "@/src/context/AuthContext";
 
 const screenWidth = Dimensions.get("window").width - 48;
 const chartHeight = 140;
 const chartPadding = 20;
 
-// Example data for different periods
-const chartDataSets: Record<string, number[]> = {
-    "1W": [85, 88, 92, 90, 95, 97, 100, 98],
-    "1M": [80, 85, 90, 92, 95, 97, 100, 102],
-    "3M": [70, 75, 80, 85, 90, 95, 100, 105],
-    "6M": [60, 65, 70, 75, 80, 85, 90, 95],
-    "1Y": [50, 60, 65, 70, 75, 80, 85, 90],
-};
-
-const filterOptions = ["1W", "1M", "3M", "6M", "1Y"];
+const filterOptions = ["1W", "1M", "3M", "6M", "1Y", "ALL"];
 
 export const Dashboard = () => {
     const colorScheme = useColorScheme();
@@ -35,22 +26,44 @@ export const Dashboard = () => {
 
     const chartWidth = screenWidth - chartPadding * 2;
 
-    const initialFilter = filterOptions[0];
+    const initialFilter = filterOptions[5]; // Default to "ALL"
     const [selectedFilter, setSelectedFilter] = useState(initialFilter);
-    const [priceData, setPriceData] = useState(chartDataSets[initialFilter]);
+    const [chartData, setChartData] = useState<Array<{ date: string; value: number; isLive: boolean }>>([]);
+    const [priceData, setPriceData] = useState<number[]>([]);
 
     const [totalPortfolioValue, setTotalPortfolioValue] = useState<number | null>(null);
     const [cashBalance, setCashBalance] = useState<number | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [absoluteGain, setAbsoluteGain] = useState<number | null>(null);
     const [percentageGain, setPercentageGain] = useState<number | null>(null);
+    const [selectedPointIndex, setSelectedPointIndex] = useState<number | null>(null);
+    const { user } = useAuth();
 
 
     useEffect(() => {
         if (activeAccount?.accountId) {
             fetchAccountOverview();
+            fetchChartData();
         }
     }, [activeAccount?.accountId]);
+
+    // Refetch chart data when filter changes
+    useEffect(() => {
+        if (activeAccount?.accountId) {
+            fetchChartData();
+        }
+    }, [selectedFilter]);
+
+    // Auto-refresh chart data every 30 seconds for live updates
+    useEffect(() => {
+        if (!activeAccount?.accountId) return;
+
+        const interval = setInterval(() => {
+            fetchChartData();
+        }, 30000); // 30 seconds
+
+        return () => clearInterval(interval);
+    }, [activeAccount?.accountId, selectedFilter]);
 
     async function fetchAccountOverview() {
         if (!activeAccount?.accountId) return;
@@ -77,46 +90,111 @@ export const Dashboard = () => {
         }
     }
 
+    async function fetchChartData() {
+        if (!activeAccount?.accountId) return;
 
+        try {
+            const data = await getPortfolioChartData(activeAccount.accountId);
+
+            if (data.length === 0) {
+                // No data available, use fallback
+                setPriceData([]);
+                setChartData([]);
+                return;
+            }
+
+            // Filter data based on selected time period
+            const filteredData = filterDataByPeriod(data, selectedFilter);
+            setChartData(filteredData);
+
+            // Extract values for chart rendering
+            setPriceData(filteredData.map(point => point.value));
+
+        } catch (error) {
+            console.error("Error fetching chart data:", error);
+            // Use empty data on error
+            setPriceData([]);
+            setChartData([]);
+        }
+    }
+
+    function filterDataByPeriod(
+        data: Array<{ date: string; value: number; isLive: boolean }>,
+        period: string
+    ): Array<{ date: string; value: number; isLive: boolean }> {
+        if (period === "ALL" || data.length === 0) {
+            return data;
+        }
+
+        const now = new Date();
+        let cutoffDate = new Date();
+
+        switch (period) {
+            case "1W":
+                cutoffDate.setDate(now.getDate() - 7);
+                break;
+            case "1M":
+                cutoffDate.setMonth(now.getMonth() - 1);
+                break;
+            case "3M":
+                cutoffDate.setMonth(now.getMonth() - 3);
+                break;
+            case "6M":
+                cutoffDate.setMonth(now.getMonth() - 6);
+                break;
+            case "1Y":
+                cutoffDate.setFullYear(now.getFullYear() - 1);
+                break;
+            default:
+                return data;
+        }
+
+        return data.filter(point => new Date(point.date) >= cutoffDate);
+    }
 
     const animation = useRef(new Animated.Value(0)).current;
     const [animatedPoints, setAnimatedPoints] = useState<string>("");
     const [progressIndex, setProgressIndex] = useState(0);
 
-    const updateData = (filter: string) => {
+    const updateData = async (filter: string) => {
         setSelectedFilter(filter);
-        setPriceData(chartDataSets[filter]);
+        setSelectedPointIndex(null); // Clear selection when changing filters
         animation.setValue(0);
     };
 
     const usableHeight = chartHeight - chartPadding * 2;
-    const minPrice = Math.min(...priceData);
-    const maxPrice = Math.max(...priceData);
+    const minPrice = priceData.length > 0 ? Math.min(...priceData) : 0;
+    const maxPrice = priceData.length > 0 ? Math.max(...priceData) : 100;
     const priceRange = maxPrice - minPrice || 1;
 
-    const fullPoints = priceData.map((price, index) => {
+    const fullPoints = priceData.length > 0 ? priceData.map((price, index) => {
         const x = chartPadding + (index / (priceData.length - 1)) * chartWidth;
         const y = chartHeight - chartPadding - ((price - minPrice) / priceRange) * usableHeight;
         return { x, y };
-    });
-
-    const generatePointsString = (progress: number) => {
-        const count = Math.floor(progress * fullPoints.length);
-        if (count === 0) return "";
-        return fullPoints
-            .slice(0, count)
-            .map((p) => `${p.x},${p.y}`)
-            .join(" ");
-    };
+    }) : [];
 
     useEffect(() => {
+        if (priceData.length === 0) return;
+
+        const listenerId = animation.addListener(({ value }) => {
+            const pointsCount = Math.floor(value * fullPoints.length);
+            const pointsString = fullPoints
+                .slice(0, pointsCount)
+                .map((p) => `${p.x},${p.y}`)
+                .join(" ");
+            setAnimatedPoints(pointsString);
+            setProgressIndex(pointsCount);
+        });
+
         Animated.timing(animation, {
             toValue: 1,
             duration: 750,
             useNativeDriver: false,
         }).start();
 
-        return () => animation.removeAllListeners();
+        return () => {
+            animation.removeListener(listenerId);
+        };
     }, [priceData]);
 
     return (
@@ -124,7 +202,7 @@ export const Dashboard = () => {
             <View style={[styles.dashboard, { backgroundColor: Colors.card, borderColor: Colors.border }]}>
                 <View style={styles.dashboardTextBlock}>
                     <Text style={[styles.dashboardtitle, { color: Colors.text }]}>
-                        Welcome to Pegasus!
+                        {user ? `Welcome back, ${user.fullName}` : "Welcome to Pegasus!"}
                     </Text>
                     <Text style={[styles.subtitle, { color: Colors.text }]}>
                         Cash and Holdings
@@ -154,42 +232,100 @@ export const Dashboard = () => {
 
                 {/* SVG Line Chart */}
                 <View style={styles.chartContainer}>
-                    <Svg width={screenWidth} height={chartHeight}>
-                        <Defs>
-                            <LinearGradient id="gradient" x1="0" y1="0" x2="0" y2="1">
-                                <Stop offset="0" stopColor={Colors.tint} stopOpacity="0.4" />
-                                <Stop offset="1" stopColor={Colors.tint} stopOpacity="0" />
-                            </LinearGradient>
-                        </Defs>
+                    {priceData.length === 0 ? (
+                        <View style={[styles.emptyChartContainer, { height: chartHeight }]}>
+                            <Text style={[styles.emptyChartText, { color: Colors.text }]}>
+                                No chart data available. Snapshots will appear here once generated.
+                            </Text>
+                        </View>
+                    ) : (
+                        <View>
+                            <Svg width={screenWidth} height={chartHeight}>
+                                <Defs>
+                                    <LinearGradient id="gradient" x1="0" y1="0" x2="0" y2="1">
+                                        <Stop offset="0" stopColor={Colors.tint} stopOpacity="0.4" />
+                                        <Stop offset="1" stopColor={Colors.tint} stopOpacity="0" />
+                                    </LinearGradient>
+                                </Defs>
 
-                        {/* Gradient area under the line */}
-                        {animatedPoints ? (
-                            <Polyline
-                                points={
-                                    animatedPoints +
-                                    ` ${chartWidth + chartPadding},${chartHeight - chartPadding} ${chartPadding},${chartHeight - chartPadding}`
-                                }
-                                fill="url(#gradient)"
-                                stroke="none"
-                            />
-                        ) : null}
+                                {/* Gradient area under the line */}
+                                {animatedPoints ? (
+                                    <Polyline
+                                        points={
+                                            animatedPoints +
+                                            ` ${chartWidth + chartPadding},${chartHeight - chartPadding} ${chartPadding},${chartHeight - chartPadding}`
+                                        }
+                                        fill="url(#gradient)"
+                                        stroke="none"
+                                    />
+                                ) : null}
 
-                        {/* Line on top */}
-                        <Polyline
-                            points={animatedPoints}
-                            fill="none"
-                            stroke={Colors.tint}
-                            strokeWidth={3}
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                        />
+                                {/* Line on top */}
+                                <Polyline
+                                    points={animatedPoints}
+                                    fill="none"
+                                    stroke={Colors.tint}
+                                    strokeWidth={3}
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                />
 
-                        {/* Data points */}
-                        {fullPoints.map((p, index) => {
-                            if (index >= progressIndex) return null;
-                            return <Circle key={index} cx={p.x} cy={p.y} r={4} fill={Colors.tint} opacity={0.6} />;
-                        })}
-                    </Svg>
+                                {/* Data points (visual only) */}
+                                {fullPoints.map((p, index) => {
+                                    if (index >= progressIndex) return null;
+                                    const isLive = chartData[index]?.isLive || false;
+                                    const isSelected = selectedPointIndex === index;
+                                    return (
+                                        <Circle
+                                            key={index}
+                                            cx={p.x}
+                                            cy={p.y}
+                                            r={isSelected ? (isLive ? 8 : 6) : (isLive ? 6 : 4)}
+                                            fill={isLive ? "#10b981" : Colors.tint}
+                                            opacity={isSelected ? 1 : (isLive ? 1 : 0.6)}
+                                            stroke={isSelected ? Colors.text : (isLive ? "#059669" : "none")}
+                                            strokeWidth={isSelected ? 2 : (isLive ? 2 : 0)}
+                                        />
+                                    );
+                                })}
+                            </Svg>
+
+                            {/* Interactive overlay - TouchableOpacity buttons positioned over chart points */}
+                            {fullPoints.map((p, index) => {
+                                if (index >= progressIndex) return null;
+                                return (
+                                    <TouchableOpacity
+                                        key={`btn-${index}`}
+                                        onPress={() => setSelectedPointIndex(selectedPointIndex === index ? null : index)}
+                                        style={{
+                                            position: "absolute",
+                                            left: p.x - 12,
+                                            top: p.y - 12,
+                                            width: 24,
+                                            height: 24,
+                                            borderRadius: 12,
+                                            zIndex: 10,
+                                        }}
+                                    />
+                                );
+                            })}
+                        </View>
+                    )}
+
+                    {/* Tooltip showing selected point data */}
+                    {selectedPointIndex !== null && chartData[selectedPointIndex] && (
+                        <View style={[styles.tooltipContainer, { backgroundColor: Colors.card, borderColor: Colors.border }]}>
+                            <Text style={[styles.tooltipLabel, { color: Colors.text }]}>
+                                {new Date(chartData[selectedPointIndex].date).toLocaleDateString("en-AU")}
+                            </Text>
+                            <Text style={[styles.tooltipValue, { color: Colors.tint }]}>
+                                A${chartData[selectedPointIndex].value.toLocaleString("en-AU", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                            })}
+                            </Text>
+                        </View>
+                    )}
 
                     {/* Filter buttons */}
                     <View style={styles.filterContainer}>
@@ -199,7 +335,7 @@ export const Dashboard = () => {
                                 onPress={() => updateData(filter)}
                                 style={[
                                     styles.filterButton,
-                                    selectedFilter === filter && { backgroundColor: Colors.tint ,},
+                                    selectedFilter === filter && { backgroundColor: Colors.tint },
                                 ]}
                             >
                                 <Text
@@ -214,6 +350,24 @@ export const Dashboard = () => {
                             </TouchableOpacity>
                         ))}
                     </View>
+
+                    {/* Legend - only show if we have data with a live point */}
+                    {priceData.length > 0 && chartData.some(point => point.isLive) && (
+                        <View style={styles.legendContainer}>
+                            <View style={styles.legendItem}>
+                                <View style={[styles.legendDot, { backgroundColor: Colors.tint }]} />
+                                <Text style={[styles.legendText, { color: Colors.text }]}>
+                                    Historical Snapshots
+                                </Text>
+                            </View>
+                            <View style={styles.legendItem}>
+                                <View style={[styles.legendDot, styles.liveDot]} />
+                                <Text style={[styles.legendText, { color: Colors.text }]}>
+                                    Live Value (Today)
+                                </Text>
+                            </View>
+                        </View>
+                    )}
                 </View>
             </View>
         </View>
@@ -273,9 +427,9 @@ const styles = StyleSheet.create({
     },
     filterContainer: {
         flexDirection: "row",
-        justifyContent: "center",   // ensures they stay centered
+        justifyContent: "center",
         marginTop: 12,
-        gap: 10,                     // reduced from 30 → closer together
+        gap: 10,
     },
     filterButton: {
         paddingVertical: 6,
@@ -286,5 +440,63 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontWeight: "600",
     },
-
+    emptyChartContainer: {
+        justifyContent: "center",
+        alignItems: "center",
+        paddingHorizontal: 20,
+    },
+    emptyChartText: {
+        fontSize: 14,
+        textAlign: "center",
+        opacity: 0.7,
+    },
+    legendContainer: {
+        flexDirection: "row",
+        justifyContent: "center",
+        gap: 16,
+        marginTop: 12,
+        paddingHorizontal: 16,
+    },
+    legendItem: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 6,
+    },
+    legendDot: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        opacity: 0.6,
+    },
+    liveDot: {
+        width: 10,
+        height: 10,
+        borderRadius: 5,
+        backgroundColor: "#10b981",
+        borderWidth: 2,
+        borderColor: "#059669",
+        opacity: 1,
+    },
+    legendText: {
+        fontSize: 10,
+        opacity: 0.8,
+    },
+    tooltipContainer: {
+        marginTop: 12,
+        marginHorizontal: 16,
+        padding: 12,
+        borderRadius: 8,
+        borderWidth: 1,
+        alignItems: "center",
+        gap: 4,
+    },
+    tooltipLabel: {
+        fontSize: 12,
+        opacity: 0.7,
+        fontWeight: "500",
+    },
+    tooltipValue: {
+        fontSize: 18,
+        fontWeight: "bold",
+    },
 });

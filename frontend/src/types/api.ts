@@ -134,11 +134,13 @@ export interface NewsArticleDTO {
 // ============================================================================
 
 export interface UserDTO {
-  userId: string;            // UUID
-  email: string;
-  firstName?: string;
-  lastName?: string;
+    userId: string;
+    username: string;
+    email: string;
+    fullName: string;
+    createdAt: string; // ISO timestamp
 }
+
 
 export interface AccountDTO {
   accountId: string;         // UUID
@@ -202,6 +204,8 @@ export interface TransactionDTO {
   shareQuantity: number;     // BigDecimal
   pricePerShare: number;     // BigDecimal
   transactionType: TransactionType;
+  transactionDate?: string;  // ISO 8601 timestamp (from backend)
+  createdAt?: string;        // ISO 8601 timestamp (fallback)
 }
 
 export interface CreateTransactionRequest {
@@ -324,6 +328,38 @@ export interface PriceHistoryCreateRequest {
   stockId: string;
   closeDate: string;
   closePrice: number;
+}
+
+// ============================================================================
+// Portfolio Snapshot Types
+// ============================================================================
+
+export interface PortfolioSnapshotDTO {
+  snapshotId: string;            // UUID
+  accountId: string;             // UUID
+  snapshotDate: string;          // ISO 8601 date (e.g., "2025-12-12")
+  totalValue: number;            // BigDecimal - Total portfolio value (cash + holdings)
+  cashBalance: number;           // BigDecimal
+  totalCostBasis: number;        // BigDecimal
+  totalGain: number;             // BigDecimal
+  realizedGain: number;          // BigDecimal
+  unrealizedGain: number;        // BigDecimal
+  totalDividends: number;        // BigDecimal
+  roiPercentage: number;         // BigDecimal
+  dayChange: number;             // BigDecimal
+  dayChangePercent: number;      // BigDecimal
+  createdAt: string;             // ISO 8601 timestamp
+  updatedAt: string;             // ISO 8601 timestamp
+}
+
+export interface CreatePortfolioSnapshotRequest {
+  accountId: string;
+  snapshotDate: string;
+  totalValue: number;
+  cashBalance: number;
+  totalCostBasis: number;
+  totalGain: number;
+  dayChange: number;
 }
 
 // ============================================================================

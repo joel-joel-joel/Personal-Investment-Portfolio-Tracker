@@ -43,6 +43,7 @@ type FilterOption = 'all' | 'buy' | 'sell';
 interface TransactionHistoryProps {
     stockSymbol?: string;  // If provided, show only transactions for this stock
     showHeader?: boolean;
+    maxTransactions?: number;  // If provided, limit the number of transactions displayed
 }
 
 const TransactionCard = ({ transaction, colors }: { transaction: Transaction; colors: any }) => {
@@ -170,7 +171,7 @@ const TransactionCard = ({ transaction, colors }: { transaction: Transaction; co
     );
 };
 
-export default function TransactionHistory({ stockSymbol, showHeader = true }: TransactionHistoryProps) {
+export default function TransactionHistory({ stockSymbol, showHeader = true, maxTransactions }: TransactionHistoryProps) {
     const colorScheme = useColorScheme();
     const Colors = getThemeColors(colorScheme);
     const { user, activeAccount } = useAuth();
@@ -182,6 +183,9 @@ export default function TransactionHistory({ stockSymbol, showHeader = true }: T
     const [sortBy, setSortBy] = useState<SortOption>('date');
     const [filterBy, setFilterBy] = useState<FilterOption>('all');
     const [showFilters, setShowFilters] = useState(false);
+    const [startDate, setStartDate] = useState<string | null>(null);
+    const [endDate, setEndDate] = useState<string | null>(null);
+    const [showDatePicker, setShowDatePicker] = useState(false);
 
     // Fetch transactions from backend
     const fetchTransactions = useCallback(async () => {
@@ -195,42 +199,78 @@ export default function TransactionHistory({ stockSymbol, showHeader = true }: T
             setError(null);
             const data = await getAccountTransactions(activeAccount.accountId);
 
+            // Debug: Log the actual API response structure
+            console.log('API Response transactions:', data);
+            if (data.length > 0) {
+                console.log('First transaction structure:', Object.keys(data[0]));
+                console.log('First transaction data:', data[0]);
+            }
+
             // Transform backend data to component format
             // Fetch stock details for each transaction
-            const transformedData: Transaction[] = await Promise.all(
-                data.map(async (item) => {
-                    const total = item.shareQuantity * item.pricePerShare;
+            const transformedData: Awaited<null | {
+                id: any;
+                symbol: string;
+                name: string;
+                type: string;
+                shares: number;
+                price: number;
+                total: number;
+                date: string;
+                sector: string
+            }>[] = await Promise.all(
+                data.map(async (item: any) => {
+                    // Handle multiple possible field names from API
+                    const transactionId = item.transactionId || item.id;
+                    const stockId = item.stockId || item.stock?.stockId || item.stock?.id;
 
-                    // Fetch stock details to get symbol and company name
-                    let stockSymbol = item.stockId;
-                    let companyName = `Stock ${item.stockId.substring(0, 8)}`;
-                    let sector = 'Unknown';
-
-                    try {
-                        const stockDetails = await getStockById(item.stockId);
-                        stockSymbol = stockDetails.stockCode;
-                        companyName = stockDetails.companyName;
-                        // Note: Backend StockDTO doesn't include sector, using default
-                        sector = 'Technology';
-                    } catch {
-                        // If stock fetch fails, use fallback values
+                    // If we still don't have these required fields, skip this transaction
+                    if (!transactionId || !stockId) {
+                        console.warn('Skipping transaction - missing required fields:', {
+                            keys: Object.keys(item),
+                            item
+                        });
+                        return null;
                     }
 
+                    const total = Number(item.shareQuantity) * Number(item.pricePerShare);
+
+                    // Fetch stock details to get symbol and company name
+                    let stockSymbol = 'UNKNOWN';
+                    let companyName = `Stock ${String(stockId).substring(0, 8)}`;
+                    let sector = 'Technology';
+
+                    try {
+                        const stockDetails = await getStockById(String(stockId));
+                        stockSymbol = stockDetails.stockCode;
+                        companyName = stockDetails.companyName;
+                        sector = 'Technology'; // Backend StockDTO doesn't include sector
+                    } catch (error) {
+                        console.warn(`Failed to fetch stock details for ${stockId}:`, error);
+                        // Use fallback values
+                    }
+
+                    // Parse transaction date - try transactionDate first (backend), then createdAt
+                    const dateString = item.transactionDate || item.createdAt || new Date().toISOString();
+                    const transactionDate = new Date(dateString).toISOString().split('T')[0];
+
                     return {
-                        id: item.transactionId,
+                        id: transactionId,
                         symbol: stockSymbol,
                         name: companyName,
                         type: item.transactionType === 'BUY' ? 'buy' : 'sell',
-                        shares: item.shareQuantity,
-                        price: item.pricePerShare,
+                        shares: Number(item.shareQuantity),
+                        price: Number(item.pricePerShare),
                         total: total,
-                        date: new Date().toISOString().split('T')[0],
+                        date: transactionDate,
                         sector: sector,
                     };
                 })
             );
 
-            setTransactions(transformedData);
+            // Filter out null entries (skipped transactions)
+            const validTransactions = transformedData.filter((t): t is Transaction => t !== null);
+            setTransactions(validTransactions);
         } catch (error: any) {
             console.error('Failed to fetch transactions:', error);
             setError(error.message || 'Failed to load transactions');
@@ -257,13 +297,31 @@ export default function TransactionHistory({ stockSymbol, showHeader = true }: T
         ? transactions.filter(t => t.symbol === stockSymbol)
         : transactions;
 
-    // Apply type filter and sort
+    // Apply type filter, date range filter, and sort
     const processedTransactions = useMemo(() => {
         let filtered = filteredByStock;
 
         // Filter by type
         if (filterBy !== 'all') {
             filtered = filtered.filter(t => t.type === filterBy);
+        }
+
+        // Filter by date range
+        if (startDate || endDate) {
+            filtered = filtered.filter(t => {
+                const transactionDate = new Date(t.date);
+                if (startDate && transactionDate < new Date(startDate)) {
+                    return false;
+                }
+                if (endDate) {
+                    const endDateTime = new Date(endDate);
+                    endDateTime.setHours(23, 59, 59, 999); // Include entire end date
+                    if (transactionDate > endDateTime) {
+                        return false;
+                    }
+                }
+                return true;
+            });
         }
 
         // Sort
@@ -282,8 +340,13 @@ export default function TransactionHistory({ stockSymbol, showHeader = true }: T
             }
         });
 
+        // Limit to maxTransactions if specified
+        if (maxTransactions && maxTransactions > 0) {
+            return sorted.slice(0, maxTransactions);
+        }
+
         return sorted;
-    }, [filteredByStock, sortBy, filterBy]);
+    }, [filteredByStock, sortBy, filterBy, startDate, endDate, maxTransactions]);
 
     // Calculate summary stats
     const stats = useMemo(() => {
@@ -479,6 +542,63 @@ export default function TransactionHistory({ stockSymbol, showHeader = true }: T
                                         </TouchableOpacity>
                                     ))}
                                 </View>
+                            </View>
+
+                            {/* Date Range Filter */}
+                            <View style={styles.filterSection}>
+                                <Text style={[styles.filterTitle, { color: Colors.text }]}>
+                                    Date Range
+                                </Text>
+                                <View style={styles.dateRangeContainer}>
+                                    <View style={styles.dateInputField}>
+                                        <Text style={[styles.dateLabel, { color: Colors.text, opacity: 0.6 }]}>
+                                            From
+                                        </Text>
+                                        <TouchableOpacity
+                                            onPress={() => {
+                                                // For now, show a simple date input
+                                                // In a full implementation, would use a date picker
+                                                const today = new Date().toISOString().split('T')[0];
+                                                setStartDate(startDate === today ? null : today);
+                                            }}
+                                            style={[styles.dateButton, { backgroundColor: Colors.background, borderColor: Colors.border }]}
+                                        >
+                                            <Text style={[styles.dateButtonText, { color: Colors.text }]}>
+                                                {startDate ? startDate : 'Select date'}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                    <View style={styles.dateInputField}>
+                                        <Text style={[styles.dateLabel, { color: Colors.text, opacity: 0.6 }]}>
+                                            To
+                                        </Text>
+                                        <TouchableOpacity
+                                            onPress={() => {
+                                                const today = new Date().toISOString().split('T')[0];
+                                                setEndDate(endDate === today ? null : today);
+                                            }}
+                                            style={[styles.dateButton, { backgroundColor: Colors.background, borderColor: Colors.border }]}
+                                        >
+                                            <Text style={[styles.dateButtonText, { color: Colors.text }]}>
+                                                {endDate ? endDate : 'Select date'}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                                {(startDate || endDate) && (
+                                    <TouchableOpacity
+                                        onPress={() => {
+                                            setStartDate(null);
+                                            setEndDate(null);
+                                        }}
+                                        style={[styles.clearDateButton, { backgroundColor: Colors.background, borderColor: Colors.border }]}
+                                    >
+                                        <MaterialCommunityIcons name="close" size={16} color={Colors.text} />
+                                        <Text style={[styles.clearDateText, { color: Colors.text }]}>
+                                            Clear dates
+                                        </Text>
+                                    </TouchableOpacity>
+                                )}
                             </View>
                         </View>
                     )}
@@ -725,5 +845,43 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '700',
         color: 'white',
+    },
+    dateRangeContainer: {
+        flexDirection: 'row',
+        gap: 12,
+    },
+    dateInputField: {
+        flex: 1,
+        gap: 6,
+    },
+    dateLabel: {
+        fontSize: 11,
+        fontWeight: '600',
+    },
+    dateButton: {
+        borderWidth: 1,
+        borderRadius: 8,
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    dateButtonText: {
+        fontSize: 12,
+        fontWeight: '500',
+    },
+    clearDateButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 6,
+        borderWidth: 1,
+        borderRadius: 8,
+        paddingVertical: 8,
+        marginTop: 8,
+    },
+    clearDateText: {
+        fontSize: 11,
+        fontWeight: '600',
     },
 });

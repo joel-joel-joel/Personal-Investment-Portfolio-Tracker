@@ -182,6 +182,9 @@ export default function ProfileScreen() {
                 await refreshAccounts();
                 console.log('✅ refreshAccounts completed');
 
+                // Small delay to ensure backend has processed the change
+                await new Promise(resolve => setTimeout(resolve, 500));
+
                 console.log('🔄 Loading dashboard data...');
                 await loadDashboardData();
                 console.log('✅ loadDashboardData completed');
@@ -194,7 +197,7 @@ export default function ProfileScreen() {
 
     // Calculate portfolio stats from dashboard data
     const portfolioStats = dashboardData ? {
-        totalValue: dashboardData.portfolioOverview.totalPortfolioValue + dashboardData.portfolioOverview.cashBalance,
+        totalValue: dashboardData.portfolioOverview.totalPortfolioValue, // Already includes cash and holdings
         totalInvested: dashboardData.portfolioOverview.totalCostBasis,
         totalReturn: dashboardData.portfolioOverview.totalUnrealizedGain + dashboardData.portfolioOverview.totalRealizedGain,
         returnPercent: dashboardData.portfolioPerformance.roiPercentage,
@@ -246,7 +249,7 @@ export default function ProfileScreen() {
                         {/* User Info */}
                         <View style={styles.userInfo}>
                             <Text style={[styles.userName, { color: Colors.text }]}>
-                                {user?.firstName || 'User'} {user?.lastName || ''}
+                                {user?.fullName || 'User'}
                             </Text>
                             <Text style={[styles.userEmail, { color: Colors.text, opacity: 0.7 }]}>
                                 {user?.email || 'No email'}
@@ -310,32 +313,52 @@ export default function ProfileScreen() {
                 ) : portfolioStats ? (
                     <View style={styles.analyticsSection}>
                         <Text style={[styles.sectionTitle, { color: Colors.text }]}>
-                            Portfolio Summary
+                            Account Summary
                         </Text>
 
-                        {/* Main Stats */}
-                        <View style={[styles.statsGrid, { backgroundColor: Colors.card, borderColor: Colors.border }]}>
-                            <View style={styles.statBlock}>
-                                <Text style={[styles.statLabel, { color: Colors.text, opacity: 0.6 }]}>
-                                    Total Value
-                                </Text>
-                                <Text style={[styles.statValueLarge, { color: Colors.text }]}>
-                                    A${(portfolioStats.totalValue / 1000).toFixed(0)}K
-                                </Text>
-                            </View>
-                            <View style={[styles.statDivider, { backgroundColor: Colors.border }]} />
-                            <View style={styles.statBlock}>
-                                <Text style={[styles.statLabel, { color: Colors.text, opacity: 0.6 }]}>
-                                    Total Return
-                                </Text>
-                                <Text style={[styles.statValueLarge, { color: portfolioStats.returnPercent >= 0 ? '#2E7D32' : '#C62828' }]}>
-                                    {portfolioStats.returnPercent >= 0 ? '+' : ''}{portfolioStats.returnPercent.toFixed(2)}%
-                                </Text>
+                        {/* Wallet and Holdings - Stacked */}
+                        <View style={[styles.walletHoldingsContainer, { backgroundColor: Colors.card, borderColor: Colors.border }]}>
+                            <View style={styles.walletHoldingRow}>
+                                <View style={styles.walletHoldingItem}>
+                                    <Text style={[styles.walletHoldingLabel, { color: Colors.text, opacity: 0.6 }]}>
+                                        Total
+                                    </Text>
+                                    <Text style={[styles.totalReturnValue, { color: Colors.text }]}>
+                                        A${((activeAccount?.cashBalance || 0) + (dashboardData?.portfolioOverview.holdingsValue || 0)).toLocaleString('en-AU', { maximumFractionDigits: 0 })}
+                                    </Text>
+                                </View>
+                                <View style={[styles.walletHoldingDivider, { backgroundColor: Colors.border }]} />
+                                <View style={styles.walletHoldingItem}>
+                                    <Text style={[styles.walletHoldingLabel, { color: Colors.text, opacity: 0.6 }]}>
+                                        % Return
+                                    </Text>
+                                    <Text style={[styles.totalReturnValue, { color: portfolioStats.returnPercent >= 0 ? '#2E7D32' : '#C62828' }]}>
+                                        {portfolioStats.returnPercent >= 0 ? '+' : ''}{portfolioStats.returnPercent.toFixed(2)}%
+                                    </Text>
+                                </View>
                             </View>
                         </View>
 
                         {/* Detailed Stats */}
                         <View style={[styles.detailedStats, { backgroundColor: Colors.card, borderColor: Colors.border }]}>
+                            <View style={styles.detailRow}>
+                                <Text style={[styles.detailLabel, { color: Colors.text, opacity: 0.6 }]}>
+                                    Wallet Value
+                                </Text>
+                                <Text style={[styles.detailValue, { color: Colors.text }]}>
+                                    A${(activeAccount?.cashBalance || 0).toLocaleString('en-AU', { maximumFractionDigits: 0 })}
+                                </Text>
+                            </View>
+                            <View style={[styles.detailDivider, { backgroundColor: Colors.border }]} />
+                            <View style={styles.detailRow}>
+                                <Text style={[styles.walletHoldingLabel, { color: Colors.text, opacity: 0.6 }]}>
+                                    Holdings Value
+                                </Text>
+                                <Text style={[styles.walletHoldingValue, { color: Colors.text }]}>
+                                    A${(dashboardData?.portfolioOverview.holdingsValue || 0).toLocaleString('en-AU', { maximumFractionDigits: 0 })}
+                                </Text>
+                            </View>
+                            <View style={[styles.detailDivider, { backgroundColor: Colors.border }]} />
                             <View style={styles.detailRow}>
                                 <Text style={[styles.detailLabel, { color: Colors.text, opacity: 0.6 }]}>
                                     Amount Invested
@@ -627,6 +650,64 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         fontStyle: 'italic',
         paddingHorizontal: 12,
+    },
+    walletHoldingsContainer: {
+        borderWidth: 1,
+        borderRadius: 12,
+        overflow: 'hidden',
+    },
+    walletHoldingRow: {
+        flexDirection: 'row',
+    },
+    walletHoldingItem: {
+        flex: 1,
+        paddingVertical: 16,
+        paddingHorizontal: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    walletHoldingLabel: {
+        fontSize: 11,
+        fontWeight: '600',
+        marginBottom: 6,
+    },
+    walletHoldingValue: {
+        fontSize: 14,
+        fontWeight: '700',
+    },
+    walletHoldingDivider: {
+        width: 1,
+    },
+    totalReturnContainer: {
+        flexDirection: 'row',
+        gap: 12,
+    },
+    totalCard: {
+        flex: 1,
+        borderWidth: 1,
+        borderRadius: 12,
+        paddingVertical: 20,
+        paddingHorizontal: 16,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    returnCard: {
+        flex: 1,
+        borderWidth: 1,
+        borderRadius: 12,
+        paddingVertical: 20,
+        paddingHorizontal: 16,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    totalReturnLabel: {
+        fontSize: 11,
+        fontWeight: '600',
+        marginBottom: 8,
+    },
+    totalReturnValue: {
+        fontSize: 18,
+        fontWeight: '800',
     },
     statsGrid: {
         borderWidth: 1,

@@ -17,6 +17,8 @@ import type {
   WatchlistDTO,
   AddToWatchlistRequest,
   PortfolioOverviewDTO,
+  PortfolioSnapshotDTO,
+  CreatePortfolioSnapshotRequest,
 } from '../types/api';
 
 // ============================================================================
@@ -370,6 +372,137 @@ export const getAccountOverview = async (
             requireAuth: true,
         }
     );
+};
+
+// ============================================================================
+// Portfolio Snapshot Management
+// ============================================================================
+
+/**
+ * Get all snapshots for a specific account
+ * @param accountId - UUID of the account
+ * @returns Array of snapshots sorted by date (descending)
+ */
+export const getAccountSnapshots = async (
+  accountId: string
+): Promise<PortfolioSnapshotDTO[]> => {
+  return apiFetch<PortfolioSnapshotDTO[]>(`/api/snapshots/account/${accountId}`, {
+    method: 'GET',
+    requireAuth: true,
+  });
+};
+
+/**
+ * Get a specific snapshot by ID
+ * @param snapshotId - UUID of the snapshot
+ * @returns Snapshot details
+ */
+export const getSnapshotById = async (
+  snapshotId: string
+): Promise<PortfolioSnapshotDTO> => {
+  return apiFetch<PortfolioSnapshotDTO>(`/api/snapshots/${snapshotId}`, {
+    method: 'GET',
+    requireAuth: true,
+  });
+};
+
+/**
+ * Manually generate a snapshot for today for specific account
+ * @param accountId - UUID of the account
+ * @returns Success response
+ */
+export const generateSnapshotForAccount = async (
+  accountId: string
+): Promise<{ message: string; accountId: string }> => {
+  return apiFetch<{ message: string; accountId: string }>(
+    `/api/snapshots/generate/${accountId}`,
+    {
+      method: 'POST',
+      requireAuth: true,
+    }
+  );
+};
+
+/**
+ * Manually generate snapshots for all accounts
+ * @returns Success response with count
+ */
+export const generateSnapshotsForAllAccounts = async (): Promise<{
+  message: string;
+  snapshotsGenerated: number;
+}> => {
+  return apiFetch<{ message: string; snapshotsGenerated: number }>(
+    '/api/snapshots/generate-all',
+    {
+      method: 'POST',
+      requireAuth: true,
+    }
+  );
+};
+
+/**
+ * Create a snapshot manually with provided data
+ * @param snapshot - Snapshot creation data
+ * @returns Created snapshot
+ */
+export const createSnapshot = async (
+  snapshot: CreatePortfolioSnapshotRequest
+): Promise<PortfolioSnapshotDTO> => {
+  return apiFetch<PortfolioSnapshotDTO>('/api/snapshots', {
+    method: 'POST',
+    requireAuth: true,
+    body: JSON.stringify(snapshot),
+  });
+};
+
+/**
+ * Delete a snapshot
+ * @param snapshotId - UUID of the snapshot
+ * @returns void (204 No Content)
+ */
+export const deleteSnapshot = async (snapshotId: string): Promise<void> => {
+  return apiFetch<void>(`/api/snapshots/${snapshotId}`, {
+    method: 'DELETE',
+    requireAuth: true,
+  });
+};
+
+/**
+ * Fetch chart data for dashboard (snapshots + current value)
+ * Combines historical snapshots with today's real-time portfolio value
+ * @param accountId - UUID of the account
+ * @returns Array of chart points with date and value
+ */
+export const getPortfolioChartData = async (
+  accountId: string
+): Promise<Array<{ date: string; value: number; isLive: boolean }>> => {
+  // Fetch historical snapshots
+  const snapshots = await getAccountSnapshots(accountId);
+
+  // Fetch today's real-time value
+  const overview = await getAccountOverview(accountId);
+
+  // Map historical snapshots to chart points
+  const historicalPoints = snapshots.map((snapshot) => ({
+    date: snapshot.snapshotDate,
+    value: snapshot.totalValue,
+    isLive: false,
+  }));
+
+  // Add today's live value
+  const today = new Date().toISOString().split('T')[0];
+  const todayPoint = {
+    date: today,
+    value: overview.totalPortfolioValue,
+    isLive: true,
+  };
+
+  // Combine and sort by date
+  const chartData = [...historicalPoints, todayPoint].sort(
+    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+  );
+
+  return chartData;
 };
 
 // ============================================================================
