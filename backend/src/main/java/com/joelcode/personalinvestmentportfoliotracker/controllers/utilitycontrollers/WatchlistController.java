@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -31,7 +32,7 @@ public class WatchlistController {
     private final FinnhubApiClient finnhubApiClient;
 
     public WatchlistController(WatchlistRepository watchlistRepository, StockRepository stockRepository,
-                             FinnhubApiClient finnhubApiClient) {
+                               FinnhubApiClient finnhubApiClient) {
         this.watchlistRepository = watchlistRepository;
         this.stockRepository = stockRepository;
         this.finnhubApiClient = finnhubApiClient;
@@ -55,8 +56,8 @@ public class WatchlistController {
                     BigDecimal previousPrice = stock.getStockValue();
                     BigDecimal change = currentPrice.subtract(previousPrice);
                     BigDecimal changePercent = previousPrice.compareTo(BigDecimal.ZERO) > 0
-                        ? change.divide(previousPrice, 4, java.math.RoundingMode.HALF_UP).multiply(new BigDecimal(100))
-                        : BigDecimal.ZERO;
+                            ? change.divide(previousPrice, 4, java.math.RoundingMode.HALF_UP).multiply(new BigDecimal(100))
+                            : BigDecimal.ZERO;
 
                     return new WatchlistItemDTO(
                             w.getWatchlistId(),
@@ -78,10 +79,11 @@ public class WatchlistController {
     // POST /api/watchlist - Add to watchlist
     @PostMapping
     @PreAuthorize("isAuthenticated()")
+    @Transactional
     public ResponseEntity<?> addToWatchlist(@RequestBody Map<String, String> request, Authentication authentication) {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         User user = userDetails.getUser();
-        
+
         String stockIdStr = request.get("stockId");
         if (stockIdStr == null) {
             return ResponseEntity.badRequest().body("stockId is required");
@@ -106,8 +108,8 @@ public class WatchlistController {
         BigDecimal previousPrice = stock.getStockValue();
         BigDecimal change = currentPrice.subtract(previousPrice);
         BigDecimal changePercent = previousPrice.compareTo(BigDecimal.ZERO) > 0
-            ? change.divide(previousPrice, 4, java.math.RoundingMode.HALF_UP).multiply(new BigDecimal(100))
-            : BigDecimal.ZERO;
+                ? change.divide(previousPrice, 4, java.math.RoundingMode.HALF_UP).multiply(new BigDecimal(100))
+                : BigDecimal.ZERO;
 
         WatchlistItemDTO dto = new WatchlistItemDTO(
                 watchlist.getWatchlistId(),
@@ -127,6 +129,7 @@ public class WatchlistController {
     // DELETE /api/watchlist/{stockId} - Remove from watchlist
     @DeleteMapping("/{stockId}")
     @PreAuthorize("isAuthenticated()")
+    @Transactional  // ✅ ADD THIS - Critical for delete operations
     public ResponseEntity<Void> removeFromWatchlist(@PathVariable UUID stockId, Authentication authentication) {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         User user = userDetails.getUser();

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
     View,
     Text,
@@ -6,142 +6,38 @@ import {
     ScrollView,
     TouchableOpacity,
     useColorScheme,
-    Dimensions,
     Alert,
+    ActivityIndicator,
+    RefreshControl,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { getThemeColors } from '@/src/constants/colors';
 import { useRouter } from 'expo-router';
+import { getWatchlist, removeFromWatchlist } from '@/src/services/portfolioService';
+import { useFocusEffect } from '@react-navigation/native';
 
 interface WatchlistStock {
-    id: string;
+    watchlistId: string;
+    userId: string;
+    stockId: string;
     symbol: string;
     name: string;
     price: number;
     change: number;
     changePercent: number;
-    sector: string;
-    dayHigh: number;
-    dayLow: number;
+    addedAt: string;
 }
-
-interface SortOption {
-    field: 'symbol' | 'price' | 'changePercent' | 'sector';
-    order: 'asc' | 'desc';
-}
-
-const sectorColors = {
-    'Technology': { color: '#0369A1', bgLight: '#EFF6FF' },
-    'Semiconductors': { color: '#B45309', bgLight: '#FEF3C7' },
-    'FinTech': { color: '#15803D', bgLight: '#F0FDF4' },
-    'Consumer/Tech': { color: '#6D28D9', bgLight: '#F5F3FF' },
-    'Healthcare': { color: '#BE123C', bgLight: '#FFE4E6' },
-    'Market': { color: '#EA580C', bgLight: '#FFEDD5' },
-};
-
-const defaultWatchlist: WatchlistStock[] = [
-    {
-        id: '1',
-        symbol: 'AAPL',
-        name: 'Apple Inc.',
-        price: 195.50,
-        change: 2.50,
-        changePercent: 1.30,
-        sector: 'Technology',
-        dayHigh: 198.75,
-        dayLow: 193.25,
-    },
-    {
-        id: '2',
-        symbol: 'MSFT',
-        name: 'Microsoft Corporation',
-        price: 380.50,
-        change: 5.25,
-        changePercent: 1.40,
-        sector: 'Technology',
-        dayHigh: 385.00,
-        dayLow: 375.00,
-    },
-    {
-        id: '3',
-        symbol: 'NVDA',
-        name: 'NVIDIA Corporation',
-        price: 892.50,
-        change: 25.30,
-        changePercent: 2.92,
-        sector: 'Semiconductors',
-        dayHigh: 910.00,
-        dayLow: 880.00,
-    },
-    {
-        id: '4',
-        symbol: 'TSLA',
-        name: 'Tesla Inc.',
-        price: 245.30,
-        change: -3.50,
-        changePercent: -1.41,
-        sector: 'Consumer/Tech',
-        dayHigh: 250.00,
-        dayLow: 242.00,
-    },
-    {
-        id: '5',
-        symbol: 'GOOGL',
-        name: 'Alphabet Inc.',
-        price: 140.75,
-        change: 2.10,
-        changePercent: 1.52,
-        sector: 'Technology',
-        dayHigh: 143.00,
-        dayLow: 138.50,
-    },
-    {
-        id: '6',
-        symbol: 'AMZN',
-        name: 'Amazon.com Inc.',
-        price: 170.90,
-        change: 3.20,
-        changePercent: 1.91,
-        sector: 'Market',
-        dayHigh: 174.00,
-        dayLow: 168.00,
-    },
-    {
-        id: '7',
-        symbol: 'AMD',
-        name: 'Advanced Micro Devices',
-        price: 165.45,
-        change: 4.50,
-        changePercent: 2.79,
-        sector: 'Semiconductors',
-        dayHigh: 168.00,
-        dayLow: 162.00,
-    },
-    {
-        id: '8',
-        symbol: 'META',
-        name: 'Meta Platforms',
-        price: 480.25,
-        change: 8.75,
-        changePercent: 1.86,
-        sector: 'Technology',
-        dayHigh: 490.00,
-        dayLow: 475.00,
-    },
-];
 
 const WatchlistCard = ({
                            stock,
                            colors,
-                           sectorColor,
                            onRemove,
-                           onAddToPortfolio,
+                           isRemoving,
                        }: {
     stock: WatchlistStock;
     colors: any;
-    sectorColor: any;
-    onRemove: (id: string) => void;
-    onAddToPortfolio: (stock: WatchlistStock) => void;
+    onRemove: (stockId: string) => void;
+    isRemoving: boolean;
 }) => {
     const router = useRouter();
     const isPositive = stock.changePercent >= 0;
@@ -154,21 +50,7 @@ const WatchlistCard = ({
             price: stock.price,
             change: stock.change,
             changePercent: stock.changePercent,
-            sector: stock.sector,
-            marketCap: '0',
-            peRatio: '0',
-            dividend: '0',
-            dayHigh: stock.dayHigh,
-            dayLow: stock.dayLow,
-            yearHigh: 0,
-            yearLow: 0,
-            description: '',
-            employees: '',
-            founded: '',
-            website: '',
-            nextEarningsDate: '',
-            nextDividendDate: '',
-            earningsPerShare: '',
+            stockId: stock.stockId,
         };
 
         router.push({
@@ -181,27 +63,29 @@ const WatchlistCard = ({
 
     return (
         <TouchableOpacity
-            onPress={() => setExpanded(!expanded)}
+            onPress={() => !isRemoving && setExpanded(!expanded)}
             style={[
                 styles.watchlistCard,
                 {
                     backgroundColor: colors.card,
                     borderColor: colors.border,
                     maxHeight: expanded ? 280 : 100,
+                    opacity: isRemoving ? 0.5 : 1,
                 }
             ]}
             activeOpacity={0.7}
+            disabled={isRemoving}
         >
             {/* Header Row */}
             <View style={styles.cardHeader}>
                 <View style={styles.cardLeft}>
-                    <View style={[styles.sectorBadge, { backgroundColor: sectorColor.bgLight }]}>
-                        <Text style={[styles.sectorBadgeText, { color: sectorColor.color }]}>
-                            {stock.sector.slice(0, 1)}
+                    <View style={[styles.sectorBadge, { backgroundColor: '#EFF6FF' }]}>
+                        <Text style={[styles.sectorBadgeText, { color: '#0369A1' }]}>
+                            {stock.symbol.slice(0, 1)}
                         </Text>
                     </View>
                     <View style={styles.stockInfo}>
-                        <Text style={[styles.symbol, { color: sectorColor.color }]}>
+                        <Text style={[styles.symbol, { color: '#0369A1' }]}>
                             {stock.symbol}
                         </Text>
                         <Text style={[styles.name, { color: colors.text, opacity: 0.7 }]} numberOfLines={1}>
@@ -230,30 +114,22 @@ const WatchlistCard = ({
             {/* Expanded Content */}
             {expanded && (
                 <View style={[styles.expandedContent, { borderTopColor: colors.border }]}>
-                    {/* Day Range */}
+                    {/* Stats */}
                     <View style={styles.rangeSection}>
-                        <View style={styles.rangeItem}>
-                            <Text style={[styles.rangeLabel, { color: colors.text, opacity: 0.6 }]}>
-                                Day Low
-                            </Text>
-                            <Text style={[styles.rangeValue, { color: colors.text }]}>
-                                A${stock.dayLow.toFixed(2)}
-                            </Text>
-                        </View>
-                        <View style={styles.rangeItem}>
-                            <Text style={[styles.rangeLabel, { color: colors.text, opacity: 0.6 }]}>
-                                Day High
-                            </Text>
-                            <Text style={[styles.rangeValue, { color: colors.text }]}>
-                                A${stock.dayHigh.toFixed(2)}
-                            </Text>
-                        </View>
                         <View style={styles.rangeItem}>
                             <Text style={[styles.rangeLabel, { color: colors.text, opacity: 0.6 }]}>
                                 Change
                             </Text>
                             <Text style={[styles.rangeValue, { color: isPositive ? '#2E7D32' : '#C62828' }]}>
                                 {isPositive ? '+' : ''}A${stock.change.toFixed(2)}
+                            </Text>
+                        </View>
+                        <View style={styles.rangeItem}>
+                            <Text style={[styles.rangeLabel, { color: colors.text, opacity: 0.6 }]}>
+                                Current Price
+                            </Text>
+                            <Text style={[styles.rangeValue, { color: colors.text }]}>
+                                A${stock.price.toFixed(2)}
                             </Text>
                         </View>
                     </View>
@@ -263,16 +139,24 @@ const WatchlistCard = ({
                         <TouchableOpacity
                             onPress={handleInvest}
                             style={[styles.actionButton, { backgroundColor: colors.tint }]}
+                            disabled={isRemoving}
                         >
                             <MaterialCommunityIcons name="plus" size={16} color="white" />
                             <Text style={styles.actionButtonText}>Invest</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
-                            onPress={() => onRemove(stock.id)}
+                            onPress={() => onRemove(stock.stockId)}
                             style={[styles.actionButton, { backgroundColor: '#FCE4E4' }]}
+                            disabled={isRemoving}
                         >
-                            <MaterialCommunityIcons name="trash-can-outline" size={16} color="#C62828" />
-                            <Text style={[styles.actionButtonText, { color: '#C62828' }]}>Remove</Text>
+                            {isRemoving ? (
+                                <ActivityIndicator size="small" color="#C62828" />
+                            ) : (
+                                <>
+                                    <MaterialCommunityIcons name="trash-can-outline" size={16} color="#C62828" />
+                                    <Text style={[styles.actionButtonText, { color: '#C62828' }]}>Remove</Text>
+                                </>
+                            )}
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -294,24 +178,75 @@ const WatchlistCard = ({
 export default function WatchlistScreen() {
     const colorScheme = useColorScheme();
     const Colors = getThemeColors(colorScheme);
-    const [watchlist, setWatchlist] = useState(defaultWatchlist);
-    const [sortBy, setSortBy] = useState<'symbol' | 'price' | 'changePercent' | 'sector'>('symbol');
+    const [watchlist, setWatchlist] = useState<WatchlistStock[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+    const [removingStockId, setRemovingStockId] = useState<string | null>(null);
+    const [sortBy, setSortBy] = useState<'symbol' | 'price' | 'changePercent'>('symbol');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
-    const [selectedSector, setSelectedSector] = useState<string | null>(null);
 
-    // Get unique sectors
-    const sectors = Array.from(new Set(watchlist.map(s => s.sector)));
+    // Load watchlist from API with proper error handling
+    const loadWatchlist = useCallback(async (showLoading = true) => {
+        try {
+            if (showLoading) setLoading(true);
+            const data = await getWatchlist();
 
-    // Filter and sort watchlist
-    const filteredAndSortedWatchlist = useMemo(() => {
+            // Transform API data to component format with null safety
+            const formattedData: WatchlistStock[] = data.map(item => {
+                // Safe parsing with fallback values
+                const price = item.currentPrice != null ? parseFloat(item.currentPrice.toString()) : 0;
+                const change = item.change != null ? parseFloat(item.change.toString()) : 0;
+                const changePercent = item.changePercent != null ? parseFloat(item.changePercent.toString()) : 0;
+
+                return {
+                    watchlistId: item.watchlistId || '',
+                    userId: item.userId || '',
+                    stockId: item.stockId || '',
+                    symbol: item.stockCode || 'N/A',
+                    name: item.companyName || 'Unknown Company',
+                    price,
+                    change,
+                    changePercent,
+                    addedAt: item.addedAt || new Date().toISOString(),
+                };
+            });
+
+            setWatchlist(formattedData);
+        } catch (error) {
+            console.error('Error loading watchlist:', error);
+            Alert.alert(
+                'Error',
+                'Failed to load watchlist. Please check your connection and try again.',
+                [{ text: 'OK' }]
+            );
+        } finally {
+            if (showLoading) setLoading(false);
+        }
+    }, []);
+
+    // Initial load
+    useEffect(() => {
+        loadWatchlist();
+    }, [loadWatchlist]);
+
+    // Reload when screen comes into focus (e.g., after adding a stock)
+    useFocusEffect(
+        useCallback(() => {
+            loadWatchlist(false);
+        }, [loadWatchlist])
+    );
+
+    // Pull to refresh handler
+    const onRefresh = useCallback(async () => {
+        setRefreshing(true);
+        await loadWatchlist(false);
+        setRefreshing(false);
+    }, [loadWatchlist]);
+
+    // Sort watchlist
+    const sortedWatchlist = useMemo(() => {
         let results = [...watchlist];
 
-        // Filter by sector
-        if (selectedSector) {
-            results = results.filter(stock => stock.sector === selectedSector);
-        }
-
-        // Sort
         results.sort((a, b) => {
             let aVal: any = a[sortBy];
             let bVal: any = b[sortBy];
@@ -329,42 +264,72 @@ export default function WatchlistScreen() {
         });
 
         return results;
-    }, [watchlist, sortBy, sortOrder, selectedSector]);
+    }, [watchlist, sortBy, sortOrder]);
 
-    const handleRemoveFromWatchlist = (id: string) => {
+    // Handle remove from watchlist
+    const handleRemoveFromWatchlist = async (stockId: string) => {
+        const stock = watchlist.find(s => s.stockId === stockId);
+
         Alert.alert(
             'Remove from Watchlist',
-            'Are you sure you want to remove this stock?',
+            `Are you sure you want to remove ${stock?.symbol || 'this stock'} from your watchlist?`,
             [
-                { text: 'Cancel', onPress: () => {}, style: 'cancel' },
+                {
+                    text: 'Cancel',
+                    style: 'cancel'
+                },
                 {
                     text: 'Remove',
-                    onPress: () => {
-                        setWatchlist(prev => prev.filter(stock => stock.id !== id));
-                    },
                     style: 'destructive',
-                },
-            ]
-        );
-    };
+                    onPress: async () => {
+                        try {
+                            setRemovingStockId(stockId);
 
-    const handleAddToPortfolio = (stock: WatchlistStock) => {
-        Alert.alert(
-            'Add to Portfolio',
-            `Add ${stock.symbol} to your portfolio?`,
-            [
-                { text: 'Cancel', onPress: () => {}, style: 'cancel' },
-                {
-                    text: 'Add',
-                    onPress: () => {
-                        Alert.alert('Success', `${stock.symbol} added to portfolio!`);
+                            // Call API to remove from backend
+                            await removeFromWatchlist(stockId);
+
+                            // Update local state
+                            setWatchlist(prev => prev.filter(s => s.stockId !== stockId));
+
+                            // Show success message (optional, comment out if too intrusive)
+                            // Alert.alert('Success', 'Stock removed from watchlist');
+                        } catch (error: any) {
+                            console.error('Error removing from watchlist:', error);
+
+                            // Extract more helpful error message
+                            let errorMessage = 'Failed to remove stock. Please try again.';
+
+                            if (error?.message) {
+                                if (error.message.includes('transaction')) {
+                                    errorMessage = 'Server configuration error. Please contact support or try again later.';
+                                } else if (error.message.includes('Unauthorized')) {
+                                    errorMessage = 'Your session has expired. Please log in again.';
+                                } else if (error.message.includes('Not Found')) {
+                                    errorMessage = 'Stock not found in watchlist.';
+                                } else {
+                                    errorMessage = error.message;
+                                }
+                            }
+
+                            Alert.alert(
+                                'Error',
+                                errorMessage,
+                                [{ text: 'OK' }]
+                            );
+
+                            // Reload the list to ensure consistency
+                            await loadWatchlist(false);
+                        } finally {
+                            setRemovingStockId(null);
+                        }
                     },
                 },
             ]
         );
     };
 
-    const toggleSortOrder = (field: 'symbol' | 'price' | 'changePercent' | 'sector') => {
+    // Toggle sort order
+    const toggleSortOrder = (field: 'symbol' | 'price' | 'changePercent') => {
         if (sortBy === field) {
             setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
         } else {
@@ -372,6 +337,18 @@ export default function WatchlistScreen() {
             setSortOrder('asc');
         }
     };
+
+    // Loading state
+    if (loading) {
+        return (
+            <View style={[styles.container, styles.centerContent, { backgroundColor: Colors.background }]}>
+                <ActivityIndicator size="large" color={Colors.tint} />
+                <Text style={[styles.loadingText, { color: Colors.text }]}>
+                    Loading watchlist...
+                </Text>
+            </View>
+        );
+    }
 
     return (
         <View style={[styles.container, { backgroundColor: Colors.background }]}>
@@ -381,154 +358,128 @@ export default function WatchlistScreen() {
                     My Watchlist
                 </Text>
                 <Text style={[styles.subtitle, { color: Colors.text, opacity: 0.6 }]}>
-                    {filteredAndSortedWatchlist.length} stocks
+                    {sortedWatchlist.length} {sortedWatchlist.length === 1 ? 'stock' : 'stocks'}
                 </Text>
             </View>
 
             {/* Stats Row */}
-            <View style={[styles.statsRow, { backgroundColor: Colors.card, borderColor: Colors.border }]}>
-                <View style={styles.statItem}>
-                    <Text style={[styles.statLabel, { color: Colors.text, opacity: 0.6 }]}>
-                        Watching
-                    </Text>
-                    <Text style={[styles.statValue, { color: Colors.text }]}>
-                        {watchlist.length}
-                    </Text>
-                </View>
-                <View style={[styles.statDivider, { backgroundColor: Colors.border }]} />
-                <View style={styles.statItem}>
-                    <Text style={[styles.statLabel, { color: Colors.text, opacity: 0.6 }]}>
-                        Avg Change
-                    </Text>
-                    <Text style={[styles.statValue, { color: watchlist.reduce((sum, s) => sum + s.changePercent, 0) / watchlist.length >= 0 ? '#2E7D32' : '#C62828' }]}>
-                        {(watchlist.reduce((sum, s) => sum + s.changePercent, 0) / watchlist.length).toFixed(2)}%
-                    </Text>
-                </View>
-            </View>
-
-            {/* Sector Filter */}
-            <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={styles.sectorFilter}
-                contentContainerStyle={styles.sectorFilterContent}
-            >
-                <TouchableOpacity
-                    onPress={() => setSelectedSector(null)}
-                    style={[
-                        styles.sectorFilterButton,
-                        selectedSector === null && { backgroundColor: Colors.tint }
-                    ]}
-                >
-                    <Text
-                        style={[
-                            styles.sectorFilterText,
-                            selectedSector === null && { color: 'white', fontWeight: '700' }
-                        ]}
-                    >
-                        All
-                    </Text>
-                </TouchableOpacity>
-                {sectors.map(sector => (
-                    <TouchableOpacity
-                        key={sector}
-                        onPress={() => setSelectedSector(selectedSector === sector ? null : sector)}
-                        style={[
-                            styles.sectorFilterButton,
-                            selectedSector === sector && { backgroundColor: Colors.tint }
-                        ]}
-                    >
-                        <Text
-                            style={[
-                                styles.sectorFilterText,
-                                selectedSector === sector && { color: 'white', fontWeight: '700' }
-                            ]}
-                        >
-                            {sector}
+            {watchlist.length > 0 && (
+                <View style={[styles.statsRow, { backgroundColor: Colors.card, borderColor: Colors.border }]}>
+                    <View style={styles.statItem}>
+                        <Text style={[styles.statLabel, { color: Colors.text, opacity: 0.6 }]}>
+                            Watching
                         </Text>
-                    </TouchableOpacity>
-                ))}
-            </ScrollView>
+                        <Text style={[styles.statValue, { color: Colors.text }]}>
+                            {watchlist.length}
+                        </Text>
+                    </View>
+                    <View style={[styles.statDivider, { backgroundColor: Colors.border }]} />
+                    <View style={styles.statItem}>
+                        <Text style={[styles.statLabel, { color: Colors.text, opacity: 0.6 }]}>
+                            Avg Change
+                        </Text>
+                        <Text style={[
+                            styles.statValue,
+                            {
+                                color: watchlist.reduce((sum, s) => sum + s.changePercent, 0) / watchlist.length >= 0
+                                    ? '#2E7D32'
+                                    : '#C62828'
+                            }
+                        ]}>
+                            {(watchlist.reduce((sum, s) => sum + s.changePercent, 0) / watchlist.length).toFixed(2)}%
+                        </Text>
+                    </View>
+                </View>
+            )}
 
             {/* Sort Options */}
-            <View style={styles.sortContainer}>
-                <TouchableOpacity
-                    onPress={() => toggleSortOrder('symbol')}
-                    style={[styles.sortButton, sortBy === 'symbol' && { backgroundColor: Colors.tint }]}
-                >
-                    <MaterialCommunityIcons
-                        name="sort-ascending"
-                        size={14}
-                        color={sortBy === 'symbol' ? 'white' : Colors.text}
-                    />
-                    <Text style={[styles.sortButtonText, sortBy === 'symbol' && { color: 'white', fontWeight: '700' }]}>
-                        Symbol
-                    </Text>
-                </TouchableOpacity>
+            {watchlist.length > 0 && (
+                <View style={styles.sortContainer}>
+                    <TouchableOpacity
+                        onPress={() => toggleSortOrder('symbol')}
+                        style={[
+                            styles.sortButton,
+                            sortBy === 'symbol' && { backgroundColor: Colors.tint }
+                        ]}
+                    >
+                        <MaterialCommunityIcons
+                            name="sort-ascending"
+                            size={14}
+                            color={sortBy === 'symbol' ? 'white' : Colors.text}
+                        />
+                        <Text style={[
+                            styles.sortButtonText,
+                            sortBy === 'symbol' && { color: 'white', fontWeight: '700' }
+                        ]}>
+                            Symbol
+                        </Text>
+                    </TouchableOpacity>
 
-                <TouchableOpacity
-                    onPress={() => toggleSortOrder('price')}
-                    style={[styles.sortButton, sortBy === 'price' && { backgroundColor: Colors.tint }]}
-                >
-                    <MaterialCommunityIcons
-                        name="currency-usd"
-                        size={14}
-                        color={sortBy === 'price' ? 'white' : Colors.text}
-                    />
-                    <Text style={[styles.sortButtonText, sortBy === 'price' && { color: 'white', fontWeight: '700' }]}>
-                        Price
-                    </Text>
-                </TouchableOpacity>
+                    <TouchableOpacity
+                        onPress={() => toggleSortOrder('price')}
+                        style={[
+                            styles.sortButton,
+                            sortBy === 'price' && { backgroundColor: Colors.tint }
+                        ]}
+                    >
+                        <MaterialCommunityIcons
+                            name="currency-usd"
+                            size={14}
+                            color={sortBy === 'price' ? 'white' : Colors.text}
+                        />
+                        <Text style={[
+                            styles.sortButtonText,
+                            sortBy === 'price' && { color: 'white', fontWeight: '700' }
+                        ]}>
+                            Price
+                        </Text>
+                    </TouchableOpacity>
 
-                <TouchableOpacity
-                    onPress={() => toggleSortOrder('changePercent')}
-                    style={[styles.sortButton, sortBy === 'changePercent' && { backgroundColor: Colors.tint }]}
-                >
-                    <MaterialCommunityIcons
-                        name="percent"
-                        size={14}
-                        color={sortBy === 'changePercent' ? 'white' : Colors.text}
-                    />
-                    <Text style={[styles.sortButtonText, sortBy === 'changePercent' && { color: 'white', fontWeight: '700' }]}>
-                        Change
-                    </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                    onPress={() => toggleSortOrder('sector')}
-                    style={[styles.sortButton, sortBy === 'sector' && { backgroundColor: Colors.tint }]}
-                >
-                    <MaterialCommunityIcons
-                        name="tag"
-                        size={14}
-                        color={sortBy === 'sector' ? 'white' : Colors.text}
-                    />
-                    <Text style={[styles.sortButtonText, sortBy === 'sector' && { color: 'white', fontWeight: '700' }]}>
-                        Sector
-                    </Text>
-                </TouchableOpacity>
-            </View>
+                    <TouchableOpacity
+                        onPress={() => toggleSortOrder('changePercent')}
+                        style={[
+                            styles.sortButton,
+                            sortBy === 'changePercent' && { backgroundColor: Colors.tint }
+                        ]}
+                    >
+                        <MaterialCommunityIcons
+                            name="percent"
+                            size={14}
+                            color={sortBy === 'changePercent' ? 'white' : Colors.text}
+                        />
+                        <Text style={[
+                            styles.sortButtonText,
+                            sortBy === 'changePercent' && { color: 'white', fontWeight: '700' }
+                        ]}>
+                            Change
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+            )}
 
             {/* Watchlist Items */}
-            {filteredAndSortedWatchlist.length > 0 ? (
+            {sortedWatchlist.length > 0 ? (
                 <ScrollView
                     style={styles.listContainer}
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={styles.listContent}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={onRefresh}
+                            tintColor={Colors.tint}
+                        />
+                    }
                 >
-                    {filteredAndSortedWatchlist.map(stock => {
-                        const sectorColor = sectorColors[stock.sector as keyof typeof sectorColors] || sectorColors['Technology'];
-                        return (
-                            <WatchlistCard
-                                key={stock.id}
-                                stock={stock}
-                                colors={Colors}
-                                sectorColor={sectorColor}
-                                onRemove={handleRemoveFromWatchlist}
-                                onAddToPortfolio={handleAddToPortfolio}
-                            />
-                        );
-                    })}
+                    {sortedWatchlist.map(stock => (
+                        <WatchlistCard
+                            key={stock.watchlistId}
+                            stock={stock}
+                            colors={Colors}
+                            onRemove={handleRemoveFromWatchlist}
+                            isRemoving={removingStockId === stock.stockId}
+                        />
+                    ))}
                 </ScrollView>
             ) : (
                 <View style={styles.emptyState}>
@@ -554,6 +505,15 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         marginTop: -40,
+    },
+    centerContent: {
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    loadingText: {
+        marginTop: 12,
+        fontSize: 14,
+        fontWeight: '600',
     },
     header: {
         paddingHorizontal: 12,
@@ -591,24 +551,6 @@ const styles = StyleSheet.create({
     statDivider: {
         width: 1,
         height: 40,
-    },
-    sectorFilter: {
-        marginBottom: 12,
-    },
-    sectorFilterContent: {
-        gap: 8,
-        paddingRight: 12,
-    },
-    sectorFilterButton: {
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 8,
-        backgroundColor: '#F0F0F0',
-    },
-    sectorFilterText: {
-        fontSize: 12,
-        fontWeight: '600',
-        color: '#666',
     },
     sortContainer: {
         paddingHorizontal: 24,

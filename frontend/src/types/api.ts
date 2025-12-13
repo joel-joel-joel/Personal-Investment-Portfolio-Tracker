@@ -265,15 +265,44 @@ export interface DashboardDTO {
 // ============================================================================
 
 export interface WatchlistDTO {
-  watchlistId: string;       // UUID
-  userId: string;            // UUID
-  stockId: string;           // UUID
-  stockSymbol: string;
-  addedAt: string;           // ISO 8601 timestamp
+    watchlistId: string;
+    userId: string;
+    stockId: string;
+    stockCode: string;
+    companyName: string;
+    currentPrice: number | null;
+    change: number | null;
+    changePercent: number | null;
+    addedAt: string;
 }
 
 export interface AddToWatchlistRequest {
-  stockId: string;           // UUID
+    stockId: string;
+}
+
+export interface WatchlistCheckResponse {
+    inWatchlist: boolean;
+}
+
+// Internal component types
+export interface WatchlistStock {
+    watchlistId: string;
+    userId: string;
+    stockId: string;
+    symbol: string;
+    name: string;
+    price: number;
+    change: number;
+    changePercent: number;
+    addedAt: string;
+}
+
+export type WatchlistSortField = 'symbol' | 'price' | 'changePercent';
+export type SortOrder = 'asc' | 'desc';
+
+export interface WatchlistSortOption {
+    field: WatchlistSortField;
+    order: SortOrder;
 }
 
 // ============================================================================

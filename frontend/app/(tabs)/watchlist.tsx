@@ -2,7 +2,7 @@ import {View, useColorScheme, ScrollView} from 'react-native';
 import { getThemeColors } from '@/src/constants/colors';
 import { HeaderSection } from '@/src/components/home/HeaderSection';
 import WatchListScreenBackendIntegrated from '@/src/components/watchlist/WatchlistScreenBackendIntegrated';
-
+import WatchListScreen from '@/src/components/watchlist/WatchlistScreen';
 
 
 export default function WatchList() {
@@ -13,7 +13,7 @@ export default function WatchList() {
         <View style={{ flex: 1, backgroundColor: Colors.background, padding: 24 }}>
             <ScrollView showsVerticalScrollIndicator={false}>
                 <HeaderSection />
-                <WatchListScreenBackendIntegrated/>
+                <WatchListScreen/>
             </ScrollView>
         </View>
     );

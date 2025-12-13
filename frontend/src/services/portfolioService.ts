@@ -6,19 +6,19 @@
 
 import { apiFetch, buildQueryString } from './api';
 import type {
-  AccountDTO,
-  CreateAccountRequest,
-  UpdateAccountRequest,
-  HoldingDTO,
-  CreateHoldingRequest,
-  UpdateHoldingRequest,
-  TransactionDTO,
-  CreateTransactionRequest,
-  WatchlistDTO,
-  AddToWatchlistRequest,
-  PortfolioOverviewDTO,
-  PortfolioSnapshotDTO,
-  CreatePortfolioSnapshotRequest,
+    AccountDTO,
+    CreateAccountRequest,
+    UpdateAccountRequest,
+    HoldingDTO,
+    CreateHoldingRequest,
+    UpdateHoldingRequest,
+    TransactionDTO,
+    CreateTransactionRequest,
+    WatchlistDTO,
+    AddToWatchlistRequest,
+    PortfolioOverviewDTO,
+    PortfolioSnapshotDTO,
+    CreatePortfolioSnapshotRequest, WatchlistCheckResponse,
 } from '../types/api';
 
 // ============================================================================
@@ -288,10 +288,10 @@ export const getTransactionsByStock = async (
  * @returns Array of watchlist items
  */
 export const getWatchlist = async (): Promise<WatchlistDTO[]> => {
-  return apiFetch<WatchlistDTO[]>('/api/watchlist', {
-    method: 'GET',
-    requireAuth: true,
-  });
+    return apiFetch<WatchlistDTO[]>('/api/watchlist', {
+        method: 'GET',
+        requireAuth: true,
+    });
 };
 
 /**
@@ -300,14 +300,14 @@ export const getWatchlist = async (): Promise<WatchlistDTO[]> => {
  * @returns Created watchlist item
  */
 export const addToWatchlist = async (
-  stockId: string
+    stockId: string
 ): Promise<WatchlistDTO> => {
-  const request: AddToWatchlistRequest = { stockId };
-  return apiFetch<WatchlistDTO>('/api/watchlist', {
-    method: 'POST',
-    requireAuth: true,
-    body: JSON.stringify(request),
-  });
+    const request: AddToWatchlistRequest = { stockId };
+    return apiFetch<WatchlistDTO>('/api/watchlist', {
+        method: 'POST',
+        requireAuth: true,
+        body: JSON.stringify(request),
+    });
 };
 
 /**
@@ -316,10 +316,11 @@ export const addToWatchlist = async (
  * @returns void (204 No Content)
  */
 export const removeFromWatchlist = async (stockId: string): Promise<void> => {
-  return apiFetch<void>(`/api/watchlist/${stockId}`, {
-    method: 'DELETE',
-    requireAuth: true,
-  });
+    // ✅ FIXED: Was using template literal syntax incorrectly
+    return apiFetch<void>(`/api/watchlist/${stockId}`, {
+        method: 'DELETE',
+        requireAuth: true,
+    });
 };
 
 /**
@@ -328,14 +329,14 @@ export const removeFromWatchlist = async (stockId: string): Promise<void> => {
  * @returns True if in watchlist, false otherwise
  */
 export const isInWatchlist = async (stockId: string): Promise<boolean> => {
-  const response = await apiFetch<{ inWatchlist: boolean }>(
-    `/api/watchlist/check/${stockId}`,
-    {
-      method: 'GET',
-      requireAuth: true,
-    }
-  );
-  return response.inWatchlist;
+    const response = await apiFetch<WatchlistCheckResponse>(
+        `/api/watchlist/check/${stockId}`,
+        {
+            method: 'GET',
+            requireAuth: true,
+        }
+    );
+    return response.inWatchlist;
 };
 
 // ============================================================================

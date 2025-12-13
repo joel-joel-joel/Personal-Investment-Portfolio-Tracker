@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
     View,
     Text,
@@ -8,13 +8,15 @@ import {
     TouchableOpacity,
     useColorScheme,
     ActivityIndicator,
+    Alert,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { getThemeColors } from '@/src/constants/colors';
 import { useRouter } from 'expo-router';
-import { addToWatchlist, removeFromWatchlist } from '@/src/services/portfolioService';
+import { addToWatchlist, removeFromWatchlist, getWatchlist } from '@/src/services/portfolioService';
 import { getOrCreateStockBySymbol } from '@/src/services/entityService';
 import { FinnhubCompanyProfileDTO, FinnhubQuoteDTO } from '@/src/types/api';
+import { useFocusEffect } from '@react-navigation/native';
 
 // Popular stocks to display on initial load
 const POPULAR_STOCK_SYMBOLS = ['AAPL', 'MSFT', 'NVDA', 'GOOGL', 'TSLA', 'AMZN', 'AMD', 'META'];
@@ -55,12 +57,14 @@ const SearchResultCard = ({
                               sectorColor,
                               isWatchlisted,
                               onToggleWatchlist,
+                              isTogglingWatchlist,
                           }: {
     stock: Stock;
     colors: any;
     sectorColor: any;
     isWatchlisted: boolean;
-    onToggleWatchlist: (stockId: string) => void;
+    onToggleWatchlist: (symbol: string) => void;
+    isTogglingWatchlist: boolean;
 }) => {
     const router = useRouter();
     const isPositive = stock.changePercent >= 0;
@@ -70,8 +74,8 @@ const SearchResultCard = ({
             symbol: stock.symbol,
             name: stock.name,
             price: stock.price || 0,
-            change: stock.change || 0,  // Ensure change is never null
-            changePercent: stock.changePercent || 0,  // Ensure changePercent is never null
+            change: stock.change || 0,
+            changePercent: stock.changePercent || 0,
             sector: stock.sector,
             marketCap: stock.marketCap,
             peRatio: '0',
@@ -103,8 +107,8 @@ const SearchResultCard = ({
             symbol: stock.symbol,
             name: stock.name,
             price: stock.price || 0,
-            change: stock.change || 0,  // Ensure change is never null
-            changePercent: stock.changePercent || 0,  // Ensure changePercent is never null
+            change: stock.change || 0,
+            changePercent: stock.changePercent || 0,
             sector: stock.sector,
             marketCap: stock.marketCap,
             peRatio: '0',
@@ -183,15 +187,26 @@ const SearchResultCard = ({
             {/* Right - Actions */}
             <View style={styles.cardRight}>
                 <TouchableOpacity
-                    onPress={() => onToggleWatchlist(stock.id)}
-                    style={[styles.actionButton, { backgroundColor: isWatchlisted ? colors.tint : colors.tint + '15' }]}
+                    onPress={() => onToggleWatchlist(stock.symbol)}
+                    style={[
+                        styles.actionButton,
+                        {
+                            backgroundColor: isWatchlisted ? colors.tint : colors.tint + '15',
+                            opacity: isTogglingWatchlist ? 0.5 : 1,
+                        }
+                    ]}
                     activeOpacity={0.6}
+                    disabled={isTogglingWatchlist}
                 >
-                    <MaterialCommunityIcons
-                        name={isWatchlisted ? "heart" : "heart-outline"}
-                        size={18}
-                        color={isWatchlisted ? "white" : colors.tint}
-                    />
+                    {isTogglingWatchlist ? (
+                        <ActivityIndicator size="small" color={isWatchlisted ? "white" : colors.tint} />
+                    ) : (
+                        <MaterialCommunityIcons
+                            name={isWatchlisted ? "heart" : "heart-outline"}
+                            size={18}
+                            color={isWatchlisted ? "white" : colors.tint}
+                        />
+                    )}
                 </TouchableOpacity>
                 <TouchableOpacity
                     onPress={handleBuyStock}
@@ -224,11 +239,31 @@ export default function SearchScreen() {
     const [loadingStocks, setLoadingStocks] = useState(true);
     const [searchResults, setSearchResults] = useState<Stock[]>([]);
     const [loadingSearch, setLoadingSearch] = useState(false);
+    const [togglingWatchlistSymbol, setTogglingWatchlistSymbol] = useState<string | null>(null);
+
+    // Load watchlist status
+    const loadWatchlistStatus = useCallback(async () => {
+        try {
+            const watchlistData = await getWatchlist();
+            const watchlistedSymbols = new Set(watchlistData.map(item => item.stockCode));
+            setWatchlistedStocks(watchlistedSymbols);
+        } catch (error) {
+            console.error('Failed to load watchlist status:', error);
+        }
+    }, []);
 
     // Fetch popular stocks on component mount
     useEffect(() => {
         loadPopularStocks();
+        loadWatchlistStatus();
     }, []);
+
+    // Reload watchlist status when screen comes into focus
+    useFocusEffect(
+        useCallback(() => {
+            loadWatchlistStatus();
+        }, [loadWatchlistStatus])
+    );
 
     const loadPopularStocks = async () => {
         setLoadingStocks(true);
@@ -258,7 +293,6 @@ export default function SearchScreen() {
         try {
             const apiUrl = process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:8080';
 
-            // Fetch from your backend endpoints
             const profileResponse = await fetch(
                 `${apiUrl}/api/stocks/finnhub/profile/${symbol}`
             );
@@ -267,23 +301,15 @@ export default function SearchScreen() {
             );
 
             if (!profileResponse.ok || !quoteResponse.ok) {
-                console.warn(`Failed to fetch data for ${symbol}: profile=${profileResponse.ok}, quote=${quoteResponse.ok}`);
+                console.warn(`Failed to fetch data for ${symbol}`);
                 return null;
             }
 
             const profile: FinnhubCompanyProfileDTO = await profileResponse.json();
             const quote: FinnhubQuoteDTO = await quoteResponse.json();
 
-            // Finnhub quote structure:
-            // c = current price
-            // h = high price
-            // l = low price
-            // o = open price
-            // pc = previous close price
-            // t = timestamp
-
             if (!quote || !quote.c || !quote.pc) {
-                console.warn(`Invalid quote data for ${symbol}:`, quote);
+                console.warn(`Invalid quote data for ${symbol}`);
                 return null;
             }
 
@@ -369,30 +395,57 @@ export default function SearchScreen() {
         await handleSearch(query);
     };
 
-    const toggleWatchlist = async (stockId: string) => {
-        const stock = allStocks.find(s => s.id === stockId) || searchResults.find(s => s.id === stockId);
-        if (!stock) return;
+    const toggleWatchlist = async (symbol: string) => {
+        if (togglingWatchlistSymbol) return; // Prevent multiple simultaneous requests
 
         try {
-            const dbStock = await getOrCreateStockBySymbol(stock.symbol);
+            setTogglingWatchlistSymbol(symbol);
 
-            if (watchlistedStocks.has(stockId)) {
+            // Get or create the stock in the database
+            const dbStock = await getOrCreateStockBySymbol(symbol);
+            const isCurrentlyWatchlisted = watchlistedStocks.has(symbol);
+
+            if (isCurrentlyWatchlisted) {
+                // Remove from watchlist
                 await removeFromWatchlist(dbStock.stockId);
                 setWatchlistedStocks(prev => {
                     const newSet = new Set(prev);
-                    newSet.delete(stockId);
+                    newSet.delete(symbol);
                     return newSet;
                 });
             } else {
+                // Add to watchlist
                 await addToWatchlist(dbStock.stockId);
                 setWatchlistedStocks(prev => {
                     const newSet = new Set(prev);
-                    newSet.add(stockId);
+                    newSet.add(symbol);
                     return newSet;
                 });
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Failed to toggle watchlist:', error);
+
+            let errorMessage = 'Failed to update watchlist. Please try again.';
+
+            if (error?.message) {
+                if (error.message.includes('already in watchlist')) {
+                    // Stock is already in watchlist, update UI to reflect this
+                    setWatchlistedStocks(prev => {
+                        const newSet = new Set(prev);
+                        newSet.add(symbol);
+                        return newSet;
+                    });
+                    return; // Don't show error
+                } else if (error.message.includes('Unauthorized')) {
+                    errorMessage = 'Your session has expired. Please log in again.';
+                } else {
+                    errorMessage = error.message;
+                }
+            }
+
+            Alert.alert('Error', errorMessage);
+        } finally {
+            setTogglingWatchlistSymbol(null);
         }
     };
 
@@ -578,8 +631,9 @@ export default function SearchScreen() {
                                     stock={stock}
                                     colors={Colors}
                                     sectorColor={sectorColor}
-                                    isWatchlisted={watchlistedStocks.has(stock.id)}
+                                    isWatchlisted={watchlistedStocks.has(stock.symbol)}
                                     onToggleWatchlist={toggleWatchlist}
+                                    isTogglingWatchlist={togglingWatchlistSymbol === stock.symbol}
                                 />
                             );
                         })}
@@ -609,8 +663,9 @@ export default function SearchScreen() {
                                 stock={stock}
                                 colors={Colors}
                                 sectorColor={sectorColor}
-                                isWatchlisted={watchlistedStocks.has(stock.id)}
+                                isWatchlisted={watchlistedStocks.has(stock.symbol)}
                                 onToggleWatchlist={toggleWatchlist}
+                                isTogglingWatchlist={togglingWatchlistSymbol === stock.symbol}
                             />
                         );
                     })}
